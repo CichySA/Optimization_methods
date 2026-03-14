@@ -7,6 +7,6 @@ namespace PFSP.Algorithms
 {
     public interface IAlgorithm
     {
-        AlgorithmResult Solve(Instance instance, CancellationToken cancellationToken = default);
+        AlgorithmResult Solve(Instance instance, IParameters parameters, CancellationToken cancellationToken = default) ;
     }
 }

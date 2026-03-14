@@ -1,6 +1,5 @@
 using PFSP.Instances;
 using PFSP.Solutions;
-using System;
 
 namespace PFSP.Evaluators
 {
