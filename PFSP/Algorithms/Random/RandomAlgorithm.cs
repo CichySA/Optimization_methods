@@ -16,25 +16,25 @@ namespace PFSP.Algorithms.Random
             ArgumentNullException.ThrowIfNull(instance);
             RandomParameters p = parameters as RandomParameters ?? throw new ArgumentException("parameters must be RandomParameters", nameof(parameters));
 
-            RandomPermutationSolutionGenerator generator = new(p.Seed);
+            var generator = new RandomPermutationSolutionGenerator(p.Seed);
             var sw = Stopwatch.StartNew();
 
             PermutationSolution? best = null;
-            int evals = 0;
+            long evals = 0;
+            long bestFoundAtEval = -1;
 
-            int iterations = p.UseTimeLimit ? int.MaxValue : p.Samples;
+            // Number of iterations when using samples; when using TimeLimit we loop until time expires.
+            long iterations = p.TimeLimit.HasValue ? long.MaxValue : p.Samples;
 
-            // Allocate a single reusable candidate buffer. Because PermutationSolution
-            // stores the array by reference, the evaluator always sees the current shuffle
-            // without allocating a new array on every iteration.
             int n = instance.Jobs;
             int[] candidatePerm = new int[n];
-            PermutationSolution candidateSol = new(candidatePerm, 0.0);
+            // Wrap buffer to avoid copying on every evaluation; explicit about ownership.
+            PermutationSolution candidateSol = PermutationSolution.WrapBuffer(candidatePerm, 0.0);
 
             while (iterations-- > 0)
             {
                 if (cancellationToken.IsCancellationRequested) break;
-                if (p.UseTimeLimit && sw.Elapsed >= p.TimeLimit) break;
+                if (p.TimeLimit.HasValue && sw.Elapsed >= p.TimeLimit.Value) break;
 
                 generator.Shuffle(candidatePerm);
                 double cost = instance.Evaluate(candidateSol);
@@ -42,16 +42,21 @@ namespace PFSP.Algorithms.Random
 
                 // Only copy the permutation array when a genuine improvement is found.
                 if (best == null || cost < best.Cost)
-                    best = new PermutationSolution(candidatePerm.ToArray(), cost);
+                {
+                    best = PermutationSolution.CreateCopy(candidatePerm, cost);
+                    bestFoundAtEval = evals;
+                }
             }
 
             sw.Stop();
             if (best == null)
             {
                 generator.Shuffle(candidatePerm);
-                best = new PermutationSolution(candidatePerm.ToArray(), instance.Evaluate(candidateSol));
+                best = PermutationSolution.CreateCopy(candidatePerm, instance.Evaluate(candidateSol));
+                bestFoundAtEval = evals;
             }
-            return new AlgorithmResult(best, evals, sw.Elapsed);
+
+            return new AlgorithmResult(best, evals, sw.Elapsed) { BestFoundAtEvaluation = bestFoundAtEval };
         }
     }
 }

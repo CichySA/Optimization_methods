@@ -6,10 +6,15 @@ namespace PFSP.Solutions.PermutationSolutionGenerators
     /// Produces a uniformly random permutation solution.
     /// The RNG is seeded once at construction time; 0 means choose a random seed.
     /// </summary>
-    public sealed class RandomPermutationSolutionGenerator(int seed = 0) : IPermutationSolutionGenerator
+    public sealed class RandomPermutationSolutionGenerator : IPermutationSolutionGenerator
     {
-        private readonly Random _rnd = seed == 0 ? new Random() : new Random(seed);
-        private int[] _identity = [];
+        private readonly Random _rnd;
+        private int[] _identity = Array.Empty<int>();
+
+        public RandomPermutationSolutionGenerator(int seed = 0)
+        {
+            _rnd = seed == 0 ? new Random() : new Random(seed);
+        }
 
         public PermutationSolution Create(Instance instance)
         {
@@ -18,7 +23,7 @@ namespace PFSP.Solutions.PermutationSolutionGenerators
             int n = instance.Jobs;
             var perm = new int[n];
             Shuffle(perm);
-            return new PermutationSolution(perm, 0.0);
+            return PermutationSolution.CreateCopy(perm, 0.0);
         }
 
         /// <summary>
@@ -27,6 +32,8 @@ namespace PFSP.Solutions.PermutationSolutionGenerators
         /// </summary>
         public void Shuffle(int[] buffer)
         {
+            if (buffer == null) throw new ArgumentNullException(nameof(buffer));
+
             int n = buffer.Length;
 
             // Rebuild the cached identity template only when the job count changes.
