@@ -1,4 +1,5 @@
 <Solution>
+  <Project Path="BenchmarkSuite1/BenchmarkSuite1.csproj" />
   <Project Path="PFSP/PFSP.csproj" />
   <Project Path="PfspTests/PfspTests.csproj" Id="1fadefa1-3ab1-47d8-aa03-f6b6d5bde5a2" />
 </Solution>

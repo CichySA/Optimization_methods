@@ -2,6 +2,8 @@ namespace PFSP.Algorithms.Evolutionary
 {
     public sealed class EvolutionaryParameters : IParameters
     {
+        /// <summary>Seed for any internal RNG. 0 means choose a random seed.</summary>
+        public int Seed { get; set; } = 0;
         public int PopulationSize { get; set; } = 100;
         public int Generations { get; set; } = 1000;
         public double CrossoverRate { get; set; } = 0.9;
