@@ -1,4 +1,3 @@
-using PFSP.Evaluators;
 using PFSP.Instances;
 using PFSP.Solutions;
 using PFSP.Solutions.PermutationSolutionGenerators;
@@ -20,48 +19,38 @@ namespace PFSP.Algorithms.Random
             RandomPermutationSolutionGenerator generator = new(p.Seed);
             var sw = Stopwatch.StartNew();
 
-            // allocate one exact-size buffer and one view; both are reused every iteration
-            int n = instance.Jobs;
-            int[] work = new int[n];
-            PermutationView view = new(work);
-            IEvaluator evaluator = instance.Evaluator;
+            PermutationSolution? best = null;
             int evals = 0;
 
             int iterations = p.UseTimeLimit ? int.MaxValue : p.Samples;
-            bool useTimeLimit = p.UseTimeLimit;
-            TimeSpan timeLimit = p.TimeLimit.GetValueOrDefault();
 
-            // Bootstrap: evaluate one solution before the loop so bestCost is always valid.
-            // This eliminates the `best == null` null-check and the `best.Cost` heap
-            // dereference on every subsequent iteration.
-            generator.ShuffleInto(work, n);
-            double bestCost = evaluator.Evaluate(instance, view);
-            evals++;
-            var initPerm = new int[n];
-            Array.Copy(work, initPerm, n);
-            PermutationSolution? best = new PermutationSolution(initPerm, bestCost);
-            iterations--;
+            // Allocate a single reusable candidate buffer. Because PermutationSolution
+            // stores the array by reference, the evaluator always sees the current shuffle
+            // without allocating a new array on every iteration.
+            int n = instance.Jobs;
+            int[] candidatePerm = new int[n];
+            PermutationSolution candidateSol = new(candidatePerm, 0.0);
 
             while (iterations-- > 0)
             {
                 if (cancellationToken.IsCancellationRequested) break;
-                if (useTimeLimit && sw.Elapsed >= timeLimit) break;
-                // Hot-path overload: skips null/bounds validation on every call.
-                generator.ShuffleInto(work, n);
-                // view wraps `work` directly — no copy or allocation during evaluation
-                double cost = evaluator.Evaluate(instance, view);
+                if (p.UseTimeLimit && sw.Elapsed >= p.TimeLimit) break;
+
+                generator.Shuffle(candidatePerm);
+                double cost = instance.Evaluate(candidateSol);
                 evals++;
-                // bestCost is a local — register/stack read, no heap dereference.
-                if (cost < bestCost)
-                {
-                    bestCost = cost;
-                    // only clone the buffer when we have a new best (rare relative to total iterations)
-                    var permCopy = new int[n];
-                    Array.Copy(work, permCopy, n);
-                    best = new PermutationSolution(permCopy, cost);
-                }
+
+                // Only copy the permutation array when a genuine improvement is found.
+                if (best == null || cost < best.Cost)
+                    best = new PermutationSolution(candidatePerm.ToArray(), cost);
             }
+
             sw.Stop();
+            if (best == null)
+            {
+                generator.Shuffle(candidatePerm);
+                best = new PermutationSolution(candidatePerm.ToArray(), instance.Evaluate(candidateSol));
+            }
             return new AlgorithmResult(best, evals, sw.Elapsed);
         }
     }

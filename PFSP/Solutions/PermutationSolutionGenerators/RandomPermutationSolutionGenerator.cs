@@ -9,44 +9,40 @@ namespace PFSP.Solutions.PermutationSolutionGenerators
     public sealed class RandomPermutationSolutionGenerator(int seed = 0) : IPermutationSolutionGenerator
     {
         private readonly Random _rnd = seed == 0 ? new Random() : new Random(seed);
-
-        /// <summary>
-        /// Fills <paramref name="buffer"/> with a uniformly random permutation of
-        /// [0, n) using the inside-out Fisher-Yates algorithm.  No pre-copy of an
-        /// identity array is required; each position is written exactly once.
-        /// </summary>
-        public void ShuffleInto(int[] buffer, Instance instance)
-        {
-            if (instance == null) throw new ArgumentNullException(nameof(instance));
-            int n = instance.Jobs;
-            if (buffer == null) throw new ArgumentNullException(nameof(buffer));
-            if (buffer.Length < n) throw new ArgumentException("buffer too small", nameof(buffer));
-
-            ShuffleInto(buffer, n);
-        }
-
-        /// <summary>
-        /// Hot-path overload: fills <paramref name="buffer"/> with a uniformly random
-        /// permutation of [0, <paramref name="n"/>) without performing argument validation.
-        /// The caller is responsible for ensuring the buffer is non-null and large enough.
-        /// </summary>
-        internal void ShuffleInto(int[] buffer, int n)
-        {
-            // Inside-out Fisher-Yates: O(n) single forward pass, no identity copy.
-            for (int i = 0; i < n; i++)
-            {
-                int j = _rnd.Next(i + 1);  // j in [0, i]
-                buffer[i] = buffer[j];
-                buffer[j] = i;
-            }
-        }
+        private int[] _identity = [];
 
         public PermutationSolution Create(Instance instance)
         {
             if (instance == null) throw new ArgumentNullException(nameof(instance));
-            var result = new int[instance.Jobs];
-            ShuffleInto(result, instance);
-            return new PermutationSolution(result, 0.0);
+
+            int n = instance.Jobs;
+            var perm = new int[n];
+            Shuffle(perm);
+            return new PermutationSolution(perm, 0.0);
+        }
+
+        /// <summary>
+        /// Fills <paramref name="buffer"/> with a uniformly random permutation of
+        /// [0, buffer.Length) without allocating. The caller owns the buffer.
+        /// </summary>
+        public void Shuffle(int[] buffer)
+        {
+            int n = buffer.Length;
+
+            // Rebuild the cached identity template only when the job count changes.
+            if (_identity.Length != n)
+            {
+                _identity = new int[n];
+                for (int i = 0; i < n; i++) _identity[i] = i;
+            }
+
+            _identity.AsSpan().CopyTo(buffer);  // SIMD-accelerated copy
+
+            for (int i = n - 1; i > 0; i--)
+            {
+                int j = _rnd.Next(i + 1);
+                (buffer[i], buffer[j]) = (buffer[j], buffer[i]);
+            }
         }
     }
 }
