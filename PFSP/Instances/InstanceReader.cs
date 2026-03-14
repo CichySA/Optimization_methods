@@ -1,10 +1,7 @@
-using System;
-using System.IO;
 using System.Reflection;
 using System.Text.RegularExpressions;
-using System.Linq;
 
-namespace PFSP
+namespace PFSP.Instances
 {
     // InstanceReader reads embedded Taillard instances from resources folder
     public static class InstanceReader

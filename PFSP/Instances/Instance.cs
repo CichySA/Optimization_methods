@@ -1,6 +1,7 @@
-using System;
+using PFSP.Evaluators;
+using PFSP.Solutions;
 
-namespace PFSP
+namespace PFSP.Instances
 {
     // Instance is an instance of the permutation flowshop scheduling problem.
     public class Instance
@@ -15,13 +16,11 @@ namespace PFSP
         // Matrix[machine, job]
         public double[,] Matrix { get; set; }
 
-        // Evaluate returns the fitness of the given permutation.
-        public double Evaluate(int[] permutation)
+        // Evaluate returns the fitness of the given solution.
+        public double Evaluate(ISolution solution)
         {
             if (Evaluator == null) throw new InvalidOperationException("Evaluator not set on instance");
-            if (permutation == null) throw new ArgumentNullException(nameof(permutation));
-            if (permutation.Length != Jobs) throw new ArgumentException($"invalid permutation length, expected {Jobs}, got {permutation.Length}");
-            return Evaluator.Evaluate(this, permutation);
+            return Evaluator.Evaluate(this, solution);
         }
     }
 }

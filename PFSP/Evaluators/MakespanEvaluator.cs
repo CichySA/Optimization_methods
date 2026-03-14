@@ -1,19 +1,21 @@
+using PFSP.Instances;
+using PFSP.Solutions;
 using System;
 
-namespace PFSP
+namespace PFSP.Evaluators
 {
     // Makespan evaluator
     public class MakespanEvaluator : IEvaluator
     {
-        public double Evaluate(Instance instance, int[] permutation)
+        public double Evaluate(Instance instance, ISolution solution)
         {
-            if (instance.Jobs != permutation.Length)
-                throw new ArgumentException($"invalid permutation length, expected {instance.Jobs}, got {permutation.Length}");
+            if (instance.Jobs != solution.Permutation.Length)
+                throw new ArgumentException($"invalid permutation length, expected {instance.Jobs}, got {solution.Permutation.Length}");
             
             var timeTable = new double[instance.Machines];
             for (int i = 0; i < instance.Machines; i++) timeTable[i] = 0.0;
 
-            foreach (var job in permutation)
+            foreach (var job in solution.Permutation)
             {
                 for (int machine = 0; machine < instance.Machines; machine++)
                 {

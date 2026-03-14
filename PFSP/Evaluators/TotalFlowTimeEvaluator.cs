@@ -1,18 +1,21 @@
+using PFSP.Instances;
+using PFSP.Solutions;
 using System;
 
-namespace PFSP
+namespace PFSP.Evaluators
 {
     // Total flowtime evaluator
     public class TotalFlowTimeEvaluator : IEvaluator
     {
-        public double Evaluate(Instance instance, int[] permutation)
+        public double Evaluate(Instance instance, ISolution solution)
         {
 #if DEBUG || XUNIT
-            ValidateInputs(instance, permutation);
+            ValidateInputs(instance, solution.Permutation);
 #endif
 
             int machines = instance.Machines;
             int jobs = instance.Jobs;
+            int[] permutation = solution.Permutation;    
             int assigned = permutation.Length;
             if (machines <= 0 || jobs <= 0)
                 return 0.0;

@@ -29,5 +29,10 @@
   <ItemGroup>
     <EmbeddedResource Include="go-taillard\pfsp\instances\**\*.fsp" />
   </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Algorithms\Evolutionary\" />
+    <Folder Include="Algorithms\Greedy\" />
+    <Folder Include="Algorithms\Random\" />
+  </ItemGroup>
 
 </Project>
