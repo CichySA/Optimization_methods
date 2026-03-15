@@ -58,6 +58,11 @@ dlldata.c
 # Benchmark Results
 BenchmarkDotNet.Artifacts/
 
+# ExperimentRunner diagnostic and result files
+ExperimentRunner/*.diagsession
+ExperimentRunner/Report*.diagsession
+ExperimentRunner/experiment_results/
+
 # .NET Core
 project.lock.json
 project.fragment.lock.json
