@@ -1,88 +1,71 @@
-using System.Text;
-using PFSP.Algorithms;
-using PFSP.Instances;
-using PFSP.Solutions;
+using ExperimentRunner;
 using PFSP.Algorithms.Random;
-using PFSP.Solutions.PermutationSolutionGenerators;
-using Newtonsoft.Json;
+using PFSP.Solutions;
 
-namespace ExperimentRunner
+Console.WriteLine("Experiment Runner");
+
+// We'll run RandomAlgorithm for a set of TAi instances and varying sample counts
+
+// TAi base names to test
+var taiBaseNames = new[]
 {
-    internal static class Program
+                "tai_20_5_0",
+                "tai_20_10_0",
+                "tai_20_20_0",
+                "tai_100_10_0",
+                "tai_100_20_0",
+                "tai_500_20_0"
+            };
+
+var sampleCounts = new[] { 1, 10, 100, 1000, 10000, 100000, 1000000 };
+int seed = 123;
+
+var algoSpecs = sampleCounts.Select(s => (Samples: s, Seed: seed));
+var algorithms = AlgorithmFactory.CreateRandomAlgorithms(algoSpecs);
+
+var problems = ProblemLoader.LoadMany(taiBaseNames);
+
+var results = new List<object>();
+// Determine ExperimentRunner project directory from the assembly output path (bin/...)
+var baseDir = AppContext.BaseDirectory ?? Environment.CurrentDirectory;
+// bin/{config}/{tfm} -> go up three levels to reach project directory
+var projectDir = Path.GetFullPath(Path.Combine(baseDir, "..", "..", ".."));
+var outDir = Path.Combine(projectDir, "experiment_results");
+Directory.CreateDirectory(outDir);
+
+// write CSV header with Instance and Algorithm columns
+var header = "Instance,Algorithm,Params,Seed,BestCost,Evaluations,ElapsedMs,BestFoundAt,Timestamp";
+File.WriteAllText(Path.Combine(outDir, "random_sample_study.csv"), header + Environment.NewLine);
+
+foreach (var (name, inst) in problems)
+{
+    foreach (var (algName, alg, pars) in algorithms)
     {
-        static void Main(string[] args)
+        var seedVal = pars is RandomParameters rpp ? rpp.Seed : (int?)null;
+        Visualizer.DisplayRunStart(name, algName, seedVal);
+        var sw = System.Diagnostics.Stopwatch.StartNew();
+        var result = alg.Solve(inst, pars);
+        sw.Stop();
+
+        var record = new
         {
-            Console.WriteLine("Experiment Runner");
-
-            // Simple configuration: compare RandomAlgorithm with different sample counts/seeds
-            var algorithms = new List<(string Name, IAlgorithm Algo, IParameters Params)>
-            {
-                ("Random_1000_s123", new RandomAlgorithm(), RandomParameters.ForRuns(1000, seed:123)),
-                ("Random_10000_s123", new RandomAlgorithm(), RandomParameters.ForRuns(10000, seed:123)),
-                ("Random_1000_s0", new RandomAlgorithm(), RandomParameters.ForRuns(1000, seed:0)),
-            };
-
-            // Create a simple random instance for experiments (same as benchmark)
-            int jobs = 100;
-            int machines = 10;
-            var instance = new Instance
-            {
-                Jobs = jobs,
-                Machines = machines,
-                Matrix = new double[machines, jobs],
-                Evaluator = new PFSP.Evaluators.TotalFlowTimeEvaluator()
-            };
-            var rnd = new Random(123);
-            for (int m = 0; m < machines; m++)
-                for (int j = 0; j < jobs; j++)
-                    instance.Matrix[m, j] = rnd.Next(1, 100);
-
-            // Experiment parameters
-            int repeats = 5;
-            var results = new List<object>();
-            var outDir = Path.Combine(Environment.CurrentDirectory, "experiment_results");
-            Directory.CreateDirectory(outDir);
-
-            for (int r = 0; r < repeats; r++)
-            {
-                Console.WriteLine($"Repeat {r+1}/{repeats}");
-                foreach (var (name, algo, pars) in algorithms)
-                {
-                    Console.WriteLine($" Running {name}...");
-                    var sw = System.Diagnostics.Stopwatch.StartNew();
-                    var result = algo.Solve(instance, pars);
-                    sw.Stop();
-
-                    var record = new
-                    {
-                        Algorithm = name,
-                        Params = pars.GetType().Name,
-                        Seed = pars is RandomParameters rp ? rp.Seed : (int?)null,
-                        BestCost = (result.Best as PermutationSolution)?.Cost,
-                        Evaluations = result.Evaluations,
-                        ElapsedMs = sw.Elapsed.TotalMilliseconds,
-                        BestFoundAt = result.BestFoundAtEvaluation,
-                        Timestamp = DateTimeOffset.UtcNow
-                    };
-                    results.Add(record);
-
-                    // Append CSV line
-                    var csvLine = new StringBuilder();
-                    if (r == 0 && results.Count == 1)
-                    {
-                        var header = "Algorithm,Params,Seed,BestCost,Evaluations,ElapsedMs,BestFoundAt,Timestamp";
-                        File.AppendAllText(Path.Combine(outDir, "results.csv"), header + Environment.NewLine);
-                    }
-                    csvLine.Append($"{record.Algorithm},{record.Params},{record.Seed},{record.BestCost},{record.Evaluations},{record.ElapsedMs},{record.BestFoundAt},{record.Timestamp:o}");
-                    File.AppendAllText(Path.Combine(outDir, "results.csv"), csvLine + Environment.NewLine);
-                }
-            }
-
-            // Save full JSON
-            var json = JsonConvert.SerializeObject(results, Formatting.Indented);
-            File.WriteAllText(Path.Combine(outDir, $"results_{DateTime.UtcNow:yyyyMMdd_HHmmss}.json"), json);
-
-            Console.WriteLine("Done. Results saved to " + outDir);
-        }
+            Instance = name,
+            Algorithm = algName,
+            Params = pars.GetType().Name,
+            Seed = pars is RandomParameters rp ? rp.Seed : (int?)null,
+            BestCost = (result.Best as PermutationSolution)?.Cost,
+            result.Evaluations,
+            ElapsedMs = sw.Elapsed.TotalMilliseconds,
+            BestFoundAt = result.BestFoundAtEvaluation,
+            Timestamp = DateTimeOffset.UtcNow
+        };
+        results.Add(record);
+        var line = $"{record.Instance},{record.Algorithm},{record.Params},{record.Seed},{record.BestCost},{record.Evaluations},{record.ElapsedMs},{record.BestFoundAt},{record.Timestamp:o}";
+        ResultSaver.AppendCsvLine(outDir, "random_sample_study.csv", line);
+        Visualizer.DisplayLine(line);
     }
 }
+
+// Save full JSON
+ResultSaver.SaveJson(outDir, $"random_sample_study_{DateTime.UtcNow:yyyyMMdd_HHmmss}.json", results);
+Visualizer.DisplayLine($"Done. Results saved to {outDir}");

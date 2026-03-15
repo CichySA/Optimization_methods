@@ -1,3 +1,4 @@
+using PFSP.Evaluators;
 using System.Reflection;
 using System.Text.RegularExpressions;
 
@@ -11,12 +12,8 @@ namespace PFSP.Instances
             var fileName = $"tai{jobs}_{machines}_{instanceNumber}.fsp";
             var assembly = Assembly.GetExecutingAssembly();
             var resourceName = assembly.GetManifestResourceNames()
-                .FirstOrDefault(n => n.EndsWith(fileName, StringComparison.OrdinalIgnoreCase));
-            if (resourceName == null)
-                throw new FileNotFoundException($"Instance file {fileName} not found in embedded resources.");
-
-            using var stream = assembly.GetManifestResourceStream(resourceName);
-            if (stream == null) throw new FileNotFoundException($"Instance resource {resourceName} not found.");
+                .FirstOrDefault(n => n.EndsWith(fileName, StringComparison.OrdinalIgnoreCase)) ?? throw new FileNotFoundException($"Instance file {fileName} not found in resources.");
+            using var stream = assembly.GetManifestResourceStream(resourceName) ?? throw new FileNotFoundException($"Instance resource {resourceName} not found.");
             using var reader = new StreamReader(stream);
             var content = reader.ReadToEnd();
 
@@ -27,24 +24,31 @@ namespace PFSP.Instances
                 .ToArray();
             if (numbers.Length < 5) throw new InvalidDataException("Invalid instance file format");
 
-            var instance = new Instance();
-            instance.Jobs = numbers[0];
-            instance.Machines = numbers[1];
-            instance.Seed = numbers[2];
-            instance.UpperBound = numbers[3];
-            instance.LowerBound = numbers[4];
-
             var data = numbers.Skip(5).Select(n => (double)n).ToArray();
-            instance.Matrix = new double[instance.Machines, instance.Jobs];
-            for (int m = 0; m < instance.Machines; m++)
+            var matrix = new double[machines, jobs];
+            for (int m = 0; m < machines; m++)
             {
-                for (int j = 0; j < instance.Jobs; j++)
+                for (int j = 0; j < jobs; j++)
                 {
-                    instance.Matrix[m, j] = data[m * instance.Jobs + j];
+                    matrix[m, j] = data[m * jobs + j];
                 }
             }
 
+            var instance = Instance.Create(matrix, new TotalFlowTimeEvaluator(), numbers[2], numbers[3], numbers[4]);
+
             return instance;
+        }
+
+        // Overload to read from a base name like "tai_20_5_0" or "tai20_5_0"
+        public static Instance Read(string baseName)
+        {
+            if (string.IsNullOrWhiteSpace(baseName)) throw new ArgumentException("baseName is null or empty", nameof(baseName));
+            var nums = Regex.Matches(baseName, "\\d+")
+                .Cast<Match>()
+                .Select(m => int.Parse(m.Value))
+                .ToArray();
+            if (nums.Length < 3) throw new FormatException($"Could not parse jobs,machines,instance from '{baseName}'.");
+            return Read(nums[0], nums[1], nums[2]);
         }
     }
 }

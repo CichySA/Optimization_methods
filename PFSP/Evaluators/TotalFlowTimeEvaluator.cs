@@ -84,10 +84,8 @@ namespace PFSP.Evaluators
 
         private static void ValidateInputs(Instance instance, int[] permutation)
         {
-            if (instance == null)
-                throw new ArgumentNullException(nameof(instance));
-            if (permutation == null)
-                throw new ArgumentNullException(nameof(permutation));
+            ArgumentNullException.ThrowIfNull(instance);
+            ArgumentNullException.ThrowIfNull(permutation);
             if (instance.Jobs == 0 || permutation.Length == 0 || permutation.Length > instance.Jobs)
                 throw new ArgumentException($"invalid permutation");
             for (int i = 0; i < permutation.Length; i++)
