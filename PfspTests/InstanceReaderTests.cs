@@ -56,5 +56,11 @@ namespace PfspTests
                 Assert.Equal(ExpectedMatrix[m, j], (int)inst.Matrix[m, j]);
             }
         }
+
+        [Fact]
+        public void Read_NullBaseName_ThrowsArgumentException()
+        {
+            Assert.Throws<ArgumentException>(() => InstanceReader.Read(null!));
+        }
     }
 }

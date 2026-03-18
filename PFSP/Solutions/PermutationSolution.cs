@@ -28,7 +28,7 @@ namespace PFSP.Solutions
         /// </summary>
         public static PermutationSolution CreateCopy(int[] permutation, double cost)
         {
-            if (permutation == null) throw new ArgumentNullException(nameof(permutation));
+            ArgumentNullException.ThrowIfNull(permutation);
             var copy = new int[permutation.Length];
             Array.Copy(permutation, copy, permutation.Length);
             return new PermutationSolution(copy, cost);
