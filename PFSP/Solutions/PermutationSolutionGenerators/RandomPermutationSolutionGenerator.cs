@@ -5,20 +5,17 @@ namespace PFSP.Solutions.PermutationSolutionGenerators
     /// <summary>
     /// Produces a uniformly random permutation solution.
     /// The RNG is seeded once at construction time; 0 means choose a random seed.
+    /// 
+    /// Use shuffling buffers via the <see cref="Shuffle(int[])"/> for performance-critical code.
     /// </summary>
-    public sealed class RandomPermutationSolutionGenerator : IPermutationSolutionGenerator
+    public sealed class RandomPermutationSolutionGenerator(int seed = 0) : IPermutationSolutionGenerator
     {
-        private readonly Random _rnd;
-        private int[] _identity = Array.Empty<int>();
-
-        public RandomPermutationSolutionGenerator(int seed = 0)
-        {
-            _rnd = seed == 0 ? new Random() : new Random(seed);
-        }
+        private readonly Random _rnd = seed == 0 ? new Random() : new Random(seed);
+        private int[] _identity = [];
 
         public PermutationSolution Create(Instance instance)
         {
-            if (instance == null) throw new ArgumentNullException(nameof(instance));
+            ArgumentNullException.ThrowIfNull(instance);
 
             int n = instance.Jobs;
             var perm = new int[n];
@@ -32,7 +29,7 @@ namespace PFSP.Solutions.PermutationSolutionGenerators
         /// </summary>
         public void Shuffle(int[] buffer)
         {
-            if (buffer == null) throw new ArgumentNullException(nameof(buffer));
+            ArgumentNullException.ThrowIfNull(buffer);
 
             int n = buffer.Length;
 
@@ -45,6 +42,7 @@ namespace PFSP.Solutions.PermutationSolutionGenerators
 
             _identity.AsSpan().CopyTo(buffer);  // SIMD-accelerated copy
 
+            // Fisher-Yates shuffle
             for (int i = n - 1; i > 0; i--)
             {
                 int j = _rnd.Next(i + 1);

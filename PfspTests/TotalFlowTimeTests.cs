@@ -55,5 +55,43 @@ namespace PfspTests
 
             Assert.NotEqual(cost1, cost2);
         }
+
+        [Fact]
+        public void Evaluate_PartialSolution_ComparedToCompleteSolution_ShowsProgression()
+        {
+            // Arrange: Create a 3-job, 2-machine instance to show how partial solutions relate to complete ones
+            var matrix = new double[2, 3]
+            {
+                { 2, 3, 4 },  // Machine 0: jobs [0, 1, 2]
+                { 5, 2, 3 }   // Machine 1: jobs [0, 1, 2]
+            };
+
+            var evaluator = new PFSP.Evaluators.TotalFlowTimeEvaluator();
+            var instance = PFSP.Instances.Instance.Create(matrix, evaluator);
+
+            // Act: Evaluate progressively larger partial permutations [0, 1, 2]
+            var partial1Job = PermutationSolution.CreateCopy([0], 0.0);
+            var partial2Jobs = PermutationSolution.CreateCopy([0, 1], 0.0);
+            var fullPermutation = PermutationSolution.CreateCopy([0, 1, 2], 0.0);
+
+            double tft1 = instance.Evaluate(partial1Job);
+            double tft2 = instance.Evaluate(partial2Jobs);
+            double tftFull = instance.Evaluate(fullPermutation);
+
+            // Assert: Each additional job increases the total flow time
+            // Partial [0]: Job0 completes at M0: 0 + 2 = 2, then at M1: 2 + 5 = 7 → TFT = 7
+            Assert.Equal(7.0, tft1);
+            
+            // Partial [0,1]: Job0→M1: 7, Job1→M1: max(Job0->M1, Job1->M0) + 2 = max(7, 5) + 2 = 9 → TFT = 7 + 9 = 16
+            Assert.Equal(16.0, tft2);
+            
+            // Full [0,1,2]: adds Job2 completion → TFT = 16 + (Job2 M1 completion)
+            // Job2→M0: 5 + 4 = 9, Job2→M1: max(16, 9) + 3 = 19 → TFT = 19 + 9 = 28
+            Assert.Equal(28.0, tftFull);
+
+            // Verify progression
+            Assert.True(tft1 < tft2);
+            Assert.True(tft2 < tftFull);
+        }
     }
 }

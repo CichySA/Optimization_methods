@@ -9,30 +9,28 @@ namespace PFSP.Evaluators
     {
         public double Evaluate(Instance instance, ISolution solution)
         {
+            ArgumentNullException.ThrowIfNull(solution);
+            return Evaluate(instance, solution.Permutation);
+        }
+
+        public double Evaluate(Instance instance, int[] permutation)
+        {
 #if DEBUG || XUNIT
-            ValidateInputs(instance, solution.Permutation);
+            ValidateInputs(instance, permutation);
 #endif
 
             int machines = instance.Machines;
-            int jobs = instance.Jobs;
-            int[] permutation = solution.Permutation;    
             int assigned = permutation.Length;
-            if (machines <= 0 || jobs <= 0)
+            if (machines <= 0 || instance.Jobs <= 0 || assigned == 0)
                 return 0.0;
 
-            // dynamic programming
-            // Rent a buffer from the pool to avoid a heap allocation on every call.
-            // Array.Clear is intentionally avoided: the first machine pass (m=0) initialises
-            // every comp[p] from scratch (up is implicitly 0 because there is no prior machine,
-            // and processing times are non-negative so Math.Max(0, left) == left always).
             double[] comp = ArrayPool<double>.Shared.Rent(assigned);
             try
             {
                 double timeFlow = 0.0;
                 int lastMachine = machines - 1;
 
-                // m=0: no previous machine, so C[-1,p] = 0 for all p.
-                // Math.Max(0, left) == left (left starts at 0 and only grows), so skip the Max.
+                // m=0
                 {
                     double left = 0.0;
                     for (int p = 0; p < assigned; p++)
@@ -43,7 +41,6 @@ namespace PFSP.Evaluators
                     }
                 }
 
-                // m=1..lastMachine-1: accumulate completion times without the branch on lastMachine.
                 for (int m = 1; m < lastMachine; m++)
                 {
                     double left = 0.0;
@@ -55,7 +52,6 @@ namespace PFSP.Evaluators
                     }
                 }
 
-                // last machine: same loop but also accumulate into timeFlow.
                 if (lastMachine > 0)
                 {
                     double left = 0.0;
@@ -69,7 +65,6 @@ namespace PFSP.Evaluators
                 }
                 else
                 {
-                    // single-machine case: m=0 was already the last machine
                     for (int p = 0; p < assigned; p++)
                         timeFlow += comp[p];
                 }

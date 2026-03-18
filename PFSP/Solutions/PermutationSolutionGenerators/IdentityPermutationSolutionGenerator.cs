@@ -17,7 +17,7 @@ namespace PFSP.Solutions.PermutationSolutionGenerators
             var perm = new int[n];
             for (int i = 0; i < n; i++) perm[i] = i;
 
-            double cost = instance.Evaluate(new PermutationSolution(perm, 0.0));
+            double cost = instance.Evaluate(perm);
             return new PermutationSolution(perm, cost);
         }
     }

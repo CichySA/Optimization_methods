@@ -10,15 +10,28 @@ namespace PFSP.Evaluators
     {
         public double Evaluate(Instance instance, ISolution solution)
         {
-            if (instance.Jobs != solution.Permutation.Length)
-                throw new ArgumentException($"invalid permutation length, expected {instance.Jobs}, got {solution.Permutation.Length}");
+            ArgumentNullException.ThrowIfNull(solution);
+            return Evaluate(instance, solution.Permutation);
+        }
+
+        public double Evaluate(Instance instance, int[] permutation)
+        {
+#if DEBUG || XUNIT
+            if (instance == null) throw new ArgumentNullException(nameof(instance));
+            if (permutation == null) throw new ArgumentNullException(nameof(permutation));
+            if (permutation.Length == 0 || permutation.Length > instance.Jobs)
+                throw new ArgumentException("invalid permutation length");
+            for (int i = 0; i < permutation.Length; i++)
+                if ((uint)permutation[i] >= (uint)instance.Jobs)
+                    throw new ArgumentException("invalid permutation");
+#endif
 
             int machines = instance.Machines;
             double[] timeTable = ArrayPool<double>.Shared.Rent(machines);
             Array.Clear(timeTable, 0, machines);
             try
             {
-                foreach (var job in solution.Permutation)
+                foreach (var job in permutation)
                 {
                     for (int machine = 0; machine < machines; machine++)
                     {

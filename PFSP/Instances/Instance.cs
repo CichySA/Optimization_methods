@@ -58,5 +58,11 @@ namespace PFSP.Instances
         {
             return Evaluator.Evaluate(this, solution);
         }
+
+        // Fast evaluation for a permutation stored as a span (no allocation).
+        public double Evaluate(int[] permutation)
+        {
+            return Evaluator.Evaluate(this, permutation);
+        }
     }
 }
