@@ -17,7 +17,7 @@ var taiBaseNames = new[]
                 "tai_500_20_0"
             };
 
-var sampleCounts = new[] { 1, 10, 100, 1000, 10000, 100000, 1000000 };
+var sampleCounts = new[] { 1, 10, 100, 1000, 10000, 100000 };
 int seed = 123;
 
 var algoSpecs = sampleCounts.Select(s => (Samples: s, Seed: seed));
@@ -60,12 +60,12 @@ foreach (var (name, inst) in problems)
             Timestamp = DateTimeOffset.UtcNow
         };
         results.Add(record);
-        var line = $"{record.Instance},{record.Algorithm},{record.Params},{record.Seed},{record.BestCost},{record.Evaluations},{record.ElapsedMs},{record.BestFoundAt},{record.Timestamp:o}";
+        var bestCostStr = record.BestCost is double d ? d.ToString("G", System.Globalization.CultureInfo.InvariantCulture) : record.BestCost?.ToString();
+        var elapsedMsStr = record.ElapsedMs is double d2 ? d2.ToString("G", System.Globalization.CultureInfo.InvariantCulture) : record.ElapsedMs.ToString();
+        var line = $"{record.Instance},{record.Algorithm},{record.Params},{record.Seed},{bestCostStr},{record.Evaluations},{elapsedMsStr},{record.BestFoundAt},{record.Timestamp:o}";
         ResultSaver.AppendCsvLine(outDir, "random_sample_study.csv", line);
         Visualizer.DisplayLine(line);
     }
 }
-
-// Save full JSON
 ResultSaver.SaveJson(outDir, $"random_sample_study_{DateTime.UtcNow:yyyyMMdd_HHmmss}.json", results);
 Visualizer.DisplayLine($"Done. Results saved to {outDir}");
