@@ -1,5 +1,13 @@
+using System.Text.Json;
+
 namespace ExperimentRunner
 {
+    public sealed record AlgorithmSpec
+    {
+        public string Type { get; init; } = "Random";
+        public JsonElement Parameters { get; init; }
+    }
+
     public sealed record ExperimentRunnerConfiguration
     {
         public static readonly string[] DefaultInstances =
@@ -12,26 +20,13 @@ namespace ExperimentRunner
             "tai_500_20_0"
         };
 
-        public static readonly int[] DefaultSamples = { 1, 10, 100, 1000, 10000, 100000 };
-        public const int DefaultSeed = 123;
+        public static readonly AlgorithmSpec[] DefaultAlgorithms = [];
         public const string DefaultOutDir = "experiment_results";
 
         public string[] Instances { get; init; } = DefaultInstances;
-        public int[] Samples { get; init; } = DefaultSamples;
-        public int Seed { get; init; } = DefaultSeed;
+        public AlgorithmSpec[] Algorithms { get; init; } = DefaultAlgorithms;
         public string OutDir { get; init; } = DefaultOutDir;
 
         public static ExperimentRunnerConfiguration Default => new();
-
-        public static ExperimentRunnerConfiguration From(string[]? instances, int[]? samples, int? seed, string? outDir)
-        {
-            return new ExperimentRunnerConfiguration
-            {
-                Instances = instances ?? DefaultInstances,
-                Samples = samples ?? DefaultSamples,
-                Seed = seed ?? DefaultSeed,
-                OutDir = outDir ?? DefaultOutDir
-            };
-        }
     }
 }

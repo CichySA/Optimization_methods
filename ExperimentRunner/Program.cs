@@ -1,5 +1,6 @@
 using System.Globalization;
 using ExperimentRunner;
+using PFSP.Algorithms.Evolutionary;
 using PFSP.Algorithms.Random;
 using PFSP.Solutions;
 
@@ -9,8 +10,7 @@ if (config is null)
 
 Console.WriteLine("Experiment Runner");
 
-var algoSpecs = config.Samples.Select(s => (Samples: s, Seed: config.Seed));
-var algorithms = AlgorithmFactory.CreateRandomAlgorithms(algoSpecs);
+var algorithms = config.Algorithms.Select(AlgorithmFactory.CreateFromSpec).ToList();
 var problems = ProblemLoader.LoadMany(config.Instances);
 var results = new List<object>();
 
@@ -22,14 +22,20 @@ var outDir = Path.IsPathRooted(config.OutDir)
 
 Directory.CreateDirectory(outDir);
 
+const string csvFileName = "experiment_study.csv";
 var header = "Instance,Algorithm,Params,Seed,BestCost,Evaluations,ElapsedMs,BestFoundAt,Timestamp";
-File.WriteAllText(Path.Combine(outDir, "random_sample_study.csv"), header + Environment.NewLine);
+File.WriteAllText(Path.Combine(outDir, csvFileName), header + Environment.NewLine);
 
 foreach (var (name, inst) in problems)
 {
     foreach (var (algName, alg, pars) in algorithms)
     {
-        var seedVal = pars is RandomParameters rpp ? rpp.Seed : (int?)null;
+        var seedVal = pars switch
+        {
+            RandomParameters rp         => (int?)rp.Seed,
+            EvolutionaryParameters ep   => (int?)ep.Seed,
+            _                           => null
+        };
         Visualizer.DisplayRunStart(name, algName, seedVal);
 
         var sw = System.Diagnostics.Stopwatch.StartNew();
@@ -41,7 +47,7 @@ foreach (var (name, inst) in problems)
             Instance = name,
             Algorithm = algName,
             Params = pars.GetType().Name,
-            Seed = pars is RandomParameters rp ? rp.Seed : (int?)null,
+            Seed = seedVal,
             BestCost = (result.Best as PermutationSolution)?.Cost,
             result.Evaluations,
             ElapsedMs = sw.Elapsed.TotalMilliseconds,
@@ -60,10 +66,10 @@ foreach (var (name, inst) in problems)
             : record.ElapsedMs.ToString();
 
         var line = $"{record.Instance},{record.Algorithm},{record.Params},{record.Seed},{bestCostStr},{record.Evaluations},{elapsedMsStr},{record.BestFoundAt},{record.Timestamp:o}";
-        ResultSaver.AppendCsvLine(outDir, "random_sample_study.csv", line);
+        ResultSaver.AppendCsvLine(outDir, csvFileName, line);
         Visualizer.DisplayLine(line);
     }
 }
 
-ResultSaver.SaveJson(outDir, $"random_sample_study_{DateTime.UtcNow:yyyyMMdd_HHmmss}.json", results);
+ResultSaver.SaveJson(outDir, $"experiment_study_{DateTime.UtcNow:yyyyMMdd_HHmmss}.json", results);
 Visualizer.DisplayLine($"Done. Results saved to {outDir}");

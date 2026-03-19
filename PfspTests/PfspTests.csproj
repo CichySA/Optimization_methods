@@ -22,6 +22,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\PFSP\PFSP.csproj" />
+    <ProjectReference Include="..\ExperimentRunner\ExperimentRunner.csproj" />
   </ItemGroup>
 
   <ItemGroup>
