@@ -15,10 +15,12 @@ var problems = ProblemLoader.LoadMany(config.Instances);
 var results = new List<object>();
 
 var baseDir = AppContext.BaseDirectory ?? Environment.CurrentDirectory;
-var projectDir = Path.GetFullPath(Path.Combine(baseDir, "..", "..", ".."));
+// Root the output directory at the solution level for universal accessibility
+var solutionDir = Path.GetFullPath(Path.Combine(baseDir, "..", "..", "..", ".."));
+// outDir is relative to solutionDir if not absolute
 var outDir = Path.IsPathRooted(config.OutDir)
     ? config.OutDir
-    : Path.Combine(projectDir, config.OutDir);
+    : Path.Combine(solutionDir, config.OutDir);
 
 Directory.CreateDirectory(outDir);
 
@@ -71,5 +73,5 @@ foreach (var (name, inst) in problems)
     }
 }
 
-ResultSaver.SaveJson(outDir, $"experiment_study_{DateTime.UtcNow:yyyyMMdd_HHmmss}.json", results);
+//ResultSaver.SaveJson(outDir, $"experiment_study_{DateTime.UtcNow:yyyyMMdd_HHmmss}.json", results);
 Visualizer.DisplayLine($"Done. Results saved to {outDir}");

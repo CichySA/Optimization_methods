@@ -1,0 +1,200 @@
+[
+  {
+    "Instance": "tai_20_5_0",
+    "Algorithm": "Random_10000_s0",
+    "Params": "RandomParameters",
+    "Seed": 0,
+    "BestCost": 15335.0,
+    "Evaluations": 10000,
+    "ElapsedMs": 66.9382,
+    "BestFoundAt": -1,
+    "Timestamp": "2026-03-19T10:39:59.0739939+00:00"
+  },
+  {
+    "Instance": "tai_20_5_0",
+    "Algorithm": "Evolutionary_p100_g100_s0",
+    "Params": "EvolutionaryParameters",
+    "Seed": 0,
+    "BestCost": 14293.0,
+    "Evaluations": 10100,
+    "ElapsedMs": 82.5713,
+    "BestFoundAt": 4842,
+    "Timestamp": "2026-03-19T10:39:59.1633212+00:00"
+  },
+  {
+    "Instance": "tai_20_5_0",
+    "Algorithm": "Greedy",
+    "Params": "GreedyParameters",
+    "Seed": null,
+    "BestCost": 14286.0,
+    "Evaluations": 1,
+    "ElapsedMs": 10.5163,
+    "BestFoundAt": -1,
+    "Timestamp": "2026-03-19T10:39:59.1746986+00:00"
+  },
+  {
+    "Instance": "tai_20_10_0",
+    "Algorithm": "Random_10000_s0",
+    "Params": "RandomParameters",
+    "Seed": 0,
+    "BestCost": 23273.0,
+    "Evaluations": 10000,
+    "ElapsedMs": 115.3603,
+    "BestFoundAt": -1,
+    "Timestamp": "2026-03-19T10:39:59.2976628+00:00"
+  },
+  {
+    "Instance": "tai_20_10_0",
+    "Algorithm": "Evolutionary_p100_g100_s0",
+    "Params": "EvolutionaryParameters",
+    "Seed": 0,
+    "BestCost": 21649.0,
+    "Evaluations": 10100,
+    "ElapsedMs": 165.3025,
+    "BestFoundAt": 7180,
+    "Timestamp": "2026-03-19T10:39:59.4646694+00:00"
+  },
+  {
+    "Instance": "tai_20_10_0",
+    "Algorithm": "Greedy",
+    "Params": "GreedyParameters",
+    "Seed": null,
+    "BestCost": 21929.0,
+    "Evaluations": 1,
+    "ElapsedMs": 1.0565,
+    "BestFoundAt": -1,
+    "Timestamp": "2026-03-19T10:39:59.4665031+00:00"
+  },
+  {
+    "Instance": "tai_20_20_0",
+    "Algorithm": "Random_10000_s0",
+    "Params": "RandomParameters",
+    "Seed": 0,
+    "BestCost": 35672.0,
+    "Evaluations": 10000,
+    "ElapsedMs": 242.0956,
+    "BestFoundAt": -1,
+    "Timestamp": "2026-03-19T10:39:59.7092123+00:00"
+  },
+  {
+    "Instance": "tai_20_20_0",
+    "Algorithm": "Evolutionary_p100_g100_s0",
+    "Params": "EvolutionaryParameters",
+    "Seed": 0,
+    "BestCost": 34830.0,
+    "Evaluations": 10100,
+    "ElapsedMs": 299.708,
+    "BestFoundAt": 5803,
+    "Timestamp": "2026-03-19T10:40:00.0104799+00:00"
+  },
+  {
+    "Instance": "tai_20_20_0",
+    "Algorithm": "Greedy",
+    "Params": "GreedyParameters",
+    "Seed": null,
+    "BestCost": 34767.0,
+    "Evaluations": 1,
+    "ElapsedMs": 3.9305,
+    "BestFoundAt": -1,
+    "Timestamp": "2026-03-19T10:40:00.0161704+00:00"
+  },
+  {
+    "Instance": "tai_100_10_0",
+    "Algorithm": "Random_10000_s0",
+    "Params": "RandomParameters",
+    "Seed": 0,
+    "BestCost": 355826.0,
+    "Evaluations": 10000,
+    "ElapsedMs": 636.4464,
+    "BestFoundAt": -1,
+    "Timestamp": "2026-03-19T10:40:00.6746309+00:00"
+  },
+  {
+    "Instance": "tai_100_10_0",
+    "Algorithm": "Evolutionary_p100_g100_s0",
+    "Params": "EvolutionaryParameters",
+    "Seed": 0,
+    "BestCost": 335564.0,
+    "Evaluations": 10100,
+    "ElapsedMs": 956.94,
+    "BestFoundAt": 9685,
+    "Timestamp": "2026-03-19T10:40:01.6333797+00:00"
+  },
+  {
+    "Instance": "tai_100_10_0",
+    "Algorithm": "Greedy",
+    "Params": "GreedyParameters",
+    "Seed": null,
+    "BestCost": 320314.0,
+    "Evaluations": 1,
+    "ElapsedMs": 189.433,
+    "BestFoundAt": -1,
+    "Timestamp": "2026-03-19T10:40:01.8276301+00:00"
+  },
+  {
+    "Instance": "tai_100_20_0",
+    "Algorithm": "Random_10000_s0",
+    "Params": "RandomParameters",
+    "Seed": 0,
+    "BestCost": 434094.0,
+    "Evaluations": 10000,
+    "ElapsedMs": 1346.5074,
+    "BestFoundAt": -1,
+    "Timestamp": "2026-03-19T10:40:03.175871+00:00"
+  },
+  {
+    "Instance": "tai_100_20_0",
+    "Algorithm": "Evolutionary_p100_g100_s0",
+    "Params": "EvolutionaryParameters",
+    "Seed": 0,
+    "BestCost": 411039.0,
+    "Evaluations": 10100,
+    "ElapsedMs": 1617.062,
+    "BestFoundAt": 9631,
+    "Timestamp": "2026-03-19T10:40:04.7949664+00:00"
+  },
+  {
+    "Instance": "tai_100_20_0",
+    "Algorithm": "Greedy",
+    "Params": "GreedyParameters",
+    "Seed": null,
+    "BestCost": 393331.0,
+    "Evaluations": 1,
+    "ElapsedMs": 463.4287,
+    "BestFoundAt": -1,
+    "Timestamp": "2026-03-19T10:40:05.2619044+00:00"
+  },
+  {
+    "Instance": "tai_500_20_0",
+    "Algorithm": "Random_10000_s0",
+    "Params": "RandomParameters",
+    "Seed": 0,
+    "BestCost": 7919292.0,
+    "Evaluations": 10000,
+    "ElapsedMs": 4215.4454,
+    "BestFoundAt": -1,
+    "Timestamp": "2026-03-19T10:40:09.4782019+00:00"
+  },
+  {
+    "Instance": "tai_500_20_0",
+    "Algorithm": "Evolutionary_p100_g100_s0",
+    "Params": "EvolutionaryParameters",
+    "Seed": 0,
+    "BestCost": 7675825.0,
+    "Evaluations": 10100,
+    "ElapsedMs": 5861.2096,
+    "BestFoundAt": 10095,
+    "Timestamp": "2026-03-19T10:40:15.3538615+00:00"
+  },
+  {
+    "Instance": "tai_500_20_0",
+    "Algorithm": "Greedy",
+    "Params": "GreedyParameters",
+    "Seed": null,
+    "BestCost": 6834560.0,
+    "Evaluations": 1,
+    "ElapsedMs": 16788.0111,
+    "BestFoundAt": -1,
+    "Timestamp": "2026-03-19T10:40:32.1426362+00:00"
+  }
+]

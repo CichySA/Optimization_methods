@@ -1,0 +1,38 @@
+{
+  "Instances": [
+    "tai_20_5_0",
+    "tai_20_10_0",
+    "tai_20_20_0",
+    "tai_100_10_0",
+    "tai_100_20_0",
+    "tai_500_20_0"
+  ],
+  "OutDir": "Analysis/Experiments",
+  "Algorithms": [
+    {
+      "Type": "Random",
+      "Parameters": {
+        "Seed": 0,
+        "Samples": 10000
+      }
+    },
+    {
+      "Type": "Evolutionary",
+      "Parameters": {
+        "Seed": 0,
+        "PopulationSize": 100,
+        "Generations": 100,
+        "CrossoverRate": 0.7,
+        "MutationRate": 0.1,
+        "TournamentSize": 5,
+        "SelectionMethod": "Tournament",
+        "CrossoverMethod": "OX",
+        "MutationMethod": "Swap"
+      }
+    },
+    {
+      "Type": "Greedy",
+      "Parameters": {}
+    }
+  ]
+}
