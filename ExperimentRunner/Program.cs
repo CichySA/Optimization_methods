@@ -1,39 +1,27 @@
+using System.Globalization;
 using ExperimentRunner;
 using PFSP.Algorithms.Random;
 using PFSP.Solutions;
 
+var config = ExperimentRunnerConfigurationCliParser.Parse(args);
+if (config is null)
+    return;
+
 Console.WriteLine("Experiment Runner");
 
-// We'll run RandomAlgorithm for a set of TAi instances and varying sample counts
-
-// TAi base names to test
-var taiBaseNames = new[]
-{
-                "tai_20_5_0",
-                "tai_20_10_0",
-                "tai_20_20_0",
-                "tai_100_10_0",
-                "tai_100_20_0",
-                "tai_500_20_0"
-            };
-
-var sampleCounts = new[] { 1, 10, 100, 1000, 10000, 100000 };
-int seed = 123;
-
-var algoSpecs = sampleCounts.Select(s => (Samples: s, Seed: seed));
+var algoSpecs = config.Samples.Select(s => (Samples: s, Seed: config.Seed));
 var algorithms = AlgorithmFactory.CreateRandomAlgorithms(algoSpecs);
-
-var problems = ProblemLoader.LoadMany(taiBaseNames);
-
+var problems = ProblemLoader.LoadMany(config.Instances);
 var results = new List<object>();
-// Determine ExperimentRunner project directory from the assembly output path (bin/...)
+
 var baseDir = AppContext.BaseDirectory ?? Environment.CurrentDirectory;
-// bin/{config}/{tfm} -> go up three levels to reach project directory
 var projectDir = Path.GetFullPath(Path.Combine(baseDir, "..", "..", ".."));
-var outDir = Path.Combine(projectDir, "experiment_results");
+var outDir = Path.IsPathRooted(config.OutDir)
+    ? config.OutDir
+    : Path.Combine(projectDir, config.OutDir);
+
 Directory.CreateDirectory(outDir);
 
-// write CSV header with Instance and Algorithm columns
 var header = "Instance,Algorithm,Params,Seed,BestCost,Evaluations,ElapsedMs,BestFoundAt,Timestamp";
 File.WriteAllText(Path.Combine(outDir, "random_sample_study.csv"), header + Environment.NewLine);
 
@@ -43,6 +31,7 @@ foreach (var (name, inst) in problems)
     {
         var seedVal = pars is RandomParameters rpp ? rpp.Seed : (int?)null;
         Visualizer.DisplayRunStart(name, algName, seedVal);
+
         var sw = System.Diagnostics.Stopwatch.StartNew();
         var result = alg.Solve(inst, pars);
         sw.Stop();
@@ -59,13 +48,22 @@ foreach (var (name, inst) in problems)
             BestFoundAt = result.BestFoundAtEvaluation,
             Timestamp = DateTimeOffset.UtcNow
         };
+
         results.Add(record);
-        var bestCostStr = record.BestCost is double d ? d.ToString("G", System.Globalization.CultureInfo.InvariantCulture) : record.BestCost?.ToString();
-        var elapsedMsStr = record.ElapsedMs is double d2 ? d2.ToString("G", System.Globalization.CultureInfo.InvariantCulture) : record.ElapsedMs.ToString();
+
+        var bestCostStr = record.BestCost is double d
+            ? d.ToString("G", CultureInfo.InvariantCulture)
+            : record.BestCost?.ToString();
+
+        var elapsedMsStr = record.ElapsedMs is double d2
+            ? d2.ToString("G", CultureInfo.InvariantCulture)
+            : record.ElapsedMs.ToString();
+
         var line = $"{record.Instance},{record.Algorithm},{record.Params},{record.Seed},{bestCostStr},{record.Evaluations},{elapsedMsStr},{record.BestFoundAt},{record.Timestamp:o}";
         ResultSaver.AppendCsvLine(outDir, "random_sample_study.csv", line);
         Visualizer.DisplayLine(line);
     }
 }
+
 ResultSaver.SaveJson(outDir, $"random_sample_study_{DateTime.UtcNow:yyyyMMdd_HHmmss}.json", results);
 Visualizer.DisplayLine($"Done. Results saved to {outDir}");

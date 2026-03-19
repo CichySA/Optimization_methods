@@ -5,7 +5,7 @@ namespace ExperimentRunner
 {
     public static class AlgorithmFactory
     {
-        public static RandomAlgorithm CreateRandomAlgorithm() => new RandomAlgorithm();
+        public static RandomAlgorithm CreateRandomAlgorithm() => new();
         public static RandomParameters RandomParametersForRuns(int samples, int seed) => RandomParameters.ForRuns(samples, seed);
 
         // Create multiple algorithms using provided parameter specifications (samples, seed).
