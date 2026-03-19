@@ -6,6 +6,7 @@ namespace ExperimentRunner
     {
         public string Type { get; init; } = "Random";
         public JsonElement Parameters { get; init; }
+        public JsonElement ParameterGrid2D { get; init; }
     }
 
     public sealed record ExperimentRunnerConfiguration

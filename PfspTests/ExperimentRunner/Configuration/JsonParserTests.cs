@@ -1,9 +1,12 @@
-using ExperimentRunner;
 using System.Text.Json;
+using ExperimentRunner;
 using PFSP.Algorithms.Evolutionary;
 
-namespace PfspTests
+namespace PfspTests.ExperimentRunner.Configuration
 {
+    [Trait("Area", "ExperimentRunner")]
+    [Trait("Component", "Configuration")]
+    [Trait("Kind", "Unit")]
     public class JsonParserTests
     {
         private static string WriteTemp(string json)
@@ -29,12 +32,11 @@ namespace PfspTests
 
             var config = ExperimentRunnerConfigurationJsonParser.Load(path);
 
-            // @TODO embedded algorithm parameters
             Assert.Equal(["tai_20_5_0", "tai_100_10_0"], config.Instances);
             Assert.Equal("my_results", config.OutDir);
             Assert.Equal(2, config.Algorithms.Length);
             Assert.Equal("Random", config.Algorithms[0].Type);
-            Assert.Equal("Greedy",  config.Algorithms[1].Type);
+            Assert.Equal("Greedy", config.Algorithms[1].Type);
         }
 
         [Fact]
@@ -78,8 +80,8 @@ namespace PfspTests
             var spec = ExperimentRunnerConfigurationJsonParser.Load(path).Algorithms.Single();
 
             Assert.Equal("Random", spec.Type);
-            Assert.Equal(System.Text.Json.JsonValueKind.Object, spec.Parameters.ValueKind);
-            Assert.Equal(99,  spec.Parameters.GetProperty("Seed").GetInt32());
+            Assert.Equal(JsonValueKind.Object, spec.Parameters.ValueKind);
+            Assert.Equal(99, spec.Parameters.GetProperty("Seed").GetInt32());
             Assert.Equal(777, spec.Parameters.GetProperty("Samples").GetInt32());
         }
 
@@ -122,19 +124,19 @@ namespace PfspTests
             """);
 
             var spec = ExperimentRunnerConfigurationJsonParser.Load(path).Algorithms.Single();
-            var p    = spec.Parameters;
+            var p = spec.Parameters;
 
             Assert.Equal("Evolutionary", spec.Type);
             Assert.Equal(JsonValueKind.Object, p.ValueKind);
-            Assert.Equal(5,    p.GetProperty("Seed").GetInt32());
-            Assert.Equal(200,  p.GetProperty("PopulationSize").GetInt32());
-            Assert.Equal(300,  p.GetProperty("Generations").GetInt32());
+            Assert.Equal(5, p.GetProperty("Seed").GetInt32());
+            Assert.Equal(200, p.GetProperty("PopulationSize").GetInt32());
+            Assert.Equal(300, p.GetProperty("Generations").GetInt32());
             Assert.Equal(0.85, p.GetProperty("CrossoverRate").GetDouble(), precision: 10);
-            Assert.Equal(0.05, p.GetProperty("MutationRate").GetDouble(),  precision: 10);
-            Assert.Equal(7,    p.GetProperty("TournamentSize").GetInt32());
+            Assert.Equal(0.05, p.GetProperty("MutationRate").GetDouble(), precision: 10);
+            Assert.Equal(7, p.GetProperty("TournamentSize").GetInt32());
             Assert.Equal("Tournament", p.GetProperty("SelectionMethod").GetString());
-            Assert.Equal("OX",         p.GetProperty("CrossoverMethod").GetString());
-            Assert.Equal("Swap",       p.GetProperty("MutationMethod").GetString());
+            Assert.Equal("OX", p.GetProperty("CrossoverMethod").GetString());
+            Assert.Equal("Swap", p.GetProperty("MutationMethod").GetString());
         }
 
         [Fact]
@@ -170,9 +172,9 @@ namespace PfspTests
             var config = ExperimentRunnerConfigurationJsonParser.Load(path);
 
             Assert.Equal(3, config.Algorithms.Length);
-            Assert.Equal("Random",      config.Algorithms[0].Type);
-            Assert.Equal("Evolutionary",config.Algorithms[1].Type);
-            Assert.Equal("Greedy",      config.Algorithms[2].Type);
+            Assert.Equal("Random", config.Algorithms[0].Type);
+            Assert.Equal("Evolutionary", config.Algorithms[1].Type);
+            Assert.Equal("Greedy", config.Algorithms[2].Type);
 
             var evoPars = config.Algorithms[1].Parameters;
             Assert.Equal(40, evoPars.GetProperty("PopulationSize").GetInt32());
@@ -204,12 +206,12 @@ namespace PfspTests
             var (_, _, pars) = AlgorithmFactory.CreateFromSpec(spec);
             var ep = Assert.IsType<EvolutionaryParameters>(pars);
 
-            Assert.Equal(42,  ep.Seed);
+            Assert.Equal(42, ep.Seed);
             Assert.Equal(150, ep.PopulationSize);
-            Assert.Equal(75,  ep.Generations);
-            Assert.Equal(0.6, ep.CrossoverRate,  precision: 10);
-            Assert.Equal(0.2, ep.MutationRate,   precision: 10);
-            Assert.Equal(3,   ep.TournamentSize);
+            Assert.Equal(75, ep.Generations);
+            Assert.Equal(0.6, ep.CrossoverRate, precision: 10);
+            Assert.Equal(0.2, ep.MutationRate, precision: 10);
+            Assert.Equal(3, ep.TournamentSize);
         }
     }
 }

@@ -1,7 +1,10 @@
 using ExperimentRunner;
 
-namespace PfspTests
+namespace PfspTests.ExperimentRunner.Configuration
 {
+    [Trait("Area", "ExperimentRunner")]
+    [Trait("Component", "Configuration")]
+    [Trait("Kind", "Unit")]
     public class CliParserTests
     {
         private static string WriteTemp(string json)

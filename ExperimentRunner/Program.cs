@@ -10,7 +10,7 @@ if (config is null)
 
 Console.WriteLine("Experiment Runner");
 
-var algorithms = config.Algorithms.Select(AlgorithmFactory.CreateFromSpec).ToList();
+var algorithms = config.Algorithms.SelectMany(AlgorithmFactory.CreateManyFromSpec).ToList();
 var problems = ProblemLoader.LoadMany(config.Instances);
 var results = new List<object>();
 
