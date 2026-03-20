@@ -12,20 +12,20 @@ namespace PFSP.Algorithms.SimulatedAnnealing.Operators
             int n = permutation.Length;
             if (n < 2) return (int[])permutation.Clone();
 
-            var neighbor = new int[n];
+            var neighbor = (int[])permutation.Clone();
             int from = rnd.Next(n);
             int to = rnd.Next(n - 1);
             if (to >= from) to++;
 
-            int value = permutation[from];
+            int value = neighbor[from];
             // Shift elements to make room for the inserted value
             if (from < to)
             {
-                Array.Copy(permutation, from + 1, neighbor, from, to - from);
+                Array.Copy(neighbor, from + 1, neighbor, from, to - from);
             }
             else if (from > to)
             {
-                Array.Copy(permutation, to, neighbor, to + 1, from - to);
+                Array.Copy(neighbor, to, neighbor, to + 1, from - to);
             }
 
             neighbor[to] = value;
