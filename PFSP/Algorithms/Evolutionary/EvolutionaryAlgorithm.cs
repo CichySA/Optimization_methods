@@ -1,11 +1,7 @@
-using System;
-using System.Diagnostics;
-using System.Threading;
 using PFSP.Instances;
 using PFSP.Solutions;
-
 using PFSP.Solutions.PermutationSolutionGenerators;
-using PFSP.Algorithms.Evolutionary;
+using System.Diagnostics;
 
 namespace PFSP.Algorithms.Evolutionary
 {
@@ -18,9 +14,9 @@ namespace PFSP.Algorithms.Evolutionary
         public AlgorithmResult Solve(Instance instance, IParameters parameters, CancellationToken cancellationToken = default)
         {
             ArgumentNullException.ThrowIfNull(instance);
-            var p = parameters as EvolutionaryParameters ?? throw new ArgumentException("parameters must be EvolutionaryParameters", nameof(parameters));
-            var gen = new RandomPermutationSolutionGenerator(p.Seed);
-            var rnd = p.Seed == 0 ? new System.Random() : new System.Random(p.Seed);
+            var parms = parameters as EvolutionaryParameters ?? throw new ArgumentException("parameters must be EvolutionaryParameters", nameof(parameters));
+            var gen = new RandomPermutationSolutionGenerator(parms.Seed);
+            var rnd = parms.Seed == 0 ? new Random() : new Random(parms.Seed);
 
             var sw = Stopwatch.StartNew();
             long evaluations = 0;
@@ -28,7 +24,7 @@ namespace PFSP.Algorithms.Evolutionary
             long bestFoundAt = -1;
 
             // Initial population
-            var populationSize = Math.Max(1, p.PopulationSize);
+            var populationSize = Math.Max(1, parms.PopulationSize);
             var population = new PermutationSolution[populationSize];
             for (int i = 0; i < populationSize; i++)
             {
@@ -47,7 +43,7 @@ namespace PFSP.Algorithms.Evolutionary
             }
 
             // Evolution loop
-            for (int genIndex = 0; genIndex < p.Generations; genIndex++)
+            for (int genIndex = 0; genIndex < parms.Generations; genIndex++)
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
@@ -61,16 +57,16 @@ namespace PFSP.Algorithms.Evolutionary
 
 
                     // Selection
-                    var parent1 = p.SelectionMethod.Select(population, rnd, p.TournamentSize);
-                    var parent2 = p.SelectionMethod.Select(population, rnd, p.TournamentSize);
+                    var parent1 = parms.SelectionMethod.Select(population, rnd, parms.TournamentSize);
+                    var parent2 = parms.SelectionMethod.Select(population, rnd, parms.TournamentSize);
 
                     int[] childPerm1, childPerm2;
 
                     // Crossover
-                    if (rnd.NextDouble() < p.CrossoverRate)
+                    if (rnd.NextDouble() < parms.CrossoverRate)
                     {
-                        childPerm1 = p.CrossoverMethod.Crossover(parent1.Permutation, parent2.Permutation, rnd);
-                        childPerm2 = p.CrossoverMethod.Crossover(parent2.Permutation, parent1.Permutation, rnd);
+                        childPerm1 = parms.CrossoverMethod.Crossover(parent1.Permutation, parent2.Permutation, rnd);
+                        childPerm2 = parms.CrossoverMethod.Crossover(parent2.Permutation, parent1.Permutation, rnd);
                     }
                     else
                     {
@@ -80,10 +76,10 @@ namespace PFSP.Algorithms.Evolutionary
                     }
 
                     // Mutation
-                    if (rnd.NextDouble() < p.MutationRate)
-                        p.MutationMethod.Mutate(childPerm1, rnd);
-                    if (rnd.NextDouble() < p.MutationRate)
-                        p.MutationMethod.Mutate(childPerm2, rnd);
+                    if (rnd.NextDouble() < parms.MutationRate)
+                        parms.MutationMethod.Mutate(childPerm1, rnd);
+                    if (rnd.NextDouble() < parms.MutationRate)
+                        parms.MutationMethod.Mutate(childPerm2, rnd);
 
                     // Evaluate and add to new population
                     var child1 = PermutationSolution.CreateCopy(childPerm1, instance.Evaluate(childPerm1));

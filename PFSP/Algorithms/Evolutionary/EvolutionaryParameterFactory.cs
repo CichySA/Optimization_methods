@@ -1,6 +1,7 @@
 using System.Globalization;
 using System.Text;
 using System.Text.Json;
+using PFSP.Algorithms.Evolutionary.Operators;
 
 namespace PFSP.Algorithms.Evolutionary
 {

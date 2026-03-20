@@ -4,17 +4,18 @@ namespace ExperimentRunner
 {
     public static class ProblemLoader
     {
-        public static Instance Load(string baseName) => InstanceReader.Read(baseName);
+        public static Instance Load(string baseNameOrPath) => InstanceReader.Read(PathResolver.NormalizeInstanceIdentifier(baseNameOrPath));
 
-        public static List<(string Name, Instance Inst)> LoadMany(IEnumerable<string> baseNames)
+        public static List<(string Name, Instance Inst)> LoadMany(IEnumerable<string> baseNamesOrPaths)
         {
             var list = new List<(string, Instance)>();
-            foreach (var name in baseNames)
+            foreach (var name in baseNamesOrPaths)
             {
                 try
                 {
-                    var inst = InstanceReader.Read(name);
-                    list.Add((name, inst));
+                    var normalizedName = PathResolver.NormalizeInstanceIdentifier(name);
+                    var inst = InstanceReader.Read(normalizedName);
+                    list.Add((normalizedName, inst));
                 }
                 catch (Exception ex)
                 {

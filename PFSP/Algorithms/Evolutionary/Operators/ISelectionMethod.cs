@@ -1,9 +1,9 @@
 using PFSP.Solutions;
 
-namespace PFSP.Algorithms.Evolutionary
+namespace PFSP.Algorithms.Evolutionary.Operators
 {
     public interface ISelectionMethod
     {
-        PermutationSolution Select(PermutationSolution[] population, System.Random rnd, int tournamentSize);
+        PermutationSolution Select(PermutationSolution[] population, Random rnd, int tournamentSize);
     }
 }

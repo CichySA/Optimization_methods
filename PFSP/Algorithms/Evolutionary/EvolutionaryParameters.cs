@@ -1,3 +1,5 @@
+using PFSP.Algorithms.Evolutionary.Operators;
+
 namespace PFSP.Algorithms.Evolutionary
 {
     public sealed class EvolutionaryParameters : IParameters

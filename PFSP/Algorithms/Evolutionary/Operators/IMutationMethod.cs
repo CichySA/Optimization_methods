@@ -1,7 +1,7 @@
-namespace PFSP.Algorithms.Evolutionary
+namespace PFSP.Algorithms.Evolutionary.Operators
 {
     public interface IMutationMethod
     {
-        void Mutate(int[] permutation, System.Random rnd);
+        void Mutate(int[] permutation, Random rnd);
     }
 }

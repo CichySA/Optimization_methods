@@ -1,7 +1,7 @@
-namespace PFSP.Algorithms.Evolutionary
+namespace PFSP.Algorithms.Evolutionary.Operators
 {
     public interface ICrossoverMethod
     {
-        int[] Crossover(int[] parent1, int[] parent2, System.Random rnd);
+        int[] Crossover(int[] parent1, int[] parent2, Random rnd);
     }
 }
