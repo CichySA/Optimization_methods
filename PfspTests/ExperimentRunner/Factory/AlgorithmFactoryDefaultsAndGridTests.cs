@@ -1,6 +1,6 @@
 using ExperimentRunner;
 using PFSP.Algorithms.Evolutionary;
-using PFSP.Algorithms.Random;
+using PFSP.Algorithms.RandomSearch;
 
 namespace PfspTests.ExperimentRunner.Factory
 {
@@ -16,7 +16,7 @@ namespace PfspTests.ExperimentRunner.Factory
 
             var (_, _, pars) = AlgorithmFactory.CreateFromSpec(spec);
 
-            var rp = Assert.IsType<RandomParameters>(pars);
+            var rp = Assert.IsType<RandomSearchParameters>(pars);
             Assert.Equal(100, rp.Samples);
             Assert.Equal(0, rp.Seed);
         }
@@ -71,7 +71,7 @@ namespace PfspTests.ExperimentRunner.Factory
 
             Assert.Equal(4, expanded.Count);
 
-            var allPars = expanded.Select(e => Assert.IsType<RandomParameters>(e.Params)).ToList();
+            var allPars = expanded.Select(e => Assert.IsType<RandomSearchParameters>(e.Params)).ToList();
             var combos = allPars.Select(p => (p.Seed, p.Samples)).ToHashSet();
             Assert.Contains((1, 10), combos);
             Assert.Contains((1, 20), combos);

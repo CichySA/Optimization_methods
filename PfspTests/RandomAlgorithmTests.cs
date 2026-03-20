@@ -1,5 +1,5 @@
 using PFSP.Algorithms;
-using PFSP.Algorithms.Random;
+using PFSP.Algorithms.RandomSearch;
 using PFSP.Evaluators;
 using PFSP.Instances;
 
@@ -21,8 +21,8 @@ namespace PfspTests
             };
             var instance = Instance.Create(matrix, new TotalFlowTimeEvaluator());
 
-            var algo = new RandomAlgorithm();
-            var pars = RandomParameters.ForRuns(100, seed: 123);
+            var algo = new RandomSearchAlgorithm();
+            var pars = RandomSearchParameters.ForRuns(100, seed: 123);
 
             var res1 = algo.Solve(instance, pars, TestContext.Current.CancellationToken);
             var res2 = algo.Solve(instance, pars, TestContext.Current.CancellationToken);
@@ -39,7 +39,7 @@ namespace PfspTests
             int seed = 42;      // deterministic RNG for test repeatability
 
             // only change the instantiated algorithm
-            IAlgorithm alg = new RandomAlgorithm();
+            IAlgorithm alg = new RandomSearchAlgorithm();
             RunEvaluationCountTest(alg, samples, seed);
         }
 
@@ -69,7 +69,7 @@ namespace PfspTests
 
             var instance = Instance.CreateWithDefaultEvaluator(matrix);
 
-            var parameters = RandomParameters.ForRuns(samples, seed);
+            var parameters = RandomSearchParameters.ForRuns(samples, seed);
 
             // Act
             var result = alg.Solve(instance, parameters);
@@ -85,8 +85,8 @@ namespace PfspTests
         [Fact]
         public void Sequential_Solve_NullInstance_ThrowsArgumentNullException()
         {
-            var algo = new RandomAlgorithm();
-            var pars = RandomParameters.ForRuns(10, seed: 1);
+            var algo = new RandomSearchAlgorithm();
+            var pars = RandomSearchParameters.ForRuns(10, seed: 1);
             Assert.Throws<ArgumentNullException>(() => algo.Solve(null!, pars));
         }
 
@@ -95,7 +95,7 @@ namespace PfspTests
         {
             var matrix = new double[1, 2] { { 1, 2 } };
             var instance = Instance.Create(matrix, new TotalFlowTimeEvaluator());
-            var algo = new RandomAlgorithm();
+            var algo = new RandomSearchAlgorithm();
             Assert.Throws<ArgumentException>(() => algo.Solve(instance, new FakeParameters()));
         }
 
@@ -113,10 +113,10 @@ namespace PfspTests
                 for (int j = 0; j < jobs; j++)
                     matrix[m, j] = rnd.Next(1, 100);
             var instance = Instance.Create(matrix, new TotalFlowTimeEvaluator());
-            var algo = new RandomAlgorithm();
+            var algo = new RandomSearchAlgorithm();
 
-            var res1 = algo.Solve(instance, RandomParameters.ForRuns(10, seed: 1), TestContext.Current.CancellationToken);
-            var res2 = algo.Solve(instance, RandomParameters.ForRuns(10, seed: 2), TestContext.Current.CancellationToken);
+            var res1 = algo.Solve(instance, RandomSearchParameters.ForRuns(10, seed: 1), TestContext.Current.CancellationToken);
+            var res2 = algo.Solve(instance, RandomSearchParameters.ForRuns(10, seed: 2), TestContext.Current.CancellationToken);
 
             Assert.False(res1.Best.Permutation.SequenceEqual(res2.Best.Permutation));
         }
@@ -128,9 +128,9 @@ namespace PfspTests
             var matrix = new double[2, jobs];
             for (int j = 0; j < jobs; j++) { matrix[0, j] = j + 1; matrix[1, j] = jobs - j; }
             var instance = Instance.Create(matrix, new TotalFlowTimeEvaluator());
-            var algo = new RandomAlgorithm();
+            var algo = new RandomSearchAlgorithm();
 
-            var result = algo.Solve(instance, RandomParameters.ForRuns(50, seed: 42), TestContext.Current.CancellationToken);
+            var result = algo.Solve(instance, RandomSearchParameters.ForRuns(50, seed: 42), TestContext.Current.CancellationToken);
 
             Assert.Equal(jobs, result.Best.Permutation.Length);
             Assert.Equal(Enumerable.Range(0, jobs), result.Best.Permutation.OrderBy(x => x));
@@ -141,9 +141,9 @@ namespace PfspTests
         {
             var matrix = new double[2, 5] { { 1, 2, 3, 4, 5 }, { 5, 4, 3, 2, 1 } };
             var instance = Instance.Create(matrix, new TotalFlowTimeEvaluator());
-            var algo = new RandomAlgorithm();
+            var algo = new RandomSearchAlgorithm();
 
-            var result = algo.Solve(instance, RandomParameters.ForTimeLimit(TimeSpan.FromMilliseconds(100), seed: 1), TestContext.Current.CancellationToken);
+            var result = algo.Solve(instance, RandomSearchParameters.ForTimeLimit(TimeSpan.FromMilliseconds(100), seed: 1), TestContext.Current.CancellationToken);
 
             Assert.NotNull(result.Best);
             Assert.True(result.Evaluations >= 1);
@@ -161,7 +161,7 @@ namespace PfspTests
             };
             var instance = Instance.Create(matrix, new TotalFlowTimeEvaluator());
             var algo = new ParallelRandomAlgorithm();
-            var pars = RandomParameters.ForRuns(100, seed: 123);
+            var pars = RandomSearchParameters.ForRuns(100, seed: 123);
 
             var res1 = algo.Solve(instance, pars, TestContext.Current.CancellationToken);
             var res2 = algo.Solve(instance, pars, TestContext.Current.CancellationToken);
@@ -179,7 +179,7 @@ namespace PfspTests
             var instance = Instance.Create(matrix, new TotalFlowTimeEvaluator());
             var algo = new ParallelRandomAlgorithm();
 
-            var result = algo.Solve(instance, RandomParameters.ForRuns(50, seed: 42), TestContext.Current.CancellationToken);
+            var result = algo.Solve(instance, RandomSearchParameters.ForRuns(50, seed: 42), TestContext.Current.CancellationToken);
 
             Assert.Equal(jobs, result.Best.Permutation.Length);
             Assert.Equal(Enumerable.Range(0, jobs), result.Best.Permutation.OrderBy(x => x));
@@ -191,7 +191,7 @@ namespace PfspTests
         public void Parallel_Solve_NullInstance_ThrowsArgumentNullException()
         {
             var algo = new ParallelRandomAlgorithm();
-            var pars = RandomParameters.ForRuns(10, seed: 1);
+            var pars = RandomSearchParameters.ForRuns(10, seed: 1);
             Assert.Throws<ArgumentNullException>(() => algo.Solve(null!, pars));
         }
 
@@ -216,7 +216,7 @@ namespace PfspTests
             cts.Cancel();
 
             // Pre-cancelled token: algorithm must not throw and must return a valid fallback solution.
-            var result = algo.Solve(instance, RandomParameters.ForRuns(1_000_000, seed: 1), cts.Token);
+            var result = algo.Solve(instance, RandomSearchParameters.ForRuns(1_000_000, seed: 1), cts.Token);
 
             Assert.NotNull(result.Best);
             Assert.Equal(instance.Jobs, result.Best.Permutation.Length);

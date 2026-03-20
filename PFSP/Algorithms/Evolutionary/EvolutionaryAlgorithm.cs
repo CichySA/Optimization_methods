@@ -11,24 +11,15 @@ namespace PFSP.Algorithms.Evolutionary
 {
     public class EvolutionaryAlgorithm : IAlgorithm
     {
-        private readonly IPermutationSolutionGenerator _generator;
-
-        /// <param name="generator">
-        /// Generator used to seed the initial population.
-        /// When null, a <see cref="RandomPermutationSolutionGenerator"/> seeded from
-        /// <see cref="EvolutionaryParameters.Seed"/> is created inside <see cref="Solve"/>.
-        /// </param>
-        public EvolutionaryAlgorithm(IPermutationSolutionGenerator? generator = null)
+        public EvolutionaryAlgorithm()
         {
-            _generator = generator!; // may be null; resolved in Solve when params are available
         }
 
         public AlgorithmResult Solve(Instance instance, IParameters parameters, CancellationToken cancellationToken = default)
         {
             ArgumentNullException.ThrowIfNull(instance);
             var p = parameters as EvolutionaryParameters ?? throw new ArgumentException("parameters must be EvolutionaryParameters", nameof(parameters));
-            // Resolve generator and RNG
-            var gen = _generator ?? new RandomPermutationSolutionGenerator(p.Seed);
+            var gen = new RandomPermutationSolutionGenerator(p.Seed);
             var rnd = p.Seed == 0 ? new System.Random() : new System.Random(p.Seed);
 
             var sw = Stopwatch.StartNew();

@@ -2,14 +2,13 @@ using PFSP.Instances;
 using PFSP.Solutions;
 using PFSP.Solutions.PermutationSolutionGenerators;
 using System.Diagnostics;
-using System.Threading.Tasks;
 
-namespace PFSP.Algorithms.Random
+namespace PFSP.Algorithms.RandomSearch
 {
     // Sequential implementation of the Random algorithm.
-    public class RandomAlgorithm : IAlgorithm
+    public class RandomSearchAlgorithm : IAlgorithm
     {
-        public RandomAlgorithm()
+        public RandomSearchAlgorithm()
         {
         }
 
@@ -26,6 +25,7 @@ namespace PFSP.Algorithms.Random
             sw.Stop();
             return new AlgorithmResult(RandomAlgorithmCore.EnsureBest(best, instance, p.Seed), evals, sw.Elapsed)
             {
+                // TODO: not critical for Random but Worker could return it. For now -1 is "unknown".
                 BestFoundAtEvaluation = -1
             };
         }
@@ -41,7 +41,7 @@ namespace PFSP.Algorithms.Random
         public AlgorithmResult Solve(Instance instance, IParameters parameters, CancellationToken cancellationToken = default)
         {
             var p = RandomAlgorithmCore.ParseParameters(instance, parameters);
-            int workers = Environment.ProcessorCount;  
+            int workers = Environment.ProcessorCount;
             var sw = Stopwatch.StartNew();
             bool useTimeLimit = p.TimeLimit.HasValue;
             TimeSpan deadline = useTimeLimit ? p.TimeLimit!.Value : TimeSpan.Zero;
@@ -103,10 +103,10 @@ namespace PFSP.Algorithms.Random
     // Shared core logic
     internal static class RandomAlgorithmCore
     {
-        internal static RandomParameters ParseParameters(Instance instance, IParameters parameters)
+        internal static RandomSearchParameters ParseParameters(Instance instance, IParameters parameters)
         {
             ArgumentNullException.ThrowIfNull(instance);
-            return parameters as RandomParameters
+            return parameters as RandomSearchParameters
                 ?? throw new ArgumentException("parameters must be RandomParameters", nameof(parameters));
         }
 
