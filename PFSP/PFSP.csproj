@@ -26,9 +26,9 @@
     <PackageReference Include="xunit.v3.extensibility.core" Version="3.2.2" />
   </ItemGroup>
 
-  <!-- Embed all .fsp instance files so InstanceReader can load them from resources -->
   <ItemGroup>
-    <EmbeddedResource Include="go-taillard\pfsp\instances\**\*.fsp" />
+	<EmbeddedResource Include="..\Instances\Taillard\**\*.fsp" />
+    <EmbeddedResource Include="..\Instances\Custom\**\*.fsp" />
   </ItemGroup>
 
 </Project>

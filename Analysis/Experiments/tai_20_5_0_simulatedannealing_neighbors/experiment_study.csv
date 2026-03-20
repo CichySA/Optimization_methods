@@ -1,4 +1,0 @@
-Instance,Algorithm,Params,Seed,BestCost,Evaluations,ElapsedMs,BestFoundAt,Timestamp
-tai_20_5_0,SimulatedAnnealing_nSwap_i20000_s0,SimulatedAnnealingParameters,,14306,20000,20.8005,608,2026-03-19T23:57:55.5785635+00:00
-tai_20_5_0,SimulatedAnnealing_nInsert_i20000_s0,SimulatedAnnealingParameters,,17288,20000,15.9841,126,2026-03-19T23:57:55.5955036+00:00
-tai_20_5_0,SimulatedAnnealing_nReverse_i20000_s0,SimulatedAnnealingParameters,,15057,20000,19.529,630,2026-03-19T23:57:55.6152997+00:00

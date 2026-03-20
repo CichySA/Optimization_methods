@@ -4,18 +4,19 @@ using System.Text.RegularExpressions;
 
 namespace PFSP.Instances
 {
-    // InstanceReader reads embedded Taillard instances from resources folder
+    // InstanceReader reads embedded Taillard/custom instances.
     public static class InstanceReader
     {
+        private static readonly string[] PreferredResourceMarkers =
+        [
+            "Instances.Taillard",
+            "Instances.Custom"
+        ];
+
         public static Instance Read(int jobs, int machines, int instanceNumber)
         {
             var fileName = $"tai{jobs}_{machines}_{instanceNumber}.fsp";
-            var assembly = Assembly.GetExecutingAssembly();
-            var resourceName = assembly.GetManifestResourceNames()
-                .FirstOrDefault(n => n.EndsWith(fileName, StringComparison.OrdinalIgnoreCase)) ?? throw new FileNotFoundException($"Instance file {fileName} not found in resources.");
-            using var stream = assembly.GetManifestResourceStream(resourceName) ?? throw new FileNotFoundException($"Instance resource {resourceName} not found.");
-            using var reader = new StreamReader(stream);
-            var content = reader.ReadToEnd();
+            var content = ReadEmbeddedResource(fileName);
 
             // extract integers and treat '-' placeholders as 0
             var matches = Regex.Matches(content, "-|\\d+");
@@ -49,6 +50,40 @@ namespace PFSP.Instances
                 .ToArray();
             if (nums.Length < 3) throw new FormatException($"Could not parse jobs,machines,instance from '{baseName}'.");
             return Read(nums[0], nums[1], nums[2]);
+        }
+
+        private static string ReadEmbeddedResource(string fileName)
+        {
+            if (string.IsNullOrWhiteSpace(fileName))
+                throw new ArgumentException("fileName is null or empty.", nameof(fileName));
+
+            var assembly = typeof(InstanceReader).Assembly;
+            var resourceNames = assembly.GetManifestResourceNames();
+
+            foreach (var marker in PreferredResourceMarkers)
+            {
+                var resourceName = resourceNames
+                    .FirstOrDefault(n => n.Contains(marker, StringComparison.OrdinalIgnoreCase) && n.EndsWith(fileName, StringComparison.OrdinalIgnoreCase));
+
+                if (resourceName is null)
+                    continue;
+
+                using var stream = assembly.GetManifestResourceStream(resourceName)
+                    ?? throw new FileNotFoundException($"Embedded resource '{resourceName}' not found.");
+                using var reader = new StreamReader(stream);
+                return reader.ReadToEnd();
+            }
+
+            var fallback = resourceNames.FirstOrDefault(n => n.EndsWith(fileName, StringComparison.OrdinalIgnoreCase));
+            if (fallback is not null)
+            {
+                using var stream = assembly.GetManifestResourceStream(fallback)
+                    ?? throw new FileNotFoundException($"Embedded resource '{fallback}' not found.");
+                using var reader = new StreamReader(stream);
+                return reader.ReadToEnd();
+            }
+
+            throw new FileNotFoundException($"Embedded instance file {fileName} not found in resources.");
         }
     }
 }

@@ -14,7 +14,7 @@ var algorithms = config.Algorithms.SelectMany(AlgorithmFactory.CreateManyFromSpe
 var problems = ProblemLoader.LoadMany(config.Instances);
 var outDir = ResultSaver.ResolveOutputDirectory(config.OutDir);
 
-const string csvFileName = "experiment_study.csv";
+const string csvFileName = "experiment_results.csv";
 var header = "Instance,Algorithm,Params,Seed,BestCost,Evaluations,ElapsedMs,BestFoundAt,Timestamp";
 
 var runPlan = new List<(int Index, string InstanceName, PFSP.Instances.Instance Instance, string AlgorithmName, PFSP.Algorithms.IAlgorithm AlgorithmTemplate, PFSP.Algorithms.IParameters Parameters)>();
@@ -104,5 +104,5 @@ foreach (var line in csvLines)
 ResultSaver.SaveCsv(outDir, csvFileName, header, csvLines);
 
 var results = records.ToList();
-//ResultSaver.SaveJson(outDir, $"experiment_study_{DateTime.UtcNow:yyyyMMdd_HHmmss}.json", results);
+//ResultSaver.SaveJson(outDir, $"experiment_results_{DateTime.UtcNow:yyyyMMdd_HHmmss}.json", results);
 Visualizer.DisplayLine($"Done. Results saved to {outDir}");

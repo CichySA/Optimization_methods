@@ -6,14 +6,14 @@ namespace ExperimentRunner
     {
         private const string HelpText = """
 Usage:
-  ExperimentRunner --config <path>
+  ExperimentRunner --config <experiment-name|path>
 
 Options:
-  --config <path>   Path to the JSON configuration file.
+  --config <experiment-name|path>   Experiment name under ./Experiments or an explicit config path.
   --help            Show this help text.
 
 Example:
-  dotnet run --project ExperimentRunner -- --config experimentrunner.json
+  dotnet run --project ExperimentRunner -- --config tai_all_default_all_algorithms
 """;
 
         public static ExperimentRunnerConfiguration? Parse(string[] args)

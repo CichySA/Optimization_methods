@@ -40,6 +40,15 @@ namespace PfspTests.ExperimentRunner.Configuration
         }
 
         [Fact]
+        public void Load_ExperimentName_ResolvesExperimentRunnerJsonUnderExperiments()
+        {
+            var config = ExperimentRunnerConfigurationJsonParser.Load("tai_all_default_all_algorithms");
+
+            Assert.Equal("tai_all_default_all_algorithms", config.OutDir);
+            Assert.NotEmpty(config.Algorithms);
+        }
+
+        [Fact]
         public void Load_MissingFile_ThrowsFileNotFoundException()
         {
             Assert.Throws<FileNotFoundException>(() =>
