@@ -31,7 +31,7 @@
    ```
 - Powershell:
    ```powershell
-   &.\.venv\Scripts\activate.bat
+   & .\.venv\Scripts\activate.bat
    ```
 1. Sync Python dependencies:
    ```powershell
