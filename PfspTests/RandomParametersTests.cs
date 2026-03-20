@@ -1,4 +1,4 @@
-using PFSP.Algorithms.Random;
+using PFSP.Algorithms.RandomSearch;
 
 namespace PfspTests
 {
@@ -7,13 +7,13 @@ namespace PfspTests
         [Fact]
         public void ForRuns_ZeroSamples_ThrowsArgumentException()
         {
-            Assert.Throws<ArgumentException>(() => RandomParameters.ForRuns(samples: 0));
+            Assert.Throws<ArgumentException>(() => RandomSearchParameters.ForRuns(samples: 0));
         }
 
         [Fact]
         public void ForRuns_NegativeSeed_ThrowsArgumentException()
         {
-            Assert.Throws<ArgumentException>(() => RandomParameters.ForRuns(samples: 10, seed: -1));
+            Assert.Throws<ArgumentException>(() => RandomSearchParameters.ForRuns(samples: 10, seed: -1));
         }
     }
 }

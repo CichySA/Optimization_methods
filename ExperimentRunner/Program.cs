@@ -1,7 +1,7 @@
 using System.Globalization;
 using ExperimentRunner;
 using PFSP.Algorithms.Evolutionary;
-using PFSP.Algorithms.Random;
+using PFSP.Algorithms.RandomSearch;
 using PFSP.Solutions;
 
 var config = ExperimentRunnerConfigurationCliParser.Parse(args);
@@ -34,7 +34,7 @@ foreach (var (name, inst) in problems)
     {
         var seedVal = pars switch
         {
-            RandomParameters rp         => (int?)rp.Seed,
+            RandomSearchParameters rp         => (int?)rp.Seed,
             EvolutionaryParameters ep   => (int?)ep.Seed,
             _                           => null
         };

@@ -1,6 +1,6 @@
 using BenchmarkDotNet.Attributes;
 using Microsoft.VSDiagnostics;
-using PFSP.Algorithms.Random;
+using PFSP.Algorithms.RandomSearch;
 using PFSP.Evaluators;
 using PFSP.Instances;
 using System;
@@ -11,8 +11,8 @@ namespace BenchmarkSuite
     public class RandomAlgorithmBenchmarks
     {
         private Instance _instance;
-        private RandomParameters _parameters;
-        private RandomAlgorithm _algorithm;
+        private RandomSearchParameters _parameters;
+        private RandomSearchAlgorithm _algorithm;
         [GlobalSetup]
         public void Setup()
         {
@@ -25,8 +25,8 @@ namespace BenchmarkSuite
                     matrix[m, j] = rnd.Next(1, 100);
 
             _instance = Instance.Create(matrix, new TotalFlowTimeEvaluator());
-            _parameters = RandomParameters.ForRuns(1000, seed: 123);
-            _algorithm = new RandomAlgorithm();
+            _parameters = RandomSearchParameters.ForRuns(1000, seed: 123);
+            _algorithm = new RandomSearchAlgorithm();
         }
 
         [Benchmark]

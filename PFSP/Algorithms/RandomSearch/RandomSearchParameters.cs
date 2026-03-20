@@ -1,22 +1,20 @@
-using System;
-
-namespace PFSP.Algorithms.Random
+namespace PFSP.Algorithms.RandomSearch
 {
     /// <summary>
     /// Parameters for the Random algorithm.
     /// Use the factory methods `ForRuns` or `ForTimeLimit` to create instances,
     /// or use `with` to make small modifications.
     /// </summary>
-    public sealed record RandomParameters : IParameters
+    public sealed record RandomSearchParameters : IParameters
     {
         public int Seed { get; init; }
         public int Samples { get; init; }
         public TimeSpan? TimeLimit { get; init; }
         public bool UseTimeLimit => TimeLimit.HasValue;
 
-        private RandomParameters() { }
+        private RandomSearchParameters() { }
 
-        private RandomParameters(int seed, int samples, TimeSpan? timeLimit)
+        private RandomSearchParameters(int seed, int samples, TimeSpan? timeLimit)
         {
             Seed = seed;
             Samples = samples;
@@ -39,16 +37,16 @@ namespace PFSP.Algorithms.Random
         }
 
         // Simple, explicit factories are easy to understand for callers.
-        public static RandomParameters ForRuns(int samples, int seed = 0)
+        public static RandomSearchParameters ForRuns(int samples, int seed = 0)
         {
             Validate(seed, samples, null);
-            return new RandomParameters(seed, samples, null);
+            return new RandomSearchParameters(seed, samples, null);
         }
 
-        public static RandomParameters ForTimeLimit(TimeSpan timeLimit, int seed = 0)
+        public static RandomSearchParameters ForTimeLimit(TimeSpan timeLimit, int seed = 0)
         {
             Validate(seed, 0, timeLimit);
-            return new RandomParameters(seed, 0, timeLimit);
+            return new RandomSearchParameters(seed, 0, timeLimit);
         }
     }
 }

@@ -1,7 +1,7 @@
 using ExperimentRunner;
 using PFSP.Algorithms.Evolutionary;
 using PFSP.Algorithms.Greedy;
-using PFSP.Algorithms.Random;
+using PFSP.Algorithms.RandomSearch;
 
 namespace PfspTests.ExperimentRunner.Factory
 {
@@ -18,8 +18,8 @@ namespace PfspTests.ExperimentRunner.Factory
             var (name, algo, pars) = AlgorithmFactory.CreateFromSpec(spec);
 
             Assert.Contains("Random", name);
-            Assert.IsType<RandomAlgorithm>(algo);
-            var rp = Assert.IsType<RandomParameters>(pars);
+            Assert.IsType<RandomSearchAlgorithm>(algo);
+            var rp = Assert.IsType<RandomSearchParameters>(pars);
             Assert.Equal(7, rp.Seed);
             Assert.Equal(50, rp.Samples);
         }
@@ -65,7 +65,7 @@ namespace PfspTests.ExperimentRunner.Factory
 
             var (_, algo, _) = AlgorithmFactory.CreateFromSpec(spec);
 
-            Assert.IsType<RandomAlgorithm>(algo);
+            Assert.IsType<RandomSearchAlgorithm>(algo);
         }
 
         [Fact]

@@ -3,7 +3,8 @@ using System.Text.Json.Nodes;
 using PFSP.Algorithms;
 using PFSP.Algorithms.Evolutionary;
 using PFSP.Algorithms.Greedy;
-using PFSP.Algorithms.Random;
+using PFSP.Algorithms.RandomSearch;
+using PFSP.Algorithms.SimulatedAnnealing;
 
 namespace ExperimentRunner
 {
@@ -46,10 +47,11 @@ namespace ExperimentRunner
         {
             return spec.Type.ToLowerInvariant() switch
             {
-                "random"        => CreateRandom(spec.Parameters),
-                "evolutionary"  => CreateEvolutionary(spec.Parameters),
-                "greedy"        => ("Greedy", new GreedyAlgorithm(), new GreedyParameters()),
-                _               => throw new ArgumentException($"Unknown algorithm type '{spec.Type}'.")
+                "random"             => CreateRandom(spec.Parameters),
+                "evolutionary"       => CreateEvolutionary(spec.Parameters),
+                "simulatedannealing" => CreateSimulatedAnnealing(spec.Parameters),
+                "greedy"             => ("Greedy", new GreedyAlgorithm(), new GreedyParameters()),
+                _                    => throw new ArgumentException($"Unknown algorithm type '{spec.Type}'.")
             };
         }
 
@@ -60,10 +62,10 @@ namespace ExperimentRunner
                 : new RandomParametersDto();
 
             var pars = dto.TimeLimitMs.HasValue
-                ? RandomParameters.ForTimeLimit(TimeSpan.FromMilliseconds(dto.TimeLimitMs.Value), dto.Seed)
-                : RandomParameters.ForRuns(dto.Samples, dto.Seed);
+                ? RandomSearchParameters.ForTimeLimit(TimeSpan.FromMilliseconds(dto.TimeLimitMs.Value), dto.Seed)
+                : RandomSearchParameters.ForRuns(dto.Samples, dto.Seed);
 
-            return ($"Random_{pars.Samples}_s{pars.Seed}", new RandomAlgorithm(), pars);
+            return ($"Random_{pars.Samples}_s{pars.Seed}", new RandomSearchAlgorithm(), pars);
         }
 
         private static (string Name, IAlgorithm Algo, IParameters Params) CreateEvolutionary(JsonElement parameters)
@@ -72,11 +74,28 @@ namespace ExperimentRunner
             return ($"Evolutionary_p{pars.PopulationSize}_g{pars.Generations}_s{pars.Seed}", new EvolutionaryAlgorithm(), pars);
         }
 
+        private static (string Name, IAlgorithm Algo, IParameters Params) CreateSimulatedAnnealing(JsonElement parameters)
+        {
+            var pars = CreateSimulatedAnnealingParameters(parameters);
+            var neighborhood = TryGetParameterString(parameters, SimulatedAnnealingParameterFactory.NeighborhoodOperatorName)
+                ?? SimulatedAnnealingParameterFactory.SwapNeighborhoodName;
+
+            return ($"SimulatedAnnealing_n{neighborhood}_i{pars.Iterations}_s{pars.Seed}", new SimulatedAnnealingAlgorithm(), pars);
+        }
+
         private static EvolutionaryParameters CreateEvolutionaryParameters(JsonElement parameters)
         {
             var raw = parameters.ValueKind != JsonValueKind.Undefined ? parameters.GetRawText() : "{}";
             var pars = EvolutionaryParameterFactory.FromJson(raw);
             EvolutionaryParameterFactory.Validate(pars);
+            return pars;
+        }
+
+        private static SimulatedAnnealingParameters CreateSimulatedAnnealingParameters(JsonElement parameters)
+        {
+            var raw = parameters.ValueKind != JsonValueKind.Undefined ? parameters.GetRawText() : "{}";
+            var pars = SimulatedAnnealingParameterFactory.FromJson(raw);
+            SimulatedAnnealingParameterFactory.Validate(pars);
             return pars;
         }
 
@@ -138,6 +157,25 @@ namespace ExperimentRunner
 
             using var doc = JsonDocument.Parse(merged.ToJsonString());
             return doc.RootElement.Clone();
+        }
+
+        private static string? TryGetParameterString(JsonElement parameters, string parameterName)
+        {
+            if (parameters.ValueKind != JsonValueKind.Object)
+                return null;
+
+            foreach (var property in parameters.EnumerateObject())
+            {
+                if (!string.Equals(property.Name, parameterName, StringComparison.OrdinalIgnoreCase))
+                    continue;
+
+                if (property.Value.ValueKind == JsonValueKind.String)
+                    return property.Value.GetString();
+
+                return property.Value.ToString();
+            }
+
+            return null;
         }
 
         private sealed class RandomParametersDto

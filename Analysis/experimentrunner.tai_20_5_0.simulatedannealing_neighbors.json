@@ -1,0 +1,28 @@
+{
+  "Instances": [
+    "tai_20_5_0",
+    "tai_20_10_0",
+    "tai_20_20_0",
+    "tai_100_10_0",
+    "tai_100_20_0",
+    "tai_500_20_0"
+  ],
+  "OutDir": "Analysis/Experiments/simulatedannealing_neighbors",
+  "Algorithms": [
+    {
+      "Type": "SimulatedAnnealing",
+      "Parameters": {
+        "Iterations": 20000,
+        "InitialTemperature": 100.0,
+        "CoolingRate": 0.995,
+        "MinimumTemperature": 0.0001,
+        "AcceptanceFunction": "Probabilistic",
+        "CoolingSchedule": "Linear"
+      },
+      "ParameterGrid2D": {
+        "NeighborhoodOperator": ["Swap", "Insert", "Reverse"],
+        "Seed": [22, 151555, 5252525, 6687883, 33331882]
+      }
+    }
+  ]
+}
