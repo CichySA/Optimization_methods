@@ -1,4 +1,6 @@
-namespace PFSP.Algorithms.SimulatedAnnealing.Operators
+using PFSP.Algorithms.SimulatedAnnealing.Operators;
+
+namespace PFSP.Algorithms.SimulatedAnnealing.Operators.NeighborhoodOperators
 {
     /// <summary>
     ///    The SwapNeighborhood operator creates a neighbor by selecting two positions in the permutation and swapping the elements at those positions.

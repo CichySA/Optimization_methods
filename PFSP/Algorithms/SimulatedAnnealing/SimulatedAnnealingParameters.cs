@@ -1,4 +1,7 @@
 using PFSP.Algorithms.SimulatedAnnealing.Operators;
+using PFSP.Algorithms.SimulatedAnnealing.Operators.AcceptanceFunctions;
+using PFSP.Algorithms.SimulatedAnnealing.Operators.CoolingSchedules;
+using PFSP.Algorithms.SimulatedAnnealing.Operators.NeighborhoodOperators;
 
 namespace PFSP.Algorithms.SimulatedAnnealing
 {
@@ -17,8 +20,9 @@ namespace PFSP.Algorithms.SimulatedAnnealing
         public double MinimumTemperature { get; init; } = DefaultMinimumTemperature;
 
         public INeighborhoodOperator NeighborhoodOperator { get; init; } = new SwapNeighborhood();
-        public IAcceptanceFunction AcceptanceFunction { get; init; } = new ProbabilisticAcceptanceAlgorithm();
+        public IAcceptanceFunction AcceptanceFunction { get; init; } = new ProbabilisticAcceptanceFunction();
         public ICoolingSchedule CoolingSchedule { get; init; } = new LinearCoolingSchedule();
+        public ICoolingScheduleParameters CoolingScheduleParameters { get; init; } = new LinearCoolingScheduleParameters();
 
         public static SimulatedAnnealingParameters Default => new();
     }

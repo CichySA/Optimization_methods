@@ -54,11 +54,9 @@ namespace PFSP.Algorithms.Evolutionary
                 {
                     cancellationToken.ThrowIfCancellationRequested();
 
-
-
                     // Selection
-                    var parent1 = parms.SelectionMethod.Select(population, rnd, parms.TournamentSize);
-                    var parent2 = parms.SelectionMethod.Select(population, rnd, parms.TournamentSize);
+                    var parent1 = parms.SelectionMethod.Select(population, rnd, parms.SelectionParameters);
+                    var parent2 = parms.SelectionMethod.Select(population, rnd, parms.SelectionParameters);
 
                     int[] childPerm1, childPerm2;
 
@@ -91,17 +89,15 @@ namespace PFSP.Algorithms.Evolutionary
                         bestFoundAt = evaluations;
                     }
 
-                    if (filled < populationSize)
+                    var child2 = PermutationSolution.CreateCopy(childPerm2, instance.Evaluate(childPerm2));
+                    evaluations++;
+                    newPop[filled++] = child2;
+                    if (child2.Cost < best.Cost)
                     {
-                        var child2 = PermutationSolution.CreateCopy(childPerm2, instance.Evaluate(childPerm2));
-                        evaluations++;
-                        newPop[filled++] = child2;
-                        if (child2.Cost < best.Cost)
-                        {
-                            best = child2;
-                            bestFoundAt = evaluations;
-                        }
+                        best = child2;
+                        bestFoundAt = evaluations;
                     }
+
                 }
 
                 population = newPop;

@@ -1,4 +1,6 @@
-namespace PFSP.Algorithms.SimulatedAnnealing.Operators
+using PFSP.Algorithms.SimulatedAnnealing.Operators;
+
+namespace PFSP.Algorithms.SimulatedAnnealing.Operators.NeighborhoodOperators
 {
     /// <summary>
     ///    The ReverseNeighborhood operator creates a neighbor by selecting two positions in the permutation and reversing the order of the elements between those positions.

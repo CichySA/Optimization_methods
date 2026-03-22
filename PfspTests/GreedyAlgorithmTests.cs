@@ -52,11 +52,37 @@ namespace PfspTests
             // cost must match the instance evaluation
             var cost = instance.Evaluate(result.Best.Permutation);
             Assert.Equal(cost, result.Best.Cost);
-            // cost must match the instance evaluation
+            // expected deterministic value for this fixture
             Assert.Equal(28, cost);
-            // solution must be deterministic
-            Assert.Equal(new int[] { 0, 1, 2 }, result.Best.Permutation)
-            ;
+            // no-search greedy (SPT by total processing time)
+            Assert.Equal(new int[] { 1, 0, 2 }, result.Best.Permutation);
+        }
+
+        [Fact]
+        public void SptAlgorithm_ReturnsValidCompleteSolution()
+        {
+            var matrix = new double[2, 3]
+            {
+                { 2, 3, 4 },
+                { 5, 2, 3 }
+            };
+            var instance = Instance.Create(matrix, new TotalFlowTimeEvaluator());
+
+            var algo = new SptAlgorithm();
+            var pars = new GreedyParameters();
+
+            var result = algo.Solve(instance, pars);
+
+            Assert.NotNull(result);
+            Assert.NotNull(result.Best);
+            Assert.Equal(instance.Jobs, result.Best.Permutation.Length);
+            Assert.Equal(Enumerable.Range(0, instance.Jobs), result.Best.Permutation.OrderBy(x => x));
+
+            var cost = instance.Evaluate(result.Best.Permutation);
+            Assert.Equal(cost, result.Best.Cost);
+            Assert.Equal(28, cost);
+            // iterative insertion variant reproduces previous behavior on this fixture
+            Assert.Equal(new int[] { 0, 1, 2 }, result.Best.Permutation);
         }
 
         private sealed class FakeParameters : IParameters { }

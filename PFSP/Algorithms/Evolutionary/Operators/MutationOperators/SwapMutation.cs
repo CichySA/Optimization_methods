@@ -1,4 +1,6 @@
-namespace PFSP.Algorithms.Evolutionary.Operators
+using PFSP.Algorithms.Evolutionary.Operators;
+
+namespace PFSP.Algorithms.Evolutionary.Operators.MutationOperators
 {
     public sealed class SwapMutation : IMutationMethod
     {

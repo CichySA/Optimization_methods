@@ -2,12 +2,14 @@ using System.Globalization;
 using System.Text;
 using System.Text.Json;
 using PFSP.Algorithms.Evolutionary.Operators;
+using PFSP.Algorithms.Evolutionary.Operators.CrossoverOperators;
+using PFSP.Algorithms.Evolutionary.Operators.MutationOperators;
+using PFSP.Algorithms.Evolutionary.Operators.SelectionOperators;
 
 namespace PFSP.Algorithms.Evolutionary
 {
     public static class EvolutionaryParameterFactory
     {
-        // --- parameter names ---
         public const string SeedName = "Seed";
         public const string PopulationSizeName = "PopulationSize";
         public const string GenerationsName = "Generations";
@@ -18,12 +20,10 @@ namespace PFSP.Algorithms.Evolutionary
         public const string CrossoverMethodName = "CrossoverMethod";
         public const string MutationMethodName = "MutationMethod";
 
-        // --- method names ---
         public const string TournamentMethod = "Tournament";
         public const string OXMethod = "OX";
         public const string SwapMethod = "Swap";
 
-        // --- Operator registries (name → factory, used for both serialization and deserialization) ---
         public static readonly Dictionary<string, Func<ISelectionMethod>> SelectionRegistry = new(StringComparer.OrdinalIgnoreCase)
         {
             { TournamentMethod, static () => new TournamentSelection() }
@@ -70,7 +70,6 @@ namespace PFSP.Algorithms.Evolutionary
         public static string ToCsv(EvolutionaryParameters p)
         {
             var dto = ToDto(p);
-
             var fields = BuildOutputFields(dto);
             var header = string.Join(",", fields.Select(f => f.Name));
             var values = string.Join(",", fields.Select(f => FormatValue(f.Name, f.Value, ParameterFormatMapping)));
@@ -114,10 +113,15 @@ namespace PFSP.Algorithms.Evolutionary
                 errors.Add($"{CrossoverRateName} must be in [0, 1] (was {p.CrossoverRate}).");
             if (p.MutationRate is < 0.0 or > 1.0)
                 errors.Add($"{MutationRateName} must be in [0, 1] (was {p.MutationRate}).");
-            if (p.TournamentSize <= 0)
-                errors.Add($"{TournamentSizeName} must be > 0 (was {p.TournamentSize}).");
-            if (p.TournamentSize > p.PopulationSize)
-                errors.Add($"{TournamentSizeName} ({p.TournamentSize}) must be <= {PopulationSizeName} ({p.PopulationSize}).");
+
+            if (p.SelectionParameters is TournamentSelectionParameters tsp)
+            {
+                if (tsp.TournamentSize <= 0)
+                    errors.Add($"{TournamentSizeName} must be > 0 (was {tsp.TournamentSize}).");
+                if (tsp.TournamentSize > p.PopulationSize)
+                    errors.Add($"{TournamentSizeName} ({tsp.TournamentSize}) must be <= {PopulationSizeName} ({p.PopulationSize}).");
+            }
+
             if (p.SelectionMethod is null)
                 errors.Add($"{SelectionMethodName} must not be null.");
             if (p.CrossoverMethod is null)
@@ -151,7 +155,7 @@ namespace PFSP.Algorithms.Evolutionary
             Generations = p.Generations,
             CrossoverRate = p.CrossoverRate,
             MutationRate = p.MutationRate,
-            TournamentSize = p.TournamentSize,
+            TournamentSize = p.SelectionParameters is TournamentSelectionParameters tsp ? tsp.TournamentSize : p.TournamentSize,
             SelectionMethod = ResolveOperatorName(p.SelectionMethod, SelectionRegistry),
             CrossoverMethod = ResolveOperatorName(p.CrossoverMethod, CrossoverRegistry),
             MutationMethod = ResolveOperatorName(p.MutationMethod, MutationRegistry)
@@ -164,7 +168,7 @@ namespace PFSP.Algorithms.Evolutionary
             Generations = dto.Generations,
             CrossoverRate = dto.CrossoverRate,
             MutationRate = dto.MutationRate,
-            TournamentSize = dto.TournamentSize,
+            SelectionParameters = new TournamentSelectionParameters { TournamentSize = dto.TournamentSize },
             SelectionMethod = ResolveOperator(dto.SelectionMethod, SelectionRegistry, SelectionMethodName),
             CrossoverMethod = ResolveOperator(dto.CrossoverMethod, CrossoverRegistry, CrossoverMethodName),
             MutationMethod = ResolveOperator(dto.MutationMethod, MutationRegistry, MutationMethodName)
@@ -181,8 +185,7 @@ namespace PFSP.Algorithms.Evolutionary
         }
 
         // Finds a registered operator instance by name; throws if the name is missing or unrecognised.
-        private static T ResolveOperator
-            <T>(string? name, Dictionary<string, Func<T>> registry, string parameterName) where T : class
+        private static T ResolveOperator<T>(string? name, Dictionary<string, Func<T>> registry, string parameterName) where T : class
         {
             if (string.IsNullOrWhiteSpace(name))
                 throw new ArgumentException(

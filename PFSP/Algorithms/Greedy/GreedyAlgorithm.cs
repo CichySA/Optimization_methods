@@ -4,49 +4,84 @@ using System.Threading;
 using System.Collections.Generic;
 using PFSP.Instances;
 using PFSP.Solutions;
-using PFSP.Solutions.PermutationSolutionGenerators;
-using System.Buffers;
 
 namespace PFSP.Algorithms.Greedy
 {
     /// <summary>
-    /// Implements the NEH (Nawaz-Enscore-Ham) heuristic for permutation flow shop scheduling.
+    /// True greedy baseline without insertion search.
+    /// Jobs are ordered once by ascending total processing time and returned as-is.
     /// </summary>
     public class GreedyAlgorithm() : IAlgorithm
     {
-
         public AlgorithmResult Solve(Instance instance, IParameters parameters, CancellationToken cancellationToken = default)
         {
             ArgumentNullException.ThrowIfNull(instance);
             var p = parameters as GreedyParameters ?? throw new ArgumentException("parameters must be GreedyParameters", nameof(parameters));
 
             var sw = Stopwatch.StartNew();
-            var sol = NehConstructive(instance);
+            var sol = ConstructNoSearch(instance);
             sw.Stop();
 
             return new AlgorithmResult(sol, Evaluations: 1, Elapsed: sw.Elapsed);
         }
 
-        /// <summary>
-        /// Constructs a permutation using the NEH (Nawaz-Enscore-Ham) heuristic.
-        ///
-        /// NEH is a classic constructive algorithm for permutation flow shop scheduling:
-        /// 1. Compute a priority for each job (total processing time across machines) and sort jobs in
-        ///    non-increasing order of priority.
-        /// 2. Start with the highest priority job as the initial partial permutation.
-        /// 3. Iteratively insert the next job from the sorted list into the position of the current partial
-        ///    permutation that yields the best objective value (evaluated by the instance's evaluator).
-        ///
-        /// <param name="instance">The problem instance to construct a solution for.</param>
-        /// <returns>A constructed <see cref="PermutationSolution"/>.</returns>
-        private PermutationSolution NehConstructive(Instance instance)
+        private static PermutationSolution ConstructNoSearch(Instance instance)
+        {
+            int jobs = instance.Jobs;
+            int machines = instance.Machines;
+            var order = new List<(int Job, double TotalTime)>(jobs);
+
+            for (int j = 0; j < jobs; j++)
+            {
+                double total = 0.0;
+                for (int m = 0; m < machines; m++)
+                    total += instance.Matrix[m, j];
+                order.Add((j, total));
+            }
+
+            // SPT tie-break by job index for deterministic behavior.
+            order.Sort((a, b) =>
+            {
+                int cmp = a.TotalTime.CompareTo(b.TotalTime);
+                return cmp != 0 ? cmp : a.Job.CompareTo(b.Job);
+            });
+
+            var permutation = new int[jobs];
+            for (int i = 0; i < jobs; i++)
+                permutation[i] = order[i].Job;
+
+            double cost = instance.Evaluate(permutation);
+            return PermutationSolution.WrapBuffer(permutation, cost);
+        }
+    }
+
+    /// <summary>
+    /// SPT-ordered NEH-like iterative greedy constructive heuristic.
+    /// Starts from SPT priority and inserts each next job into the best position
+    /// in the current partial sequence.
+    /// </summary>
+    public class SptAlgorithm() : IAlgorithm
+    {
+        public AlgorithmResult Solve(Instance instance, IParameters parameters, CancellationToken cancellationToken = default)
+        {
+            ArgumentNullException.ThrowIfNull(instance);
+            var p = parameters as GreedyParameters ?? throw new ArgumentException("parameters must be GreedyParameters", nameof(parameters));
+
+            var sw = Stopwatch.StartNew();
+            var sol = SptIterativeInsertionConstructive(instance);
+            sw.Stop();
+
+            return new AlgorithmResult(sol, Evaluations: 1, Elapsed: sw.Elapsed);
+        }
+
+        private static PermutationSolution SptIterativeInsertionConstructive(Instance instance)
         {
             ArgumentNullException.ThrowIfNull(instance);
 
             int jobs = instance.Jobs;
             int machines = instance.Machines;
 
-            // Create a priority queue of jobs ordered by non-increasing total processing time.
+            // Priority queue ordered by ascending total processing time (SPT order).
             var jobPriorityQueue = new PriorityQueue<int, double>();
             for (int j = 0; j < jobs; j++)
             {
@@ -93,7 +128,7 @@ namespace PFSP.Algorithms.Greedy
             if (partial.Count != jobs)
                 throw new InvalidOperationException($"Incomplete solution: constructed prefix length {partial.Count} does not equal number of jobs {jobs}.");
 
-            // Return a solution wrapping a fresh array copy of the permutation
+            // Return a solution wrapping a fresh array copy of the permutation.
             var result = partial.ToArray();
             var finalCost = instance.Evaluate(result);
             return PermutationSolution.WrapBuffer(result, finalCost);

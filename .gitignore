@@ -367,3 +367,7 @@ MigrationBackup/
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
 /.VSCodeCounter/2026-03-19_14-13-22
+
+# local files
+Plan.md
+Report_Outline.tex

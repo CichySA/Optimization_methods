@@ -5,7 +5,6 @@
 - `PFSP/` - core .NET 10 library with algorithms, evaluators, and instance loading
 - `ExperimentRunner/` - console app for running experiments
 - `Analysis/` - Jupyter notebook and helpers for analysis
-- `Instances/Taillard/` - Taillard sample PFSP problems used by tests and experiments
 - `Instances/Custom/` - my custom instances (only the example from the starting task)
  - `Instances/Taillard/` - Taillard sample PFSP problems used by tests and experiments (source: [chneau/go-taillard](https://github.com/chneau/go-taillard))
  - `Instances/Custom/` - my custom instances (from om_project_starting_task.pdf)

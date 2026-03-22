@@ -1,4 +1,6 @@
-namespace PFSP.Algorithms.SimulatedAnnealing.Operators
+using PFSP.Algorithms.SimulatedAnnealing.Operators;
+
+namespace PFSP.Algorithms.SimulatedAnnealing.Operators.AcceptanceFunctions
 {
     /// <summary>
     /// based on Dueck and Scheuer (1990)

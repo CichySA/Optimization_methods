@@ -1,3 +1,4 @@
+using PFSP.Algorithms.SimulatedAnnealing.Operators;
 using PFSP.Instances;
 using PFSP.Solutions;
 using PFSP.Solutions.PermutationSolutionGenerators;
@@ -15,7 +16,7 @@ namespace PFSP.Algorithms.SimulatedAnnealing
         {
             ArgumentNullException.ThrowIfNull(instance);
             var parms = parameters as SimulatedAnnealingParameters ?? throw new ArgumentException("parameters must be SimulatedAnnealingParameters", nameof(parameters));
-            var rnd = parms.Seed == 0 ? new Random() : new Random(parms.Seed);
+            var rnd = parms.Seed == 0 ? new global::System.Random() : new global::System.Random(parms.Seed);
 
             var sw = Stopwatch.StartNew();
             long evaluations = 0;
@@ -52,7 +53,19 @@ namespace PFSP.Algorithms.SimulatedAnnealing
                     }
                 }
 
-                temperature = parms.CoolingSchedule.NextTemperature(temperature, parms.CoolingRate, iteration + 1, parms.Iterations);
+                var coolingParameters = new CoolingScheduleParameters
+                {
+                    CoolingRate = parms.CoolingRate,
+                    Iteration = iteration + 1,
+                    MaxIterations = parms.Iterations,
+                    MinimumTemperature = parms.MinimumTemperature,
+                    OperatorParameters = parms.CoolingScheduleParameters
+                };
+
+                var nextTemperature = parms.CoolingSchedule.NextTemperature(temperature, coolingParameters);
+
+                // Enforce MinimumTemperature
+                temperature = Math.Max(parms.MinimumTemperature, nextTemperature);
             }
 
             sw.Stop();

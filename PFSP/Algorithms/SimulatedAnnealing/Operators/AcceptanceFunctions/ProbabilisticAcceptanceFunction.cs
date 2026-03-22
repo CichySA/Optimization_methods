@@ -1,9 +1,11 @@
-namespace PFSP.Algorithms.SimulatedAnnealing.Operators
+using PFSP.Algorithms.SimulatedAnnealing.Operators;
+
+namespace PFSP.Algorithms.SimulatedAnnealing.Operators.AcceptanceFunctions
 {
     /// <summary>
     ///     based on Kirkpatrick et al. (1983)
     /// </summary>
-    public sealed class ProbabilisticAcceptanceAlgorithm : IAcceptanceFunction
+    public sealed class ProbabilisticAcceptanceFunction : IAcceptanceFunction
     {
         public bool Accept(double currentCost, double candidateCost, double temperature, Random rnd)
         {
@@ -13,7 +15,6 @@ namespace PFSP.Algorithms.SimulatedAnnealing.Operators
             if (temperature <= 0)
                 return false;
 
-            // exp(-(e'-e)/T)
             var probability = Math.Exp((currentCost - candidateCost) / temperature);
             return rnd.NextDouble() < probability;
         }

@@ -51,6 +51,7 @@ namespace ExperimentRunner
                 "evolutionary"       => CreateEvolutionary(spec.Parameters),
                 "simulatedannealing" => CreateSimulatedAnnealing(spec.Parameters),
                 "greedy"             => ("Greedy", new GreedyAlgorithm(), new GreedyParameters()),
+                "spt"                => ("SPT", new SptAlgorithm(), new GreedyParameters()),
                 _                    => throw new ArgumentException($"Unknown algorithm type '{spec.Type}'.")
             };
         }

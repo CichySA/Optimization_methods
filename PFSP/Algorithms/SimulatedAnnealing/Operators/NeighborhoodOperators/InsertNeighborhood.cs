@@ -1,4 +1,6 @@
-namespace PFSP.Algorithms.SimulatedAnnealing.Operators
+using PFSP.Algorithms.SimulatedAnnealing.Operators;
+
+namespace PFSP.Algorithms.SimulatedAnnealing.Operators.NeighborhoodOperators
 {
     /// <summary>
     ///   The InsertNeighborhood operator creates a neighbor by removing an element from the permutation and inserting it at a different position.
@@ -18,7 +20,6 @@ namespace PFSP.Algorithms.SimulatedAnnealing.Operators
             if (to >= from) to++;
 
             int value = neighbor[from];
-            // Shift elements to make room for the inserted value
             if (from < to)
             {
                 Array.Copy(neighbor, from + 1, neighbor, from, to - from);

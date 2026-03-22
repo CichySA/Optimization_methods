@@ -55,6 +55,18 @@ namespace PfspTests.ExperimentRunner.Factory
             Assert.IsType<GreedyParameters>(pars);
         }
 
+        [Fact]
+        public void CreateFromSpec_SptType_ReturnsSptAlgorithm()
+        {
+            var spec = new AlgorithmSpec { Type = "SPT" };
+
+            var (name, algo, pars) = AlgorithmFactory.CreateFromSpec(spec);
+
+            Assert.Equal("SPT", name);
+            Assert.IsType<SptAlgorithm>(algo);
+            Assert.IsType<GreedyParameters>(pars);
+        }
+
         [Theory]
         [InlineData("random")]
         [InlineData("RANDOM")]
