@@ -38,19 +38,31 @@ namespace PfspTests
         }
 
         [Fact]
-        public void Monitor_HandledEvents_DependOnlyOnEnabledMetrics()
+        public void Monitor_EmittingUnrelatedEvent_DoesNotRecordEnabledMetrics()
         {
             var result = new AlgorithmResult();
             var monitor = new AlgorithmMonitor(result, new AlgorithmMonitoringOptions
             {
                 EnabledMetrics = [AlgorithmMetricNames.BestByGeneration, AlgorithmMetricNames.ElapsedOnFinished]
             });
+            var stopwatch = Stopwatch.StartNew();
+            var best = PermutationSolution.WrapBuffer([0, 1, 2], 10.0);
+            var state = new EvolutionaryAlgorithmState(
+                Instance.CreateWithDefaultEvaluator(new double[1, 3] { { 1, 2, 3 } }),
+                new EvolutionaryParameters(),
+                stopwatch,
+                new PFSP.Solutions.PermutationSolutionGenerators.RandomPermutationSolutionGenerator(1),
+                new Random(1))
+            {
+                Generation = 0,
+                Best = best,
+                Evaluations = 9,
+                Population = [best]
+            };
 
-            Assert.True(monitor.Handles(AlgorithmEventKind.GenerationCompleted));
-            Assert.True(monitor.Handles(AlgorithmEventKind.Finished));
-            Assert.False(monitor.Handles(AlgorithmEventKind.CandidateEvaluated));
-            Assert.False(monitor.Handles(AlgorithmEventKind.IterationCompleted));
-            Assert.False(monitor.Handles(AlgorithmEventKind.StepCompleted));
+            monitor.Emit(AlgorithmEventKind.CandidateEvaluated, state);
+
+            Assert.Empty(result.ExperimentalData);
         }
 
         [Fact]
@@ -129,7 +141,6 @@ namespace PfspTests
         private sealed class ConstantMetric : IAlgorithmMetric
         {
             public string Name => "CustomMetric";
-            public IReadOnlyCollection<AlgorithmEventKind> EventKinds => [AlgorithmEventKind.StepCompleted];
 
             public void Observe(AlgorithmEventKind eventKind, AlgorithmState state, AlgorithmMetricRecorder recorder)
             {

@@ -62,6 +62,7 @@ BenchmarkDotNet.Artifacts/
 ExperimentRunner/*.diagsession
 ExperimentRunner/Report*.diagsession
 ExperimentRunner/experiment_results/
+Experiments/**/experiment_results.json
 
 # .NET Core
 project.lock.json

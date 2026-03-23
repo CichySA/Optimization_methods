@@ -2,7 +2,7 @@
   "Instances": [
     "tai_20_5_0"
   ],
-  "OutDir": "monitor_every_event_example",
+  "OutDir": "monitor_every_event_example_2D",
   "Algorithms": [
     {
       "Type": "Evolutionary",
@@ -18,11 +18,7 @@
         "Monitoring": {
           "Enabled": true,
           "EnabledMetrics": [
-            "BestByGeneration",
-            "MedianByGeneration",
-            "DeviationByGeneration",
-            "BestInPopulationByGeneration",
-            "ElapsedOnFinished"
+          "ElapsedOnFinished"
           ]
         }
       },

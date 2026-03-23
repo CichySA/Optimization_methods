@@ -1,3 +1,6 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
 using PFSP.Algorithms.Evolutionary;
 using PFSP.Algorithms.SimulatedAnnealing;
 using PFSP.Solutions;
@@ -76,7 +79,6 @@ namespace PFSP.Algorithms.Monitoring
             where TState : AlgorithmState
         {
             public string Name => name;
-            public IReadOnlyCollection<AlgorithmEventKind> EventKinds => [eventKind];
 
             public void Observe(AlgorithmEventKind observedEventKind, AlgorithmState state, AlgorithmMetricRecorder recorder)
             {
@@ -98,7 +100,6 @@ namespace PFSP.Algorithms.Monitoring
             where TState : AlgorithmState
         {
             public string Name => name;
-            public IReadOnlyCollection<AlgorithmEventKind> EventKinds => [eventKind];
 
             public void Observe(AlgorithmEventKind observedEventKind, AlgorithmState state, AlgorithmMetricRecorder recorder)
             {
