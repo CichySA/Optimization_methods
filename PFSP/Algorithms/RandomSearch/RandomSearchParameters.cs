@@ -1,3 +1,5 @@
+using PFSP.Algorithms.Monitoring;
+
 namespace PFSP.Algorithms.RandomSearch
 {
     /// <summary>
@@ -10,6 +12,7 @@ namespace PFSP.Algorithms.RandomSearch
         public int Seed { get; init; }
         public int Samples { get; init; }
         public TimeSpan? TimeLimit { get; init; }
+        public AlgorithmMonitoringOptions Monitoring { get; init; } = new();
         public bool UseTimeLimit => TimeLimit.HasValue;
 
         private RandomSearchParameters() { }

@@ -1,6 +1,7 @@
 using ExperimentRunner;
 using PFSP.Algorithms.Evolutionary;
 using PFSP.Algorithms.RandomSearch;
+using PFSP.Algorithms.SimulatedAnnealing;
 
 namespace PfspTests.ExperimentRunner.Factory
 {
@@ -14,7 +15,7 @@ namespace PfspTests.ExperimentRunner.Factory
         {
             var spec = new AlgorithmSpec { Type = "Random", Parameters = AlgorithmFactoryTestData.Elem("{}") };
 
-            var (_, _, pars) = AlgorithmFactory.CreateFromSpec(spec);
+            var (_, _, pars) = Assert.Single(AlgorithmFactory.CreateFromSpec(spec));
 
             var rp = Assert.IsType<RandomSearchParameters>(pars);
             Assert.Equal(100, rp.Samples);
@@ -26,7 +27,7 @@ namespace PfspTests.ExperimentRunner.Factory
         {
             var spec = new AlgorithmSpec { Type = "Evolutionary", Parameters = AlgorithmFactoryTestData.Elem("{}") };
 
-            var (_, _, pars) = AlgorithmFactory.CreateFromSpec(spec);
+            var (_, _, pars) = Assert.Single(AlgorithmFactory.CreateFromSpec(spec));
 
             var ep = Assert.IsType<EvolutionaryParameters>(pars);
             Assert.Equal(EvolutionaryParameters.DefaultPopulationSize, ep.PopulationSize);
@@ -34,7 +35,7 @@ namespace PfspTests.ExperimentRunner.Factory
         }
 
         [Fact]
-        public void CreateManyFromSpec_EvolutionaryWith2DGrid_ExpandsAllCombinations()
+        public void CreateFromSpec_EvolutionaryWith2DGrid_ExpandsAllCombinations()
         {
             var spec = new AlgorithmSpec
             {
@@ -43,7 +44,7 @@ namespace PfspTests.ExperimentRunner.Factory
                 ParameterGrid2D = AlgorithmFactoryTestData.Elem("""{ "PopulationSize": [10, 20], "Generations": [3, 4] }""")
             };
 
-            var expanded = AlgorithmFactory.CreateManyFromSpec(spec).ToList();
+            var expanded = AlgorithmFactory.CreateFromSpec(spec).ToList();
 
             Assert.Equal(4, expanded.Count);
 
@@ -58,7 +59,7 @@ namespace PfspTests.ExperimentRunner.Factory
         }
 
         [Fact]
-        public void CreateManyFromSpec_RandomWith2DGrid_ExpandsAllCombinations()
+        public void CreateFromSpec_RandomWith2DGrid_ExpandsAllCombinations()
         {
             var spec = new AlgorithmSpec
             {
@@ -67,7 +68,7 @@ namespace PfspTests.ExperimentRunner.Factory
                 ParameterGrid2D = AlgorithmFactoryTestData.Elem("""{ "Seed": [1, 2], "Samples": [10, 20] }""")
             };
 
-            var expanded = AlgorithmFactory.CreateManyFromSpec(spec).ToList();
+            var expanded = AlgorithmFactory.CreateFromSpec(spec).ToList();
 
             Assert.Equal(4, expanded.Count);
 
@@ -80,7 +81,39 @@ namespace PfspTests.ExperimentRunner.Factory
         }
 
         [Fact]
-        public void CreateManyFromSpec_GenericParameterNames_MapToCorrectEvolutionaryProperties()
+        public void CreateFromSpec_RandomWithIterations_DerivesSeedsFromBaseSeed()
+        {
+            var spec = new AlgorithmSpec
+            {
+                Type = "Random",
+                Iterations = 3,
+                Parameters = AlgorithmFactoryTestData.Elem("""{ "Seed": 7, "Samples": 10 }""")
+            };
+
+            var expanded = AlgorithmFactory.CreateFromSpec(spec).ToList();
+
+            var allPars = expanded.Select(e => Assert.IsType<RandomSearchParameters>(e.Params)).ToList();
+            Assert.Equal([7, unchecked(7 + 1_000_003), unchecked(7 + 2 * 1_000_003)], allPars.Select(p => p.Seed).ToArray());
+        }
+
+        [Fact]
+        public void CreateFromSpec_SimulatedAnnealingWithIterations_DerivesSeedsFromBaseSeed()
+        {
+            var spec = new AlgorithmSpec
+            {
+                Type = "SimulatedAnnealing",
+                Iterations = 2,
+                Parameters = AlgorithmFactoryTestData.Elem("""{ "Seed": 11, "Iterations": 50 }""")
+            };
+
+            var expanded = AlgorithmFactory.CreateFromSpec(spec).ToList();
+
+            var allPars = expanded.Select(e => Assert.IsType<SimulatedAnnealingParameters>(e.Params)).ToList();
+            Assert.Equal([11, unchecked(11 + 1_000_003)], allPars.Select(p => p.Seed).ToArray());
+        }
+
+        [Fact]
+        public void CreateFromSpec_GenericParameterNames_MapToCorrectEvolutionaryProperties()
         {
             var spec = new AlgorithmSpec
             {
@@ -89,7 +122,7 @@ namespace PfspTests.ExperimentRunner.Factory
                 ParameterGrid2D = AlgorithmFactoryTestData.Elem("""{ "Generations": [11], "PopulationSize": [222] }""")
             };
 
-            var expanded = AlgorithmFactory.CreateManyFromSpec(spec).ToList();
+            var expanded = AlgorithmFactory.CreateFromSpec(spec).ToList();
 
             var single = Assert.Single(expanded);
             var ep = Assert.IsType<EvolutionaryParameters>(single.Params);

@@ -1,3 +1,5 @@
+using PFSP.Algorithms;
+using PFSP.Algorithms.Monitoring;
 using PFSP.Algorithms.Evolutionary;
 using PFSP.Instances;
 
@@ -20,17 +22,30 @@ namespace PfspTests
             var result1 = algorithm.Solve(instance, parameters, TestContext.Current.CancellationToken);
             var result2 = algorithm.Solve(instance, parameters, TestContext.Current.CancellationToken);
 
-            // Check that both runs produce the same best solution and that it's valid
             Assert.NotNull(result1.Best);
             Assert.NotNull(result2.Best);
             Assert.Equal(result1.Best.Cost, result2.Best.Cost);
             Assert.Equal(result1.Best.Permutation, result2.Best.Permutation);
             Assert.Equal(instance.Jobs, result1.Best.Permutation.Length);
 
+            var evaluations = (long)result1.GetSingleDenseMetric(AlgorithmMetricNames.Evaluations);
+            var bestFoundAt = (long)result1.GetSingleDenseMetric(AlgorithmMetricNames.BestFoundAtEvaluation);
+
             Assert.Equal(Enumerable.Range(0, instance.Jobs), result1.Best.Permutation.OrderBy(x => x));
-            Assert.Equal((long)parameters.PopulationSize * (parameters.Generations + 1), result1.Evaluations);
-            Assert.True(result1.BestFoundAtEvaluation > 0);
-            Assert.True(result1.BestFoundAtEvaluation <= result1.Evaluations);
+            Assert.Equal((long)parameters.PopulationSize * (parameters.Generations + 1), evaluations);
+            Assert.True(bestFoundAt > 0);
+            Assert.True(bestFoundAt <= evaluations);
+
+            var bestByGeneration = Assert.IsType<double[]>(result1.ExperimentalData[AlgorithmMetricNames.BestByGeneration]);
+            var medianByGeneration = Assert.IsType<double[]>(result1.ExperimentalData[AlgorithmMetricNames.MedianByGeneration]);
+            var deviationByGeneration = Assert.IsType<double[]>(result1.ExperimentalData[AlgorithmMetricNames.DeviationByGeneration]);
+            var bestInPopulationByGeneration = Assert.IsType<double[]>(result1.ExperimentalData[AlgorithmMetricNames.BestInPopulationByGeneration]);
+            var elapsedOnFinished = Assert.IsType<AlgorithmMetricPoint[]>(result1.ExperimentalData[AlgorithmMetricNames.ElapsedOnFinished]);
+            Assert.Equal(parameters.Generations + 1, bestByGeneration.Length);
+            Assert.Equal(parameters.Generations + 1, medianByGeneration.Length);
+            Assert.Equal(parameters.Generations + 1, deviationByGeneration.Length);
+            Assert.Equal(parameters.Generations + 1, bestInPopulationByGeneration.Length);
+            Assert.Single(elapsedOnFinished);
         }
     }
 }

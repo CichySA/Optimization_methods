@@ -1,17 +1,54 @@
-using System;
 using PFSP.Solutions;
 
 namespace PFSP.Algorithms
 {
-    /// <summary>
-    /// Result of an algorithm run.
-    /// </summary>
-    public sealed record AlgorithmResult(ISolution Best, long Evaluations, TimeSpan Elapsed)
+    public sealed class AlgorithmResult
     {
-        /// <summary>
-        /// The evaluation index at which the best solution was discovered, or -1
-        /// if unknown.
-        /// </summary>
-        public long BestFoundAtEvaluation { get; init; } = -1;
+        private readonly Dictionary<string, object> _experimentalData = new();
+        private ISolution? _best;
+
+        public AlgorithmResult()
+        {
+        }
+
+        public AlgorithmResult(ISolution best)
+        {
+            SetBest(best);
+        }
+
+        public ISolution Best => _best ?? throw new InvalidOperationException("Best solution has not been recorded yet.");
+
+        public bool HasBest => _best is not null;
+
+        internal IDictionary<string, object> ExperimentalDataStorage => _experimentalData;
+
+        public IReadOnlyDictionary<string, object> ExperimentalData =>
+            _experimentalData.ToDictionary(
+                pair => pair.Key,
+                pair => pair.Value switch
+                {
+                    List<double> dense => (object)dense.ToArray(),
+                    List<AlgorithmMetricPoint> indexed => indexed.ToArray(),
+                    _ => pair.Value
+                });
+
+        public void SetBest(ISolution best)
+        {
+            ArgumentNullException.ThrowIfNull(best);
+            _best = best;
+        }
+
+        public bool UpdateBest(ISolution candidate)
+        {
+            ArgumentNullException.ThrowIfNull(candidate);
+
+            if (_best is not null && candidate.Cost >= _best.Cost)
+                return false;
+
+            _best = candidate;
+            return true;
+        }
     }
+
+    public readonly record struct AlgorithmMetricPoint(long Index, double Value);
 }

@@ -1,6 +1,7 @@
 using System.Globalization;
 using System.Text;
 using System.Text.Json;
+using PFSP.Algorithms.Monitoring;
 using PFSP.Algorithms.SimulatedAnnealing.Operators;
 using PFSP.Algorithms.SimulatedAnnealing.Operators.AcceptanceFunctions;
 using PFSP.Algorithms.SimulatedAnnealing.Operators.CoolingSchedules;
@@ -137,6 +138,7 @@ namespace PFSP.Algorithms.SimulatedAnnealing
             public string? AcceptanceFunction { get; set; } = ProbabilisticAcceptanceName;
             public string? CoolingSchedule { get; set; } = ExponentialCoolingName;
             public JsonElement CoolingScheduleParameters { get; set; }
+            public AlgorithmMonitoringOptions Monitoring { get; set; } = new();
         }
 
         private static SimulatedAnnealingParametersDto ToDto(SimulatedAnnealingParameters p)
@@ -152,7 +154,8 @@ namespace PFSP.Algorithms.SimulatedAnnealing
                 NeighborhoodOperator = ResolveOperatorName(p.NeighborhoodOperator, NeighborhoodRegistry),
                 AcceptanceFunction = ResolveOperatorName(p.AcceptanceFunction, AcceptanceRegistry),
                 CoolingSchedule = coolingName,
-                CoolingScheduleParameters = SerializeCoolingScheduleParameters(coolingName, p.CoolingScheduleParameters)
+                CoolingScheduleParameters = SerializeCoolingScheduleParameters(coolingName, p.CoolingScheduleParameters),
+                Monitoring = p.Monitoring
             };
         }
 
@@ -169,7 +172,8 @@ namespace PFSP.Algorithms.SimulatedAnnealing
                 NeighborhoodOperator = ResolveOperator(dto.NeighborhoodOperator, NeighborhoodRegistry, NeighborhoodOperatorName),
                 AcceptanceFunction = ResolveOperator(dto.AcceptanceFunction, AcceptanceRegistry, AcceptanceFunctionName),
                 CoolingSchedule = ResolveOperator(coolingName, CoolingRegistry, CoolingScheduleName),
-                CoolingScheduleParameters = DeserializeCoolingScheduleParameters(coolingName, dto.CoolingScheduleParameters)
+                CoolingScheduleParameters = DeserializeCoolingScheduleParameters(coolingName, dto.CoolingScheduleParameters),
+                Monitoring = dto.Monitoring
             };
         }
 

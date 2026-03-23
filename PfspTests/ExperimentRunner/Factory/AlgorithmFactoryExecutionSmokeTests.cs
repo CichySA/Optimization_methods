@@ -1,4 +1,5 @@
 using ExperimentRunner;
+using PFSP.Algorithms.Monitoring;
 
 namespace PfspTests.ExperimentRunner.Factory
 {
@@ -11,13 +12,13 @@ namespace PfspTests.ExperimentRunner.Factory
         public void CreateFromSpec_Random_SolvesInstance_ReturnsBestSolution()
         {
             var spec = new AlgorithmSpec { Type = "Random", Parameters = AlgorithmFactoryTestData.Elem("""{ "Seed": 1, "Samples": 20 }""") };
-            var (_, algo, pars) = AlgorithmFactory.CreateFromSpec(spec);
+            var (_, algo, pars) = Assert.Single(AlgorithmFactory.CreateFromSpec(spec));
 
             var result = algo.Solve(AlgorithmFactoryTestData.SmallInstance(), pars, TestContext.Current.CancellationToken);
 
             Assert.NotNull(result.Best);
             Assert.True(result.Best.Cost > 0);
-            Assert.Equal(20, result.Evaluations);
+            Assert.Equal(20, result.GetSingleDenseMetric(AlgorithmMetricNames.Evaluations));
         }
 
         [Fact]
@@ -28,7 +29,7 @@ namespace PfspTests.ExperimentRunner.Factory
                 Type = "Evolutionary",
                 Parameters = AlgorithmFactoryTestData.Elem("""{ "Seed": 1, "PopulationSize": 10, "Generations": 5 }""")
             };
-            var (_, algo, pars) = AlgorithmFactory.CreateFromSpec(spec);
+            var (_, algo, pars) = Assert.Single(AlgorithmFactory.CreateFromSpec(spec));
 
             var result = algo.Solve(AlgorithmFactoryTestData.SmallInstance(), pars, TestContext.Current.CancellationToken);
 
@@ -40,7 +41,7 @@ namespace PfspTests.ExperimentRunner.Factory
         public void CreateFromSpec_Greedy_SolvesInstance_ReturnsBestSolution()
         {
             var spec = new AlgorithmSpec { Type = "Greedy" };
-            var (_, algo, pars) = AlgorithmFactory.CreateFromSpec(spec);
+            var (_, algo, pars) = Assert.Single(AlgorithmFactory.CreateFromSpec(spec));
 
             var result = algo.Solve(AlgorithmFactoryTestData.SmallInstance(), pars, TestContext.Current.CancellationToken);
 

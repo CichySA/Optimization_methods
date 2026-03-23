@@ -2,6 +2,7 @@ using PFSP.Algorithms.Evolutionary.Operators;
 using PFSP.Algorithms.Evolutionary.Operators.CrossoverOperators;
 using PFSP.Algorithms.Evolutionary.Operators.MutationOperators;
 using PFSP.Algorithms.Evolutionary.Operators.SelectionOperators;
+using PFSP.Algorithms.Monitoring;
 
 namespace PFSP.Algorithms.Evolutionary
 {
@@ -19,6 +20,7 @@ namespace PFSP.Algorithms.Evolutionary
         public int Generations { get; set; } = DefaultGenerations;
         public double CrossoverRate { get; set; } = DefaultCrossoverRate;
         public double MutationRate { get; set; } = DefaultMutationRate;
+        public AlgorithmMonitoringOptions Monitoring { get; set; } = new();
 
         public ISelectionParameters SelectionParameters { get; set; }
             = new TournamentSelectionParameters { TournamentSize = DefaultTournamentSize };

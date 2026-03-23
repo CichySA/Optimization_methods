@@ -3,6 +3,7 @@ using System.Text.Json.Nodes;
 using PFSP.Algorithms;
 using PFSP.Algorithms.Evolutionary;
 using PFSP.Algorithms.Greedy;
+using PFSP.Algorithms.Monitoring;
 using PFSP.Algorithms.RandomSearch;
 using PFSP.Algorithms.SimulatedAnnealing;
 
@@ -10,50 +11,65 @@ namespace ExperimentRunner
 {
     public static class AlgorithmFactory
     {
+        private const int SeedStride = 1_000_003;
+        private const string SeedParameterName = "Seed";
         private static readonly JsonSerializerOptions JsonOptions = new() { PropertyNameCaseInsensitive = true };
 
-        public static IEnumerable<(string Name, IAlgorithm Algo, IParameters Params)> CreateManyFromSpec(AlgorithmSpec spec)
+        public static IEnumerable<(string Name, IAlgorithm Algo, IParameters Params)> CreateFromSpec(AlgorithmSpec spec)
         {
-            if (spec.ParameterGrid2D.ValueKind is JsonValueKind.Undefined or JsonValueKind.Null)
+            foreach (var parameterSet in ExpandParameterSets(spec.Parameters, spec.ParameterGrid2D))
             {
-                yield return CreateFromSpec(spec);
-                yield break;
-            }
-
-            var (firstName, firstValues, secondName, secondValues) = ParseParameterGrid2D(spec.ParameterGrid2D);
-
-            foreach (var firstValue in firstValues)
-            {
-                foreach (var secondValue in secondValues)
-                {
-                    var mergedParameters = MergeParameters(
-                        spec.Parameters,
-                        firstName,
-                        firstValue,
-                        secondName,
-                        secondValue);
-
-                    var expandedSpec = new AlgorithmSpec
-                    {
-                        Type = spec.Type,
-                        Parameters = mergedParameters
-                    };
-                    yield return CreateFromSpec(expandedSpec);
-                }
+                foreach (var seededParameters in ExpandRuns(spec.Type, spec.Iterations, parameterSet))
+                    yield return CreateSingleFromSpec(spec.Type, seededParameters);
             }
         }
 
-        public static (string Name, IAlgorithm Algo, IParameters Params) CreateFromSpec(AlgorithmSpec spec)
+        private static (string Name, IAlgorithm Algo, IParameters Params) CreateSingleFromSpec(string type, JsonElement parameters)
         {
-            return spec.Type.ToLowerInvariant() switch
+            return type.ToLowerInvariant() switch
             {
-                "random"             => CreateRandom(spec.Parameters),
-                "evolutionary"       => CreateEvolutionary(spec.Parameters),
-                "simulatedannealing" => CreateSimulatedAnnealing(spec.Parameters),
+                "random"             => CreateRandom(parameters),
+                "evolutionary"       => CreateEvolutionary(parameters),
+                "simulatedannealing" => CreateSimulatedAnnealing(parameters),
                 "greedy"             => ("Greedy", new GreedyAlgorithm(), new GreedyParameters()),
                 "spt"                => ("SPT", new SptAlgorithm(), new GreedyParameters()),
-                _                    => throw new ArgumentException($"Unknown algorithm type '{spec.Type}'.")
+                _                    => throw new ArgumentException($"Unknown algorithm type '{type}'.")
             };
+        }
+
+        private static IEnumerable<JsonElement> ExpandParameterSets(JsonElement parameters, JsonElement parameterGrid2D)
+        {
+            if (parameterGrid2D.ValueKind is JsonValueKind.Undefined or JsonValueKind.Null)
+            {
+                yield return parameters;
+                yield break;
+            }
+
+            var (firstName, firstValues, secondName, secondValues) = ParseParameterGrid2D(parameterGrid2D);
+            foreach (var firstValue in firstValues)
+            {
+                foreach (var secondValue in secondValues)
+                    yield return MergeParameters(parameters, (firstName, firstValue), (secondName, secondValue));
+            }
+        }
+
+        private static IEnumerable<JsonElement> ExpandRuns(string type, int iterations, JsonElement parameters)
+        {
+            if (!IsStochastic(type))
+            {
+                yield return parameters;
+                yield break;
+            }
+
+            if (iterations <= 0)
+                throw new ArgumentException($"Iterations must be greater than zero for stochastic algorithm '{type}'.", nameof(iterations));
+
+            var baseSeed = TryGetParameterInt(parameters, SeedParameterName) ?? 0;
+            for (int iteration = 0; iteration < iterations; iteration++)
+            {
+                var seed = baseSeed == 0 ? 0 : unchecked(baseSeed + iteration * SeedStride);
+                yield return MergeParameters(parameters, (SeedParameterName, JsonSerializer.SerializeToElement(seed)));
+            }
         }
 
         private static (string Name, IAlgorithm Algo, IParameters Params) CreateRandom(JsonElement parameters)
@@ -65,6 +81,9 @@ namespace ExperimentRunner
             var pars = dto.TimeLimitMs.HasValue
                 ? RandomSearchParameters.ForTimeLimit(TimeSpan.FromMilliseconds(dto.TimeLimitMs.Value), dto.Seed)
                 : RandomSearchParameters.ForRuns(dto.Samples, dto.Seed);
+
+            if (dto.Monitoring is not null)
+                pars = pars with { Monitoring = dto.Monitoring };
 
             return ($"Random_{pars.Samples}_s{pars.Seed}", new RandomSearchAlgorithm(), pars);
         }
@@ -130,18 +149,12 @@ namespace ExperimentRunner
             return parsed;
         }
 
-        private static JsonElement MergeParameters(
-            JsonElement baseParameters,
-            string firstName,
-            JsonElement firstValue,
-            string secondName,
-            JsonElement secondValue)
+        private static JsonElement MergeParameters(JsonElement baseParameters, params (string Name, JsonElement Value)[] overrides)
         {
             var merged = new JsonObject();
 
             if (baseParameters.ValueKind is JsonValueKind.Undefined or JsonValueKind.Null)
             {
-                // No base parameters; only grid parameters will be applied.
             }
             else if (baseParameters.ValueKind == JsonValueKind.Object)
             {
@@ -153,37 +166,68 @@ namespace ExperimentRunner
                 throw new ArgumentException("Parameters must be a JSON object.");
             }
 
-            merged[firstName] = JsonNode.Parse(firstValue.GetRawText());
-            merged[secondName] = JsonNode.Parse(secondValue.GetRawText());
+            foreach (var (name, value) in overrides)
+                merged[name] = JsonNode.Parse(value.GetRawText());
 
             using var doc = JsonDocument.Parse(merged.ToJsonString());
             return doc.RootElement.Clone();
         }
 
-        private static string? TryGetParameterString(JsonElement parameters, string parameterName)
+        private static int? TryGetParameterInt(JsonElement parameters, string parameterName)
         {
-            if (parameters.ValueKind != JsonValueKind.Object)
+            if (!TryGetParameter(parameters, parameterName, out var value))
                 return null;
 
-            foreach (var property in parameters.EnumerateObject())
+            if (value.ValueKind == JsonValueKind.Number && value.TryGetInt32(out var number))
+                return number;
+
+            return value.ValueKind == JsonValueKind.String && int.TryParse(value.GetString(), out number)
+                ? number
+                : null;
+        }
+
+        private static string? TryGetParameterString(JsonElement parameters, string parameterName)
+        {
+            if (!TryGetParameter(parameters, parameterName, out var value))
+                return null;
+
+            return value.ValueKind == JsonValueKind.String
+                ? value.GetString()
+                : value.ToString();
+        }
+
+        private static bool TryGetParameter(JsonElement parameters, string parameterName, out JsonElement value)
+        {
+            if (parameters.ValueKind == JsonValueKind.Object)
             {
-                if (!string.Equals(property.Name, parameterName, StringComparison.OrdinalIgnoreCase))
-                    continue;
-
-                if (property.Value.ValueKind == JsonValueKind.String)
-                    return property.Value.GetString();
-
-                return property.Value.ToString();
+                foreach (var property in parameters.EnumerateObject())
+                {
+                    if (string.Equals(property.Name, parameterName, StringComparison.OrdinalIgnoreCase))
+                    {
+                        value = property.Value;
+                        return true;
+                    }
+                }
             }
 
-            return null;
+            value = default;
+            return false;
         }
+
+        private static bool IsStochastic(string type) => type.ToLowerInvariant() switch
+        {
+            "random" => true,
+            "evolutionary" => true,
+            "simulatedannealing" => true,
+            _ => false
+        };
 
         private sealed class RandomParametersDto
         {
             public int Seed { get; set; } = 0;
             public int Samples { get; set; } = 100;
             public int? TimeLimitMs { get; set; }
+            public AlgorithmMonitoringOptions? Monitoring { get; set; }
         }
     }
 }

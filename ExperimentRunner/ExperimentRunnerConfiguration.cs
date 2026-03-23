@@ -5,6 +5,7 @@ namespace ExperimentRunner
     public sealed record AlgorithmSpec
     {
         public string Type { get; init; } = "Random";
+        public int Iterations { get; init; } = 1;
         public JsonElement Parameters { get; init; }
         public JsonElement ParameterGrid2D { get; init; }
     }

@@ -5,6 +5,7 @@ using PFSP.Algorithms.Evolutionary.Operators;
 using PFSP.Algorithms.Evolutionary.Operators.CrossoverOperators;
 using PFSP.Algorithms.Evolutionary.Operators.MutationOperators;
 using PFSP.Algorithms.Evolutionary.Operators.SelectionOperators;
+using PFSP.Algorithms.Monitoring;
 
 namespace PFSP.Algorithms.Evolutionary
 {
@@ -146,6 +147,7 @@ namespace PFSP.Algorithms.Evolutionary
             public string? SelectionMethod { get; set; } = TournamentMethod;
             public string? CrossoverMethod { get; set; } = OXMethod;
             public string? MutationMethod { get; set; } = SwapMethod;
+            public AlgorithmMonitoringOptions Monitoring { get; set; } = new();
         }
 
         private static EvolutionaryParametersDto ToDto(EvolutionaryParameters p) => new()
@@ -158,7 +160,8 @@ namespace PFSP.Algorithms.Evolutionary
             TournamentSize = p.SelectionParameters is TournamentSelectionParameters tsp ? tsp.TournamentSize : p.TournamentSize,
             SelectionMethod = ResolveOperatorName(p.SelectionMethod, SelectionRegistry),
             CrossoverMethod = ResolveOperatorName(p.CrossoverMethod, CrossoverRegistry),
-            MutationMethod = ResolveOperatorName(p.MutationMethod, MutationRegistry)
+            MutationMethod = ResolveOperatorName(p.MutationMethod, MutationRegistry),
+            Monitoring = p.Monitoring
         };
 
         private static EvolutionaryParameters FromDto(EvolutionaryParametersDto dto) => new()
@@ -171,7 +174,8 @@ namespace PFSP.Algorithms.Evolutionary
             SelectionParameters = new TournamentSelectionParameters { TournamentSize = dto.TournamentSize },
             SelectionMethod = ResolveOperator(dto.SelectionMethod, SelectionRegistry, SelectionMethodName),
             CrossoverMethod = ResolveOperator(dto.CrossoverMethod, CrossoverRegistry, CrossoverMethodName),
-            MutationMethod = ResolveOperator(dto.MutationMethod, MutationRegistry, MutationMethodName)
+            MutationMethod = ResolveOperator(dto.MutationMethod, MutationRegistry, MutationMethodName),
+            Monitoring = dto.Monitoring
         };
 
         // Finds the registered name for an operator instance by matching its type.

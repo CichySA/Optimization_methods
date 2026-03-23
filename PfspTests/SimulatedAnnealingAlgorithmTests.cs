@@ -1,3 +1,4 @@
+using PFSP.Algorithms.Monitoring;
 using PFSP.Algorithms.SimulatedAnnealing;
 using PFSP.Instances;
 
@@ -30,9 +31,19 @@ namespace PfspTests
             Assert.Equal(result1.Best.Permutation, result2.Best.Permutation);
             Assert.Equal(instance.Jobs, result1.Best.Permutation.Length);
             Assert.Equal(Enumerable.Range(0, instance.Jobs), result1.Best.Permutation.OrderBy(x => x));
-            Assert.Equal(parameters.Iterations + 1, result1.Evaluations);
-            Assert.True(result1.BestFoundAtEvaluation > 0);
-            Assert.True(result1.BestFoundAtEvaluation <= result1.Evaluations);
+
+            var evaluations = (long)result1.GetSingleDenseMetric(AlgorithmMetricNames.Evaluations);
+            var bestFoundAt = (long)result1.GetSingleDenseMetric(AlgorithmMetricNames.BestFoundAtEvaluation);
+            Assert.Equal(parameters.Iterations + 1, evaluations);
+            Assert.True(bestFoundAt > 0);
+            Assert.True(bestFoundAt <= evaluations);
+
+            var bestByIteration = Assert.IsType<double[]>(result1.ExperimentalData[AlgorithmMetricNames.BestCostByIteration]);
+            var currentByIteration = Assert.IsType<double[]>(result1.ExperimentalData[AlgorithmMetricNames.CurrentCostByIteration]);
+            var temperatureByIteration = Assert.IsType<double[]>(result1.ExperimentalData[AlgorithmMetricNames.TemperatureByIteration]);
+            Assert.Equal(evaluations, bestByIteration.Length);
+            Assert.Equal(evaluations, currentByIteration.Length);
+            Assert.Equal(evaluations, temperatureByIteration.Length);
         }
     }
 }

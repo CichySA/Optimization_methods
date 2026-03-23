@@ -212,7 +212,7 @@ namespace PfspTests.ExperimentRunner.Configuration
             """);
 
             var spec = ExperimentRunnerConfigurationJsonParser.Load(path).Algorithms.Single();
-            var (_, _, pars) = AlgorithmFactory.CreateFromSpec(spec);
+            var (_, _, pars) = Assert.Single(AlgorithmFactory.CreateFromSpec(spec));
             var ep = Assert.IsType<EvolutionaryParameters>(pars);
 
             Assert.Equal(42, ep.Seed);
@@ -221,6 +221,23 @@ namespace PfspTests.ExperimentRunner.Configuration
             Assert.Equal(0.6, ep.CrossoverRate, precision: 10);
             Assert.Equal(0.2, ep.MutationRate, precision: 10);
             Assert.Equal(3, ep.TournamentSize);
+        }
+
+        [Fact]
+        public void Load_AlgorithmIterations_AreAccessibleFromJson()
+        {
+            var path = WriteTemp("""
+            {
+                "Algorithms": [
+                    { "Type": "Random", "Iterations": 3, "Parameters": { "Seed": 7, "Samples": 10 } }
+                ]
+            }
+            """);
+
+            var spec = ExperimentRunnerConfigurationJsonParser.Load(path).Algorithms.Single();
+
+            Assert.Equal("Random", spec.Type);
+            Assert.Equal(3, spec.Iterations);
         }
     }
 }

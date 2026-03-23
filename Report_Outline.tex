@@ -1,0 +1,396 @@
+\documentclass[12pt,a4paper]{report}
+
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{lmodern}
+\usepackage{geometry}
+\usepackage{setspace}
+\usepackage{amsmath}
+\usepackage{booktabs}
+\usepackage{longtable}
+\usepackage{graphicx}
+\usepackage{float}
+\usepackage{hyperref}
+\usepackage{amsfonts}
+
+\geometry{margin=1in}
+\onehalfspacing
+
+\newcommand{\reportauthor}{Author Name}
+
+\title{Optimization Methods\\ Starting Task - PFSP with EA}
+\author{\reportauthor}
+\date{\today}
+
+\begin{document}
+\maketitle
+\tableofcontents
+\clearpage
+
+\chapter{Introduction and Problem Definition}
+\section{Motivation and Context}
+Permutation Flow Shop Scheduling Problem (PFSP) is an extensively studied classical combinatorial optimization problem. It appears in many real-world settings, such as manufacturing, production lines, logistics, and computer systems.
+
+Exact methods become impractical for larger PFSP instances because the search space grows factorially with the number of jobs. For this reason, heuristic and metaheuristic methods are commonly used in practice. In this project, the main focus is on an evolutionary algorithm (EA), with comparisons to alternative methods such as random search, greedy algorithm and other metaheuristics.
+
+\section{Problem Statement}
+In a standard PFSP setting:
+\begin{itemize}
+	\item processing times are known and fixed,
+	\item each machine processes at most one job at a time,
+	\item each job is processed by at most one machine at a time,
+	\item no preemption is allowed (a job must be completed on a machine before it can move to the next),
+    \item no passing is allowed (the order of jobs is the same on all machines).
+\end{itemize}
+
+In PFSP, all machines process jobs in one common permutation, so a solution is a permutation of jobs. The objective is to find a permutation that minimizes a given performance measure, such as Total Flow Time (TFT \(\sum C_j\)) or Makespan (\(C_{\max}\)).
+
+\paragraph{Jobs and Machines.}
+Jobs are indexed by $j\in \{1,\ldots,J\}$ and machines by $m\in \{1,\ldots,M\}$. Let $p(j,m)\ge 0$ denote the processing time of job $j$ on machine $m$. All jobs follow the same machine order $1,2,\ldots,M$.
+
+\paragraph{Solution (Job Sequence).}
+We seek a job sequence $x = \langle x_1,\ldots,x_J\rangle$, which is a permutation of $\{1,\ldots,J\}$ specifying the order in which jobs are processed on every machine.
+
+\paragraph{Completion times}
+For a given sequence $x$, let $c(x_j,m)$ be the completion time of job $x_j$ on machine $m$ such that:
+\begin{equation}
+\label{eq:c-recurrence}
+ c(x_j,m) =
+ \begin{cases}
+  p(x_j,m), & j=1 \land m=1,\\
+  c(x_j,m-1) + p(x_j,m), & j=1 \land m>1,\\
+  c(x_{j-1},m) + p(x_j,m), & j>1 \land m=1,\\
+  \max\{c(x_{j-1},m),\; c(x_j,m-1)\} + p(x_j,m), & j>1 \land m>1~. 
+ \end{cases}
+\end{equation}
+
+\paragraph{Objective (Total Flow Time).}
+The most common objective in PFSP studies is to minimize the Makespan \(C_{\max}\), which is the completion time of the last job on the last machine. This objective is often used in production scheduling to minimize the total time required to complete all jobs.
+
+However, in this task, the objective is to minimize Total Flow Time (TFT), also called Total Completion Time or Sum of Completion Times. This metric reflects the total time that all jobs spend in the system, which is relevant in contexts where the average completion time of jobs is more important.
+
+The Total Flow Time for a given sequence $x$ can be expressed as:
+\[
+\mathrm{TFT} = f(x) = \sum_{j=1}^{J} c(x_j, M).
+\]
+
+Let $C_j := c(x_j,M)$ denote the completion time of the $j$th job in the sequence on the last machine M. Then $\mathrm{TFT} = \sum_{j=1}^{J} C_j$ The optimization problem can then be formally stated as:
+\begin{equation}
+ \min_{x \in \mathcal{S}_J} \; f(x) = \min \sum_{j=1}^{J} C_j,
+\end{equation}
+where $\mathcal{S}_J$ denotes all schedules (permutations) of jobs $\{1,\ldots,J\}$.\footnote{For $M\ge 2$ the problem is NP-hard. Lower values generally indicate shorter average completion time of jobs in the system.}. 
+
+
+\chapter{Experimental Setup and Benchmark Instances}
+\section{Benchmark Instances}
+We run all experiments on the six default PFSP benchmark instances provided by the repository at
+\href{https://github.com/chneau/go-taillard}{github.com/chneau/go-taillard} (Taillard flow-shop instances).
+These six instances are fixed across all experiments to ensure fair, apples-to-apples comparisons.
+We use the processing-time matrices exactly as distributed in the repository. We will also report the solutions versus the best-known objective values provided for these instances.
+
+For reporting, we refer to each instance by its repository filename and include its size $(n,m)$ in the result tables.\\
+
+\begin{longtable}{llrr}
+\caption{Benchmark instances used in the experiments}\label{tab:bench_instances}\\
+\toprule
+Description & Filename & $n$ & $m$ \\
+\midrule
+\endfirsthead
+\toprule
+Description & Filename & $n$ & $m$ \\
+\midrule
+\endhead
+Small instance 1 & \texttt{tai\_20\_5\_0} & 20 & 5 \\
+Small instance 2 & \texttt{tai\_20\_10\_0} & 20 & 10 \\
+Small instance 3 & \texttt{tai\_20\_20\_0} & 20 & 20 \\
+Medium instance 1 & \texttt{tai\_100\_10\_0} & 100 & 10 \\
+Medium instance 2 & \texttt{tai\_100\_20\_0} & 100 & 20 \\
+Large instance 1 & \texttt{tai\_500\_20\_0} & 500 & 20 \\
+\bottomrule
+\end{longtable}
+
+\section{Hardware and Software Environment}\noindent\textbf{Note:} Replace the placeholders in Table~\ref{tab:hardware_software} with your actual setup before finalizing the report.
+
+% TODO: Update by the final report
+% TODO: Timing method details
+\begin{longtable}{ll}
+\caption{Hardware and software environment for reproducibility}\label{tab:hardware_software}\\
+\toprule
+Item & Value \\
+\midrule
+\endfirsthead
+\toprule
+Item & Value \\
+\midrule
+\endhead
+CPU & AMD Ryzen 7 9800X3D \\
+Cores/Threads & 8 / 16 \\
+RAM & 64\,GB \\
+Operating System & Windows 11 \\
+Python Environment & Python 3.13.12; uv-managed virtual environment\\
+Python Libraries & matplotlib $\ge 3.10.8$; notebook $< 7$; pandas $\ge 3.0.1$; scipy $\ge 1.17.1$ \\
+C\# / .NET SDK & Microsoft.NET.Sdk; TargetFramework: net10.0\\
+NuGet Packages & BenchmarkDotNet 0.15.2; BenchmarkDotNetDiagnosers; Newtonsoft.Json 13.0.3 \\
+Parallelism & Only parallel experiments, no algorithm-level parallelism \\
+\bottomrule
+\end{longtable}
+
+
+
+\section{Evaluation Protocol}
+\subsection{Stopping Criterion and Computational Budget}
+
+A common stopping criterion was defined using the \textbf{maximum number of objective function evaluations}. Let \(B\) denote the computational budget assigned to a single run on a given instance. For the evolutionary algorithm, this budget is derived from its main control parameters as
+\[
+B = \text{pop\_size} \times \text{gen},
+\]
+with the initial population evaluations for EA not included for simplicity, counted as an algorithm set-up cost instead. The same value of \(B\) is then imposed on the remaining methods, so that all are compared under an equal limit on the number of candidate solutions evaluated.
+
+An exception is made for the greedy algorithm, which always returns exactly one solution.
+
+\paragraph{Limitations} - this budget definition provides a method, implementation and hardware independent comparison criterion. However, it is not free from limitations. The actual computational cost of a single evaluation may differ between methods, especially when one method uses incremental evaluation, fitness caching, or partial recomputation. In addition, algorithms may spend a non-negligible amount of time in operations not directly counted as evaluations, such as neighborhood generation. Therefore, the evaluation budget should be interpreted as a fair \emph{algorithmic} budget rather than a practical cost.
+
+\paragraph{Alternatives} include a wall-clock time budget, quality-based stopping, efficiency-based criteria, parallellism-aware budgets and others. They may, however, introduce unwanted variables such as hardware and software dependence, algorithm-specific conditions, or others such as implementation quality or stochastic variance.
+
+\subsection{Budget Calibration Procedure}
+
+A \textbf{single fixed computational budget} \(B\) simplifies the experimental design and ensures that all algorithms operate under identical limits. However, this approach introduces an inherent trade-off: instances of different sizes and difficulty levels may require different amounts of computational effort to reach comparable solution quality. In particular, larger and more complex instances may benefit from higher budgets. Consequently, this choice may disadvantage larger and over-allocate effort to smaller instances, where improvements beyond a certain point are marginal.
+
+To address this issue in a controlled manner, a \textbf{budget calibration procedure} was conducted prior to the main experiments. Preliminary runs were performed using representative algorithms—specifically, the evolutionary algorithm (EA) and simulated annealing (SA) with default parameter settings. These pilot experiments were executed across selected instances of varying sizes, and several candidate budget values were tested. The evaluation focused on three criteria: (i) achieved solution quality, (ii) runtime, and (iii) convergence behavior (efficiency of improvement over time).
+
+Based on the results, the budget was chosen by arbitrarily selecting a value that, based on observed trends, was expected to provide a reasonable baseline for all instances.
+
+\subsection{Seeds and Samples}
+
+\paragraph{Seeds} To ensure full reproducibility of the experiments, all stochastic algorithms were executed using explicitly defined random seeds.
+
+For each combination of algorithm, problem instance, and parameter configuration, multiple independent runs were performed. Each run was assigned a distinct seed computed according to the formula:
+\[
+\text{seed}_i = \text{base\_seed} \oplus (i \cdot K), \quad \forall, i \in {0,1,\dots,n-1}, ; K \in 2\mathbb{Z}+1
+\]
+
+where \(i\) is the run index, \(K\) is a large odd integer constant, and \(\oplus\) denotes the bitwise XOR operation.
+
+This approach has several advantages. First, it guarantees that the same experimental setup always produces identical results. Second, by combining a base seed with an index, it avoids using consecutive seeds. The use of a large odd multiplier combined with the XOR operation reduces the risk of output correlations. This balances reproducibility and independence of runs.
+
+\paragraph{Sample size} In the screening experiments, \textbf{n = 10} runs were performed for each configuration. In the final comparative experiments, a sample of \textbf{n = 30} was used, which is commonly accepted basis for comparison in literature and should provide a distribution of the mean that approaches normal.
+
+\section{Reported Metrics}
+% TODO: List and define all reported metrics.
+% Include best, mean, worst, std, runtime, evaluation count.
+
+\section{Required Aggregation and Plot Statistics}
+% TODO: Confirm that aggregated reporting includes:
+% - best solution (best single run)
+% - average best solution (mean of per-run best)
+% - standard deviation of per-run best
+
+\chapter{Compared Optimization Methods}
+\section{Random Search}
+Random Search is used as a stochastic baseline. The method repeatedly generates random job permutations, evaluates each candidate using the PFSP objective function, and keeps the best solution found so far.
+
+In this project, the algorithm has two execution modes: sequential and parallel. Both modes share the same core logic and differ only in how random samples are distributed across workers. The parallel mode was not used in the final experiments.
+
+%TODO count when best. Statistical eval?
+Stopping is controlled either by a fixed evaluation budget or by a time limit. Each run reports the best solution value, total number of evaluations, and elapsed runtime. In this study, only the run count budget was used, as mentioned in the evaluation protocol.
+
+\section{Greedy Heuristic}
+Two deterministic constructive baselines are used in this project:
+
+\paragraph{Greedy}
+The Greedy algorithm builds a schedule without insertion search. It computes a priority value for each job as the sum of processing times across all machines, sorts jobs by this priority (ascending), and returns the resulting permutation directly. This gives a very fast baseline with exactly one constructed solution.
+
+\paragraph{SPT (NEH-like iterative greedy).}
+The SPT algorithm uses the same initial priority order, but applies an iterative insertion strategy. Starting from a partial sequence, each next job is inserted into the position that yields the best objective value for the current prefix. This is an NEH-like constructive approach: it remains deterministic and single-pass, but performs local positional choice at each insertion step.
+
+Both methods return one final permutation (no multi-start search), making them suitable as low-cost references against stochastic metaheuristics.
+
+\section{Evolutionary Algorithm (EA)}
+The Evolutionary Algorithm is implemented as a population-based stochastic search. It starts from a randomly generated initial population, evaluates all individuals, and then iteratively creates new generations through selection, crossover, mutation, and full replacement of the population.
+
+At each generation, two parents are selected (tournament selection), offspring are produced with a crossover probability, each child is optionally mutated with a mutation probability, and offspring are evaluated and inserted into the next population.
+
+Default configuration used when not otherwise specified:
+\begin{itemize}
+    \item Population size: $100$
+    \item Generations: $100$
+    \item Crossover rate: $0.7$
+    \item Mutation rate: $0.1$
+    \item Tournament size: $5$
+    \item Selection method: Tournament
+    \item Crossover operator: OX (Order Crossover)
+    \item Mutation operator: Swap
+\end{itemize}
+
+The projects implements two Mutation operators: Swap and TODOMutation, and two Crossover operators: OX and TODOX. For selection, only Tournament is implemented, with design allowing for future extension.
+
+\section{Simulated Annealing (SA)}
+Simulated Annealing is implemented as a neighborhood-based local search. The algorithm starts from a permutation, generates one neighbor at each iteration, evaluates it, applies an acceptance rule, and then updates the temperature according to a cooling schedule.
+
+In the experiments, SA parameters are kept fixed and are not tuned. They are treated as arbitrary default settings used only to provide a stable baseline for comparison.
+%TODO update by final report
+Default configuration used in the experiment runner:
+\begin{itemize}
+    \item Iterations: $10{,}000$
+    \item Initial temperature: $T_0 = 100.0$
+    \item Cooling rate: $\alpha = 0.995$ (not used in linear schedule)
+    \item Minimum temperature: $T_{\min} = 10^{-4}$
+    \item Neighborhood operator: Swap
+    \item Acceptance function: Probabilistic (Metropolis-type)
+    \item Cooling schedule: Linear
+\end{itemize}
+
+For the default linear cooling schedule (as implemented), temperature is updated as
+\[
+T_{k+1} = 1 - \frac{k}{K},
+\]
+where $k$ is the current iteration index (starting from $0$ in this form) and $K$ is the maximum number of iterations. In the current implementation, the linear schedule does not use $\alpha$ directly.
+
+For the default probabilistic acceptance function, let $f(x)$ be the current solution cost and $f(x')$ the candidate cost. Acceptance is defined by
+\[
+P(\text{accept } x'\mid x, T)=
+\begin{cases}
+1, & f(x') \le f(x),\\
+\exp\!\left(-\dfrac{f(x')-f(x)}{T}\right), & f(x') > f(x).
+\end{cases}
+\]
+Thus, improving moves are always accepted, while worsening moves are accepted with a probability that decreases as temperature decreases.
+
+
+\chapter{Baseline Results}
+\section{Baseline Experiment Design}
+% TODO: Conditions for random, greedy, default EA, optional SA.
+
+\section{Baseline Results by Instance}
+% TODO: Add baseline result tables and short interpretation.
+
+\chapter{Evolutionary Algorithm Design Details}
+\section{Encoding and Initialization}
+% TODO: Permutation representation and initial population generation.
+
+\section{Fitness Evaluation}
+% TODO: TFT calculation details and any optimization/caching.
+
+\section{Selection, Crossover, Mutation, Replacement}
+% TODO: Explain operators and parameters.
+
+\section{Elitism and Termination}
+% TODO: Explain elitism policy and termination condition.
+
+\chapter{EA Parameter Sensitivity Analysis}
+\section{Single-Factor Screening Design}
+% TODO: Define one-factor-at-a-time experiments around defaults.
+
+\section{Mutation Probability}
+% TODO: Results and interpretation.
+
+\section{Crossover Probability}
+% TODO: Results and interpretation.
+
+\section{Tournament Size}
+% TODO: Results and interpretation.
+
+\section{Population Size}
+% TODO: Results and interpretation.
+
+\section{Number of Generations}
+% TODO: Results and interpretation.
+
+\chapter{Operator Role and Ablation Analysis}
+\section{Mutation Role (on/off, low/high extremes)}
+% TODO: Results and interpretation.
+
+\section{Crossover Role (on/off, low/high extremes)}
+% TODO: Results and interpretation.
+
+\section{Elitism Role (on/off)}
+% TODO: Results and interpretation.
+
+\chapter{Joint Parameter Interaction Analysis}
+\section{Selection Pressure x Mutation Probability}
+% TODO: Combined experiment results.
+
+\section{Selection Pressure x Crossover Probability}
+% TODO: Combined experiment results.
+
+\section{Population Size x Generations}
+% TODO: Combined experiment results.
+
+\section{Elitism x Tournament Size}
+% TODO: Combined experiment results.
+
+\chapter{Final EA Configuration}
+\section{Selection Criteria}
+% TODO: Explain criteria: quality, robustness, runtime.
+
+\section{Chosen Configuration}
+% TODO: Present final parameter set and rationale.
+
+\chapter{Final Comparative Results on 6 Instances}
+\section{Main Comparison Tables}
+% TODO: Add per-instance and aggregate results for all compared methods.
+
+\section{Difference-from-Best Table}
+% For each instance, find best objective among methods.
+% Report for each method:
+% - Absolute gap: Delta = f_method - f_best
+% - Relative gap: Delta% = 100 * (f_method - f_best) / f_best
+% TODO: Fill table and discuss ranking consistency.
+
+\begin{longtable}{lrrrr}
+\caption{Template: Difference from Best by Instance}\label{tab:diff_from_best}\\
+\toprule
+Instance & Method & $f_{method}$ & $\Delta$ & $\Delta\%$ \\
+\midrule
+\endfirsthead
+\toprule
+Instance & Method & $f_{method}$ & $\Delta$ & $\Delta\%$ \\
+\midrule
+\endhead
+% TODO: Fill rows
+\bottomrule
+\end{longtable}
+
+\chapter{Convergence Analysis}
+\section{Convergence Plot Protocol}
+% TODO: State how curves are aggregated over runs.
+
+\section{Required Plots}
+% Include:
+% - best solution
+% - average best solution
+% - standard deviation
+% Recommended: mean curve with +/-1 std shaded region.
+
+\section{Easy, Medium, and Hard Instance Behavior}
+% TODO: Interpret convergence speed, stagnation, and diversity effects.
+
+\chapter{Discussion and Answers to Auxiliary Questions}
+\section{Tournament Size Effects}
+% TODO: Answer Tour=1, Tour=pop_size, and practical recommendation.
+
+\section{Mutation and Crossover Effects}
+% TODO: Answer role and extreme-value behavior.
+
+\section{Elitism, Population, and Offspring Effects}
+% TODO: Answer necessity and efficiency-effectiveness trade-offs.
+
+\chapter{Conclusions}
+\section{Key Findings}
+% TODO: Summarize evidence-based conclusions.
+
+\section{Limitations}
+% TODO: State limitations in setup, budget, and generalization.
+
+\section{Future Work}
+% TODO: Propose next steps (e.g., additional objectives, larger benchmarks, parallelization).
+
+\appendix
+\chapter{Reproducibility Checklist}
+\section{Configuration Summary}
+% TODO: Final settings, seed list, and command-line templates.
+
+\section{Artifacts}
+% TODO: Link scripts, config files, raw outputs, and plotting notebooks.
+
+\end{document}

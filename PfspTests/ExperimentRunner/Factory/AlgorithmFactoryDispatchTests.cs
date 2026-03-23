@@ -15,7 +15,7 @@ namespace PfspTests.ExperimentRunner.Factory
         {
             var spec = new AlgorithmSpec { Type = "Random", Parameters = AlgorithmFactoryTestData.Elem("""{ "Seed": 7, "Samples": 50 }""") };
 
-            var (name, algo, pars) = AlgorithmFactory.CreateFromSpec(spec);
+            var (name, algo, pars) = Assert.Single(AlgorithmFactory.CreateFromSpec(spec));
 
             Assert.Contains("Random", name);
             Assert.IsType<RandomSearchAlgorithm>(algo);
@@ -33,7 +33,7 @@ namespace PfspTests.ExperimentRunner.Factory
                 Parameters = AlgorithmFactoryTestData.Elem("""{ "PopulationSize": 30, "Generations": 5, "Seed": 3 }""")
             };
 
-            var (name, algo, pars) = AlgorithmFactory.CreateFromSpec(spec);
+            var (name, algo, pars) = Assert.Single(AlgorithmFactory.CreateFromSpec(spec));
 
             Assert.Contains("Evolutionary", name);
             Assert.IsType<EvolutionaryAlgorithm>(algo);
@@ -48,7 +48,7 @@ namespace PfspTests.ExperimentRunner.Factory
         {
             var spec = new AlgorithmSpec { Type = "Greedy" };
 
-            var (name, algo, pars) = AlgorithmFactory.CreateFromSpec(spec);
+            var (name, algo, pars) = Assert.Single(AlgorithmFactory.CreateFromSpec(spec));
 
             Assert.Equal("Greedy", name);
             Assert.IsType<GreedyAlgorithm>(algo);
@@ -60,7 +60,7 @@ namespace PfspTests.ExperimentRunner.Factory
         {
             var spec = new AlgorithmSpec { Type = "SPT" };
 
-            var (name, algo, pars) = AlgorithmFactory.CreateFromSpec(spec);
+            var (name, algo, pars) = Assert.Single(AlgorithmFactory.CreateFromSpec(spec));
 
             Assert.Equal("SPT", name);
             Assert.IsType<SptAlgorithm>(algo);
@@ -75,7 +75,7 @@ namespace PfspTests.ExperimentRunner.Factory
         {
             var spec = new AlgorithmSpec { Type = type, Parameters = AlgorithmFactoryTestData.Elem("""{ "Samples": 10 }""") };
 
-            var (_, algo, _) = AlgorithmFactory.CreateFromSpec(spec);
+            var (_, algo, _) = Assert.Single(AlgorithmFactory.CreateFromSpec(spec));
 
             Assert.IsType<RandomSearchAlgorithm>(algo);
         }
@@ -85,7 +85,7 @@ namespace PfspTests.ExperimentRunner.Factory
         {
             var spec = new AlgorithmSpec { Type = "DoesNotExist" };
 
-            Assert.Throws<ArgumentException>(() => AlgorithmFactory.CreateFromSpec(spec));
+            Assert.Throws<ArgumentException>(() => AlgorithmFactory.CreateFromSpec(spec).ToList());
         }
     }
 }

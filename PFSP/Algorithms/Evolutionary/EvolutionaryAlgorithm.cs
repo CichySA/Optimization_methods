@@ -1,3 +1,4 @@
+using PFSP.Algorithms.Monitoring;
 using PFSP.Instances;
 using PFSP.Solutions;
 using PFSP.Solutions.PermutationSolutionGenerators;
@@ -7,111 +8,112 @@ namespace PFSP.Algorithms.Evolutionary
 {
     public class EvolutionaryAlgorithm : IAlgorithm
     {
-        public EvolutionaryAlgorithm()
-        {
-        }
-
         public AlgorithmResult Solve(Instance instance, IParameters parameters, CancellationToken cancellationToken = default)
         {
             ArgumentNullException.ThrowIfNull(instance);
             var parms = parameters as EvolutionaryParameters ?? throw new ArgumentException("parameters must be EvolutionaryParameters", nameof(parameters));
-            var gen = new RandomPermutationSolutionGenerator(parms.Seed);
-            var rnd = parms.Seed == 0 ? new Random() : new Random(parms.Seed);
 
+            var result = new AlgorithmResult();
+            var monitor = new AlgorithmMonitor(result, parms.Monitoring);
             var sw = Stopwatch.StartNew();
-            long evaluations = 0;
-            PermutationSolution best = null!;
-            long bestFoundAt = -1;
+            var state = new EvolutionaryAlgorithmState(
+                instance,
+                parms,
+                sw,
+                new RandomPermutationSolutionGenerator(parms.Seed),
+                parms.Seed == 0 ? new Random() : new Random(parms.Seed));
 
-            // Initial population
-            var populationSize = Math.Max(1, parms.PopulationSize);
-            var population = new PermutationSolution[populationSize];
-            for (int i = 0; i < populationSize; i++)
+            for (int i = 0; i < state.PopulationSize; i++)
             {
                 cancellationToken.ThrowIfCancellationRequested();
-                var sol = gen.Create(instance);
-                var cost = instance.Evaluate(sol);
-                evaluations++;
-                sol = sol with { Cost = cost };
-                population[i] = sol;
+                var solution = state.Generator.Create(instance);
+                solution = solution with { Cost = instance.Evaluate(solution) };
+                state.Candidate = solution;
+                state.Population[i] = solution;
 
-                if (best == null || sol.Cost < best.Cost)
+                state.Evaluations++;
+                if (state.Best is null || solution.Cost < state.Best.Cost)
                 {
-                    best = sol;
-                    bestFoundAt = evaluations;
+                    state.Best = solution;
+                    result.SetBest(solution);
+                    state.BestFoundAtEvaluation = state.Evaluations;
                 }
+
+                monitor.Emit(AlgorithmEventKind.CandidateEvaluated, state);
             }
 
-            // Evolution loop
-            for (int genIndex = 0; genIndex < parms.Generations; genIndex++)
+            state.Generation = 0;
+            monitor.Emit(AlgorithmEventKind.GenerationCompleted, state);
+
+            for (int generation = 0; generation < parms.Generations; generation++)
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
-                var newPop = new PermutationSolution[populationSize];
+                var nextPopulation = new PermutationSolution[state.PopulationSize];
                 int filled = 0;
 
-                while (filled < populationSize)
+                while (filled < state.PopulationSize)
                 {
                     cancellationToken.ThrowIfCancellationRequested();
 
-                    // Selection
-                    var parent1 = parms.SelectionMethod.Select(population, rnd, parms.SelectionParameters);
-                    var parent2 = parms.SelectionMethod.Select(population, rnd, parms.SelectionParameters);
+                    var parent1 = parms.SelectionMethod.Select(state.Population, state.Random, parms.SelectionParameters);
+                    var parent2 = parms.SelectionMethod.Select(state.Population, state.Random, parms.SelectionParameters);
 
-                    int[] childPerm1, childPerm2;
+                    int[] childPermutation1;
+                    int[] childPermutation2;
 
-                    // Crossover
-                    if (rnd.NextDouble() < parms.CrossoverRate)
+                    if (state.Random.NextDouble() < parms.CrossoverRate)
                     {
-                        childPerm1 = parms.CrossoverMethod.Crossover(parent1.Permutation, parent2.Permutation, rnd);
-                        childPerm2 = parms.CrossoverMethod.Crossover(parent2.Permutation, parent1.Permutation, rnd);
+                        childPermutation1 = parms.CrossoverMethod.Crossover(parent1.Permutation, parent2.Permutation, state.Random);
+                        childPermutation2 = parms.CrossoverMethod.Crossover(parent2.Permutation, parent1.Permutation, state.Random);
                     }
                     else
                     {
-                        // Copy parents
-                        childPerm1 = (int[])parent1.Permutation.Clone();
-                        childPerm2 = (int[])parent2.Permutation.Clone();
+                        childPermutation1 = (int[])parent1.Permutation.Clone();
+                        childPermutation2 = (int[])parent2.Permutation.Clone();
                     }
 
-                    // Mutation
-                    if (rnd.NextDouble() < parms.MutationRate)
-                        parms.MutationMethod.Mutate(childPerm1, rnd);
-                    if (rnd.NextDouble() < parms.MutationRate)
-                        parms.MutationMethod.Mutate(childPerm2, rnd);
+                    if (state.Random.NextDouble() < parms.MutationRate)
+                        parms.MutationMethod.Mutate(childPermutation1, state.Random);
+                    if (state.Random.NextDouble() < parms.MutationRate)
+                        parms.MutationMethod.Mutate(childPermutation2, state.Random);
 
-                    // Evaluate and add to new population
-                    var child1 = PermutationSolution.CreateCopy(childPerm1, instance.Evaluate(childPerm1));
-                    evaluations++;
-                    newPop[filled++] = child1;
-                    if (child1.Cost < best.Cost)
+                    var child1 = PermutationSolution.CreateCopy(childPermutation1, instance.Evaluate(childPermutation1));
+                    state.Candidate = child1;
+                    nextPopulation[filled++] = child1;
+                    state.Evaluations++;
+                    if (state.Best is null || child1.Cost < state.Best.Cost)
                     {
-                        best = child1;
-                        bestFoundAt = evaluations;
+                        state.Best = child1;
+                        result.SetBest(child1);
+                        state.BestFoundAtEvaluation = state.Evaluations;
                     }
+                    monitor.Emit(AlgorithmEventKind.CandidateEvaluated, state);
 
-                    var child2 = PermutationSolution.CreateCopy(childPerm2, instance.Evaluate(childPerm2));
-                    evaluations++;
-                    newPop[filled++] = child2;
-                    if (child2.Cost < best.Cost)
+                    if (filled >= state.PopulationSize)
+                        break;
+
+                    var child2 = PermutationSolution.CreateCopy(childPermutation2, instance.Evaluate(childPermutation2));
+                    state.Candidate = child2;
+                    nextPopulation[filled++] = child2;
+                    state.Evaluations++;
+                    if (state.Best is null || child2.Cost < state.Best.Cost)
                     {
-                        best = child2;
-                        bestFoundAt = evaluations;
+                        state.Best = child2;
+                        result.SetBest(child2);
+                        state.BestFoundAtEvaluation = state.Evaluations;
                     }
-
+                    monitor.Emit(AlgorithmEventKind.CandidateEvaluated, state);
                 }
 
-                population = newPop;
+                state.Population = nextPopulation;
+                state.Generation = generation + 1;
+                monitor.Emit(AlgorithmEventKind.GenerationCompleted, state);
             }
 
             sw.Stop();
-
-            var result = new AlgorithmResult(best, evaluations, sw.Elapsed)
-            {
-                BestFoundAtEvaluation = bestFoundAt
-            };
-
+            monitor.Emit(AlgorithmEventKind.Finished, state);
             return result;
         }
-
     }
 }

@@ -2,7 +2,6 @@ using System.Globalization;
 using ExperimentRunner;
 using PFSP.Algorithms.Evolutionary;
 using PFSP.Algorithms.RandomSearch;
-using PFSP.Solutions;
 
 var config = ExperimentRunnerConfigurationCliParser.Parse(args);
 if (config is null)
@@ -10,12 +9,11 @@ if (config is null)
 
 Console.WriteLine("Experiment Runner");
 
-var algorithms = config.Algorithms.SelectMany(AlgorithmFactory.CreateManyFromSpec).ToList();
+var algorithms = config.Algorithms.SelectMany(AlgorithmFactory.CreateFromSpec).ToList();
 var problems = ProblemLoader.LoadMany(config.Instances);
 var outDir = ResultSaver.ResolveOutputDirectory(config.OutDir);
 
-const string csvFileName = "experiment_results.csv";
-var header = "Instance,Algorithm,Params,Seed,BestCost,Evaluations,ElapsedMs,BestFoundAt,Timestamp";
+const string jsonFileName = "experiment_results.json";
 
 var runPlan = new List<(int Index, string InstanceName, PFSP.Instances.Instance Instance, string AlgorithmName, PFSP.Algorithms.IAlgorithm AlgorithmTemplate, PFSP.Algorithms.IParameters Parameters)>();
 int orderedIndex = 0;
@@ -27,8 +25,7 @@ foreach (var (name, inst) in problems)
     }
 }
 
-var records = new object[runPlan.Count];
-var csvLines = new string[runPlan.Count];
+var records = new ExperimentRunRecord[runPlan.Count];
 
 var shuffled = Enumerable.Range(0, runPlan.Count).ToArray();
 for (int i = shuffled.Length - 1; i > 0; i--)
@@ -55,6 +52,7 @@ var workerTasks = workerBuckets
             {
                 RandomSearchParameters rp => (int?)rp.Seed,
                 EvolutionaryParameters ep => (int?)ep.Seed,
+                PFSP.Algorithms.SimulatedAnnealing.SimulatedAnnealingParameters sp => (int?)sp.Seed,
                 _ => null
             };
 
@@ -62,47 +60,24 @@ var workerTasks = workerBuckets
                 Visualizer.DisplayRunStart(run.InstanceName, run.AlgorithmName, seedVal);
 
             var algorithm = (PFSP.Algorithms.IAlgorithm)Activator.CreateInstance(run.AlgorithmTemplate.GetType())!;
-
-            var sw = System.Diagnostics.Stopwatch.StartNew();
             var result = algorithm.Solve(run.Instance, run.Parameters);
-            sw.Stop();
-
-            var record = new
-            {
-                Instance = run.InstanceName,
-                Algorithm = run.AlgorithmName,
-                Params = run.Parameters.GetType().Name,
-                Seed = seedVal,
-                BestCost = (result.Best as PermutationSolution)?.Cost,
-                result.Evaluations,
-                ElapsedMs = sw.Elapsed.TotalMilliseconds,
-                BestFoundAt = result.BestFoundAtEvaluation,
-                Timestamp = DateTimeOffset.UtcNow
-            };
-
-            var bestCostStr = record.BestCost is double d
-                ? d.ToString("G", CultureInfo.InvariantCulture)
-                : record.BestCost?.ToString();
-
-            var elapsedMsStr = record.ElapsedMs is double d2
-                ? d2.ToString("G", CultureInfo.InvariantCulture)
-                : record.ElapsedMs.ToString(CultureInfo.InvariantCulture);
-
-            var line = $"{record.Instance},{record.Algorithm},{record.Params},{record.Seed},{bestCostStr},{record.Evaluations},{elapsedMsStr},{record.BestFoundAt},{record.Timestamp:o}";
+            var record = ExperimentRunRecordFactory.Create(
+                run.InstanceName,
+                run.AlgorithmName,
+                run.Parameters,
+                seedVal,
+                result,
+                DateTimeOffset.UtcNow);
 
             records[run.Index] = record;
-            csvLines[run.Index] = line;
         }
     }))
     .ToArray();
 
 await Task.WhenAll(workerTasks);
 
-foreach (var line in csvLines)
-    Visualizer.DisplayLine(line);
+foreach (var record in records)
+    Visualizer.DisplayLine($"{record.Instance} | {record.Algorithm} | Seed={record.Seed?.ToString() ?? "-"} | Best={record.Best?.Cost.ToString() ?? "-"} | Metrics={record.Metrics.Count}");
 
-ResultSaver.SaveCsv(outDir, csvFileName, header, csvLines);
-
-var results = records.ToList();
-//ResultSaver.SaveJson(outDir, $"experiment_results_{DateTime.UtcNow:yyyyMMdd_HHmmss}.json", results);
-Visualizer.DisplayLine($"Done. Results saved to {outDir}");
+ResultSaver.SaveJson(outDir, jsonFileName, records);
+Visualizer.DisplayLine($"Done. Results saved to {Path.Combine(outDir, jsonFileName)}");

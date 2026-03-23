@@ -12,7 +12,7 @@ namespace PfspTests.ExperimentRunner.Factory
         {
             var spec = new AlgorithmSpec { Type = "Random", Parameters = AlgorithmFactoryTestData.Elem("""{ "Seed": 42, "Samples": 200 }""") };
 
-            var (name, _, _) = AlgorithmFactory.CreateFromSpec(spec);
+            var (name, _, _) = Assert.Single(AlgorithmFactory.CreateFromSpec(spec));
 
             Assert.Contains("200", name);
             Assert.Contains("42", name);
@@ -27,7 +27,7 @@ namespace PfspTests.ExperimentRunner.Factory
                 Parameters = AlgorithmFactoryTestData.Elem("""{ "PopulationSize": 50, "Generations": 10, "Seed": 1 }""")
             };
 
-            var (name, _, _) = AlgorithmFactory.CreateFromSpec(spec);
+            var (name, _, _) = Assert.Single(AlgorithmFactory.CreateFromSpec(spec));
 
             Assert.Contains("50", name);
             Assert.Contains("10", name);

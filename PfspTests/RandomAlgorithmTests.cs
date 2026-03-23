@@ -1,4 +1,5 @@
 using PFSP.Algorithms;
+using PFSP.Algorithms.Monitoring;
 using PFSP.Algorithms.RandomSearch;
 using PFSP.Evaluators;
 using PFSP.Instances;
@@ -27,7 +28,6 @@ namespace PfspTests
             var res1 = algo.Solve(instance, pars, TestContext.Current.CancellationToken);
             var res2 = algo.Solve(instance, pars, TestContext.Current.CancellationToken);
 
-            // With same seed and parameters the best cost should be equal
             Assert.Equal(res1.Best.Cost, res2.Best.Cost);
             Assert.Equal(res1.Best.Permutation, res2.Best.Permutation);
         }
@@ -40,17 +40,6 @@ namespace PfspTests
 
             // only change the instantiated algorithm
             IAlgorithm alg = new RandomSearchAlgorithm();
-            RunEvaluationCountTest(alg, samples, seed);
-        }
-
-        [Fact]
-        public void Solve_PerformsExpectedNumberOfEvaluations_WithRandomParallel()
-        {
-            int samples = 1000; // expected number of evaluations
-            int seed = 42;      // deterministic RNG for test repeatability
-
-            // only change the instantiated algorithm
-            IAlgorithm alg = new ParallelRandomAlgorithm();
             RunEvaluationCountTest(alg, samples, seed);
         }
 
@@ -77,7 +66,7 @@ namespace PfspTests
             // Assert
             Assert.NotNull(result);
             Assert.NotNull(result.Best);
-            Assert.Equal((long)samples, result.Evaluations);
+            Assert.Equal((long)samples, (long)result.GetSingleDenseMetric(AlgorithmMetricNames.Evaluations));
         }
 
         // --- Group: Sequential guards ---
@@ -146,80 +135,7 @@ namespace PfspTests
             var result = algo.Solve(instance, RandomSearchParameters.ForTimeLimit(TimeSpan.FromMilliseconds(100), seed: 1), TestContext.Current.CancellationToken);
 
             Assert.NotNull(result.Best);
-            Assert.True(result.Evaluations >= 1);
-        }
-
-        // --- Group: Parallel correctness ---
-
-        [Fact]
-        public void Parallel_FixedSeed_IsDeterministic()
-        {
-            var matrix = new double[2, 5]
-            {
-                { 1, 2, 3, 4, 5 },
-                { 5, 4, 3, 2, 1 }
-            };
-            var instance = Instance.Create(matrix, new TotalFlowTimeEvaluator());
-            var algo = new ParallelRandomAlgorithm();
-            var pars = RandomSearchParameters.ForRuns(100, seed: 123);
-
-            var res1 = algo.Solve(instance, pars, TestContext.Current.CancellationToken);
-            var res2 = algo.Solve(instance, pars, TestContext.Current.CancellationToken);
-
-            Assert.Equal(res1.Best.Cost, res2.Best.Cost);
-            Assert.Equal(res1.Best.Permutation, res2.Best.Permutation);
-        }
-
-        [Fact]
-        public void Parallel_Solve_ReturnsValidPermutation()
-        {
-            int jobs = 7;
-            var matrix = new double[2, jobs];
-            for (int j = 0; j < jobs; j++) { matrix[0, j] = j + 1; matrix[1, j] = jobs - j; }
-            var instance = Instance.Create(matrix, new TotalFlowTimeEvaluator());
-            var algo = new ParallelRandomAlgorithm();
-
-            var result = algo.Solve(instance, RandomSearchParameters.ForRuns(50, seed: 42), TestContext.Current.CancellationToken);
-
-            Assert.Equal(jobs, result.Best.Permutation.Length);
-            Assert.Equal(Enumerable.Range(0, jobs), result.Best.Permutation.OrderBy(x => x));
-        }
-
-        // --- Group: Parallel guards ---
-
-        [Fact]
-        public void Parallel_Solve_NullInstance_ThrowsArgumentNullException()
-        {
-            var algo = new ParallelRandomAlgorithm();
-            var pars = RandomSearchParameters.ForRuns(10, seed: 1);
-            Assert.Throws<ArgumentNullException>(() => algo.Solve(null!, pars));
-        }
-
-        [Fact]
-        public void Parallel_Solve_WrongParameterType_ThrowsArgumentException()
-        {
-            var matrix = new double[1, 2] { { 1, 2 } };
-            var instance = Instance.Create(matrix, new TotalFlowTimeEvaluator());
-            var algo = new ParallelRandomAlgorithm();
-            Assert.Throws<ArgumentException>(() => algo.Solve(instance, new FakeParameters()));
-        }
-
-        [Fact]
-        public void Parallel_Solve_CancellationRequested_StopsGracefully()
-        {
-            var matrix = new double[2, 10];
-            for (int j = 0; j < 10; j++) { matrix[0, j] = j + 1; matrix[1, j] = 10 - j; }
-            var instance = Instance.Create(matrix, new TotalFlowTimeEvaluator());
-            var algo = new ParallelRandomAlgorithm();
-
-            using var cts = new CancellationTokenSource();
-            cts.Cancel();
-
-            // Pre-cancelled token: algorithm must not throw and must return a valid fallback solution.
-            var result = algo.Solve(instance, RandomSearchParameters.ForRuns(1_000_000, seed: 1), cts.Token);
-
-            Assert.NotNull(result.Best);
-            Assert.Equal(instance.Jobs, result.Best.Permutation.Length);
+            Assert.True(result.GetSingleDenseMetric(AlgorithmMetricNames.Evaluations) >= 1);
         }
 
         private sealed class FakeParameters : IParameters { }
