@@ -2,7 +2,6 @@ using PFSP.Algorithms.Monitoring;
 using PFSP.Instances;
 using PFSP.Solutions;
 using PFSP.Solutions.PermutationSolutionGenerators;
-using System.Diagnostics;
 
 namespace PFSP.Algorithms.RandomSearch
 {
@@ -12,9 +11,8 @@ namespace PFSP.Algorithms.RandomSearch
 
         public RandomSearchState(
             Instance instance,
-            RandomSearchParameters parameters,
-            Stopwatch stopwatch)
-            : base(instance, parameters, stopwatch)
+            RandomSearchParameters parameters)
+            : base(instance, parameters)
         {
             RemainingIterations = parameters.Samples;
             Generator = new RandomPermutationSolutionGenerator(parameters.Seed);

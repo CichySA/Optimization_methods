@@ -6,18 +6,19 @@ namespace PFSP.Algorithms.Monitoring
 {
     public abstract class AlgorithmState
     {
-        protected AlgorithmState(Instance instance, IParameters parameters, Stopwatch stopwatch)
+        private readonly Stopwatch _stopwatch = new();
+
+        protected AlgorithmState(Instance instance, IParameters parameters)
         {
             Instance = instance ?? throw new ArgumentNullException(nameof(instance));
             Parameters = parameters ?? throw new ArgumentNullException(nameof(parameters));
-            Stopwatch = stopwatch ?? throw new ArgumentNullException(nameof(stopwatch));
         }
 
         public Instance Instance { get; }
 
         public IParameters Parameters { get; }
 
-        public TimeSpan Elapsed => Stopwatch.Elapsed;
+        public TimeSpan Elapsed => _stopwatch.Elapsed;
 
         public long Evaluations { get; set; }
 
@@ -25,6 +26,8 @@ namespace PFSP.Algorithms.Monitoring
 
         public ISolution? Best { get; set; }
 
-        protected Stopwatch Stopwatch { get; }
+        internal void StartTimer() => _stopwatch.Start();
+
+        internal void StopTimer() => _stopwatch.Stop();
     }
 }

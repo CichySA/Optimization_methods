@@ -30,6 +30,19 @@ namespace PFSP.Algorithms.Monitoring
         {
             ArgumentNullException.ThrowIfNull(state);
 
+            switch (eventKind)
+            {
+                case AlgorithmEventKind.Started:
+                    state.StartTimer();
+                    break;
+                case AlgorithmEventKind.CandidateEvaluated:
+                    state.Evaluations++;
+                    break;
+                case AlgorithmEventKind.Finished:
+                    state.StopTimer();
+                    break;
+            }
+
             foreach (var metric in _metrics)
                 metric.Observe(eventKind, state, _recorder);
         }

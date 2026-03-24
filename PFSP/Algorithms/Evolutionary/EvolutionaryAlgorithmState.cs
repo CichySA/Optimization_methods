@@ -2,7 +2,6 @@ using PFSP.Algorithms.Monitoring;
 using PFSP.Instances;
 using PFSP.Solutions;
 using PFSP.Solutions.PermutationSolutionGenerators;
-using System.Diagnostics;
 
 namespace PFSP.Algorithms.Evolutionary
 {
@@ -11,10 +10,9 @@ namespace PFSP.Algorithms.Evolutionary
         public EvolutionaryAlgorithmState(
             Instance instance,
             EvolutionaryParameters parameters,
-            Stopwatch stopwatch,
             RandomPermutationSolutionGenerator generator,
             Random random)
-            : base(instance, parameters, stopwatch)
+            : base(instance, parameters)
         {
             Generator = generator;
             Random = random;

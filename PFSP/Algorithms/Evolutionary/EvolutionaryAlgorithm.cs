@@ -2,7 +2,6 @@ using PFSP.Algorithms.Monitoring;
 using PFSP.Instances;
 using PFSP.Solutions;
 using PFSP.Solutions.PermutationSolutionGenerators;
-using System.Diagnostics;
 
 namespace PFSP.Algorithms.Evolutionary
 {
@@ -15,13 +14,13 @@ namespace PFSP.Algorithms.Evolutionary
 
             var result = new AlgorithmResult();
             var monitor = new AlgorithmMonitor(result, parms.Monitoring);
-            var sw = Stopwatch.StartNew();
             var state = new EvolutionaryAlgorithmState(
                 instance,
                 parms,
-                sw,
                 new RandomPermutationSolutionGenerator(parms.Seed),
                 parms.Seed == 0 ? new Random() : new Random(parms.Seed));
+
+            monitor.Emit(AlgorithmEventKind.Started, state);
 
             for (int i = 0; i < state.PopulationSize; i++)
             {
@@ -31,15 +30,17 @@ namespace PFSP.Algorithms.Evolutionary
                 state.Candidate = solution;
                 state.Population[i] = solution;
 
-                state.Evaluations++;
-                if (state.Best is null || solution.Cost < state.Best.Cost)
+                bool newBest = state.Best is null || solution.Cost < state.Best.Cost;
+                if (newBest)
                 {
                     state.Best = solution;
                     result.SetBest(solution);
-                    state.BestFoundAtEvaluation = state.Evaluations;
                 }
 
                 monitor.Emit(AlgorithmEventKind.CandidateEvaluated, state);
+
+                if (newBest)
+                    state.BestFoundAtEvaluation = state.Evaluations;
             }
 
             state.Generation = 0;
@@ -81,14 +82,15 @@ namespace PFSP.Algorithms.Evolutionary
                     var child1 = PermutationSolution.CreateCopy(childPermutation1, instance.Evaluate(childPermutation1));
                     state.Candidate = child1;
                     nextPopulation[filled++] = child1;
-                    state.Evaluations++;
-                    if (state.Best is null || child1.Cost < state.Best.Cost)
+                    bool newBest1 = state.Best is null || child1.Cost < state.Best.Cost;
+                    if (newBest1)
                     {
                         state.Best = child1;
                         result.SetBest(child1);
-                        state.BestFoundAtEvaluation = state.Evaluations;
                     }
                     monitor.Emit(AlgorithmEventKind.CandidateEvaluated, state);
+                    if (newBest1)
+                        state.BestFoundAtEvaluation = state.Evaluations;
 
                     if (filled >= state.PopulationSize)
                         break;
@@ -96,14 +98,15 @@ namespace PFSP.Algorithms.Evolutionary
                     var child2 = PermutationSolution.CreateCopy(childPermutation2, instance.Evaluate(childPermutation2));
                     state.Candidate = child2;
                     nextPopulation[filled++] = child2;
-                    state.Evaluations++;
-                    if (state.Best is null || child2.Cost < state.Best.Cost)
+                    bool newBest2 = state.Best is null || child2.Cost < state.Best.Cost;
+                    if (newBest2)
                     {
                         state.Best = child2;
                         result.SetBest(child2);
-                        state.BestFoundAtEvaluation = state.Evaluations;
                     }
                     monitor.Emit(AlgorithmEventKind.CandidateEvaluated, state);
+                    if (newBest2)
+                        state.BestFoundAtEvaluation = state.Evaluations;
                 }
 
                 state.Population = nextPopulation;
@@ -111,7 +114,6 @@ namespace PFSP.Algorithms.Evolutionary
                 monitor.Emit(AlgorithmEventKind.GenerationCompleted, state);
             }
 
-            sw.Stop();
             monitor.Emit(AlgorithmEventKind.Finished, state);
             return result;
         }

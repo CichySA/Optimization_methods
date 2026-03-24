@@ -1,7 +1,6 @@
 using PFSP.Algorithms.Monitoring;
 using PFSP.Instances;
 using PFSP.Solutions;
-using System.Diagnostics;
 
 namespace PFSP.Algorithms.Greedy
 {
@@ -44,9 +43,10 @@ namespace PFSP.Algorithms.Greedy
             var greedyParameters = parameters as GreedyParameters ?? throw new ArgumentException("parameters must be GreedyParameters", nameof(parameters));
 
             var result = new AlgorithmResult();
-            var stopwatch = Stopwatch.StartNew();
-            var state = new GreedyAlgorithmState(instance, greedyParameters, stopwatch);
+            var state = new GreedyAlgorithmState(instance, greedyParameters);
             var monitor = new AlgorithmMonitor(result, greedyParameters.Monitoring);
+
+            monitor.Emit(AlgorithmEventKind.Started, state);
 
             state.Candidate = construct(instance);
             state.Best = state.Candidate;
@@ -54,7 +54,6 @@ namespace PFSP.Algorithms.Greedy
                 state.Step = 1;
 
             result.SetBest(state.Candidate);
-            stopwatch.Stop();
 
             if (emitStepCompleted)
                 monitor.Emit(AlgorithmEventKind.StepCompleted, state);

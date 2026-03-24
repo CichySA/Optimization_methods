@@ -6,7 +6,6 @@ using PFSP.Algorithms.RandomSearch;
 using PFSP.Evaluators;
 using PFSP.Instances;
 using PFSP.Solutions;
-using System.Diagnostics;
 
 namespace PfspTests
 {
@@ -45,12 +44,10 @@ namespace PfspTests
             {
                 EnabledMetrics = [AlgorithmMetricNames.BestByGeneration, AlgorithmMetricNames.ElapsedOnFinished]
             });
-            var stopwatch = Stopwatch.StartNew();
             var best = PermutationSolution.WrapBuffer([0, 1, 2], 10.0);
             var state = new EvolutionaryAlgorithmState(
                 Instance.CreateWithDefaultEvaluator(new double[1, 3] { { 1, 2, 3 } }),
                 new EvolutionaryParameters(),
-                stopwatch,
                 new PFSP.Solutions.PermutationSolutionGenerators.RandomPermutationSolutionGenerator(1),
                 new Random(1))
             {
@@ -72,8 +69,7 @@ namespace PfspTests
             var monitor = new AlgorithmMonitor(result, new AlgorithmMonitoringOptions(), [new ConstantMetric()]);
             var instance = Instance.CreateWithDefaultEvaluator(new double[1, 1] { { 1 } });
             var solution = PermutationSolution.WrapBuffer([0], 1.0);
-            var stopwatch = Stopwatch.StartNew();
-            var state = new GreedyAlgorithmState(instance, new GreedyParameters(), stopwatch)
+            var state = new GreedyAlgorithmState(instance, new GreedyParameters())
             {
                 Candidate = solution,
                 Best = solution,
@@ -107,12 +103,10 @@ namespace PfspTests
                 ]
             });
             var instance = Instance.CreateWithDefaultEvaluator(new double[1, 3] { { 1, 2, 3 } });
-            var stopwatch = Stopwatch.StartNew();
             var best = PermutationSolution.WrapBuffer([0, 1, 2], 10.0);
             var state = new EvolutionaryAlgorithmState(
                 instance,
                 new EvolutionaryParameters(),
-                stopwatch,
                 new PFSP.Solutions.PermutationSolutionGenerators.RandomPermutationSolutionGenerator(1),
                 new Random(1))
             {

@@ -14,9 +14,10 @@ namespace PFSP.Algorithms.RandomSearch
             var p = parameters as RandomSearchParameters ?? throw new ArgumentException("parameters must be RandomParameters", nameof(parameters));
 
             var result = new AlgorithmResult();
-            var stopwatch = Stopwatch.StartNew();
-            var state = new RandomSearchState(instance, p, stopwatch);
+            var state = new RandomSearchState(instance, p);
             var monitor = new AlgorithmMonitor(result, p.Monitoring);
+
+            monitor.Emit(AlgorithmEventKind.Started, state);
 
             while (state.ShouldContinue())
             {
@@ -27,7 +28,6 @@ namespace PFSP.Algorithms.RandomSearch
             if (!result.HasBest)
                 throw new InvalidOperationException("Random search finished without producing a best solution.");
 
-            stopwatch.Stop();
             monitor.Emit(AlgorithmEventKind.Finished, state);
             return result;
         }
@@ -37,16 +37,18 @@ namespace PFSP.Algorithms.RandomSearch
             state.Generator.Shuffle(state.CandidatePermutation);
             var cost = state.Instance.Evaluate(state.CandidateBuffer);
             state.Candidate = PermutationSolution.WrapBuffer(state.CandidatePermutation, cost);
-            state.Evaluations++;
 
-            if (state.Best is null || cost < state.Best.Cost)
+            bool improved = state.Best is null || cost < state.Best.Cost;
+            if (improved)
             {
                 state.Best = PermutationSolution.CreateCopy(state.CandidatePermutation, cost);
-                state.BestFoundAtEvaluation = state.Evaluations;
                 result.SetBest(state.Best);
             }
 
             monitor.Emit(AlgorithmEventKind.CandidateEvaluated, state);
+
+            if (improved)
+                state.BestFoundAtEvaluation = state.Evaluations;
         }
     }
 }

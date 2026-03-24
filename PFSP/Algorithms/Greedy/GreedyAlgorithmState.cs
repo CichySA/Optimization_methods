@@ -1,7 +1,6 @@
 using PFSP.Algorithms.Monitoring;
 using PFSP.Instances;
 using PFSP.Solutions;
-using System.Diagnostics;
 
 namespace PFSP.Algorithms.Greedy
 {
@@ -9,9 +8,8 @@ namespace PFSP.Algorithms.Greedy
     {
         public GreedyAlgorithmState(
             Instance instance,
-            GreedyParameters parameters,
-            Stopwatch stopwatch)
-            : base(instance, parameters, stopwatch)
+            GreedyParameters parameters)
+            : base(instance, parameters)
         {
         }
 
