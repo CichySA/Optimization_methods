@@ -18,6 +18,7 @@ namespace PFSP.Algorithms.Evolutionary
             Random = random;
             PopulationSize = Math.Max(1, parameters.PopulationSize);
             Population = new PermutationSolution[PopulationSize];
+            NextPopulation = new PermutationSolution[PopulationSize];
         }
 
         public new EvolutionaryParameters Parameters => (EvolutionaryParameters)base.Parameters;
@@ -29,6 +30,8 @@ namespace PFSP.Algorithms.Evolutionary
         public int PopulationSize { get; }
 
         public PermutationSolution[] Population { get; set; }
+
+        public PermutationSolution[] NextPopulation { get; set; }
 
         public PermutationSolution? Candidate { get; set; }
 

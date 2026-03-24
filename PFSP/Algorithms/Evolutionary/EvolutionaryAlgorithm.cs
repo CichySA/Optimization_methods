@@ -50,18 +50,27 @@ namespace PFSP.Algorithms.Evolutionary
             state.Generation = 1;
             monitor.Emit(AlgorithmEventKind.GenerationCompleted, state);
 
+            Span<bool> taken = stackalloc bool[state.PopulationSize];
             for (; state.Generation < parms.Generations; state.Generation++)
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
-                var nextPopulation = new PermutationSolution[state.PopulationSize];
+                var nextPop = state.NextPopulation;
                 int filled = 0;
 
-                // Elitism: carry over the top k individuals without re-evaluation
+                // Elitism
                 if (parms.ElitismK > 0)
                 {
-                    foreach (var elite in state.Population.OrderBy(s => s.Cost).Take(parms.ElitismK))
-                        nextPopulation[filled++] = elite;
+                    taken.Clear();
+                    for (int e = 0; e < parms.ElitismK; e++)
+                    {
+                        int bestIdx = -1;
+                        for (int p = 0; p < state.PopulationSize; p++)
+                            if (!taken[p] && (bestIdx < 0 || state.Population[p].Cost < state.Population[bestIdx].Cost))
+                                bestIdx = p;
+                        taken[bestIdx] = true;
+                        nextPop[filled++] = state.Population[bestIdx];
+                    }
                 }
 
                 while (filled < state.PopulationSize)
@@ -70,6 +79,8 @@ namespace PFSP.Algorithms.Evolutionary
 
                     var parent1 = parms.SelectionMethod.Select(state.Population, state.Random, parms.SelectionParameters);
                     var parent2 = parms.SelectionMethod.Select(state.Population, state.Random, parms.SelectionParameters);
+
+                    bool needChild2 = filled + 1 < state.PopulationSize;
 
                     int[] childPermutation1;
                     int[] childPermutation2;
@@ -81,17 +92,17 @@ namespace PFSP.Algorithms.Evolutionary
                     else
                     {
                         childPermutation1 = (int[])parent1.Permutation.Clone();
-                        childPermutation2 = (int[])parent2.Permutation.Clone();
+                        childPermutation2 = needChild2 ? (int[])parent2.Permutation.Clone() : [];
                     }
 
                     if (state.Random.NextDouble() < parms.MutationRate)
                         parms.MutationMethod.Mutate(childPermutation1, state.Random);
-                    if (state.Random.NextDouble() < parms.MutationRate)
+                    if (needChild2 && state.Random.NextDouble() < parms.MutationRate)
                         parms.MutationMethod.Mutate(childPermutation2, state.Random);
 
-                    var child1 = PermutationSolution.CreateCopy(childPermutation1, instance.Evaluate(childPermutation1));
+                    var child1 = PermutationSolution.WrapBuffer(childPermutation1, instance.Evaluate(childPermutation1));
                     state.Candidate = child1;
-                    nextPopulation[filled++] = child1;
+                    nextPop[filled++] = child1;
                     bool newBest1 = state.Best is null || child1.Cost < state.Best.Cost;
                     if (newBest1)
                     {
@@ -102,12 +113,12 @@ namespace PFSP.Algorithms.Evolutionary
                     if (newBest1)
                         state.BestFoundAtEvaluation = state.Evaluations;
 
-                    if (filled >= state.PopulationSize)
+                    if (!needChild2)
                         break;
 
-                    var child2 = PermutationSolution.CreateCopy(childPermutation2, instance.Evaluate(childPermutation2));
+                    var child2 = PermutationSolution.WrapBuffer(childPermutation2, instance.Evaluate(childPermutation2));
                     state.Candidate = child2;
-                    nextPopulation[filled++] = child2;
+                    nextPop[filled++] = child2;
                     bool newBest2 = state.Best is null || child2.Cost < state.Best.Cost;
                     if (newBest2)
                     {
@@ -119,7 +130,7 @@ namespace PFSP.Algorithms.Evolutionary
                         state.BestFoundAtEvaluation = state.Evaluations;
                 }
 
-                state.Population = nextPopulation;
+                (state.Population, state.NextPopulation) = (state.NextPopulation, state.Population);
                 monitor.Emit(AlgorithmEventKind.GenerationCompleted, state);
             }
 
