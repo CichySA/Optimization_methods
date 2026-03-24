@@ -4,7 +4,7 @@ using PFSP.Algorithms.RandomSearch;
 using PFSP.Evaluators;
 using PFSP.Instances;
 
-namespace PfspTests
+namespace PfspTests.Algorithms.RandomSearch
 {
     public class RandomAlgorithmTests
     {

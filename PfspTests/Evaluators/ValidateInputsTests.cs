@@ -1,7 +1,7 @@
 using PFSP.Evaluators;
 using System.Reflection;
 
-namespace PfspTests
+namespace PfspTests.Evaluators
 {
     public class ValidateInputsTests
     {

@@ -1,6 +1,6 @@
 using PFSP.Solutions;
 
-namespace PfspTests
+namespace PfspTests.Evaluators
 {
     public class TotalFlowTimeTests
     {

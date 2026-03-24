@@ -1,7 +1,7 @@
 using PFSP.Evaluators;
 using PFSP.Instances;
 
-namespace PfspTests
+namespace PfspTests.Instances
 {
     public class InstanceTests
     {

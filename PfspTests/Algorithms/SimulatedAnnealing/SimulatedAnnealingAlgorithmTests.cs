@@ -2,7 +2,7 @@ using PFSP.Algorithms.Monitoring;
 using PFSP.Algorithms.SimulatedAnnealing;
 using PFSP.Instances;
 
-namespace PfspTests
+namespace PfspTests.Algorithms.SimulatedAnnealing
 {
     public class SimulatedAnnealingAlgorithmTests
     {

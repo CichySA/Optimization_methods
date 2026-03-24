@@ -1,7 +1,7 @@
 using PFSP.Instances;
 using Xunit;
 
-namespace PfspTests
+namespace PfspTests.Instances
 {
     public class InstanceReaderTests
     {

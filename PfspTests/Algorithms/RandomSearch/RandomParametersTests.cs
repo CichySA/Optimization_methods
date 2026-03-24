@@ -1,6 +1,6 @@
 using PFSP.Algorithms.RandomSearch;
 
-namespace PfspTests
+namespace PfspTests.Algorithms.RandomSearch
 {
     public class RandomParametersTests
     {

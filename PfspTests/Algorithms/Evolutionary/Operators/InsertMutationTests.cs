@@ -1,7 +1,7 @@
 using PFSP.Algorithms.Evolutionary;
 using PFSP.Algorithms.Evolutionary.Operators.MutationOperators;
 
-namespace PfspTests
+namespace PfspTests.Algorithms.Evolutionary.Operators
 {
     public class InsertMutationTests
     {

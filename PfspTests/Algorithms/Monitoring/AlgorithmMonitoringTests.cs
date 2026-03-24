@@ -8,7 +8,7 @@ using PFSP.Evaluators;
 using PFSP.Instances;
 using PFSP.Solutions;
 
-namespace PfspTests
+namespace PfspTests.Algorithms.Monitoring
 {
     public class AlgorithmMonitoringTests
     {

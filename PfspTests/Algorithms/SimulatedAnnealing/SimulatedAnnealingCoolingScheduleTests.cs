@@ -2,7 +2,7 @@ using PFSP.Algorithms.SimulatedAnnealing;
 using PFSP.Algorithms.SimulatedAnnealing.Operators;
 using PFSP.Algorithms.SimulatedAnnealing.Operators.CoolingSchedules;
 
-namespace PfspTests
+namespace PfspTests.Algorithms.SimulatedAnnealing
 {
     public class SimulatedAnnealingCoolingScheduleTests
     {

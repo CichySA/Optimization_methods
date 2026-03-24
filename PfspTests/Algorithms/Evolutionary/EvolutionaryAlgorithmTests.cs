@@ -2,8 +2,9 @@ using PFSP.Algorithms;
 using PFSP.Algorithms.Monitoring;
 using PFSP.Algorithms.Evolutionary;
 using PFSP.Instances;
+using PfspTests;
 
-namespace PfspTests
+namespace PfspTests.Algorithms.Evolutionary
 {
     public class EvolutionaryAlgorithmTests
     {

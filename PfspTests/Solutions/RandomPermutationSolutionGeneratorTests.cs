@@ -1,6 +1,6 @@
 using PFSP.Solutions.PermutationSolutionGenerators;
 
-namespace PfspTests
+namespace PfspTests.Solutions
 {
     public class RandomPermutationSolutionGeneratorTests
     {

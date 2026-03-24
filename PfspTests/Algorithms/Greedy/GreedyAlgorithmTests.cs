@@ -4,7 +4,7 @@ using PFSP.Solutions;
 using PFSP.Evaluators;
 using PFSP.Algorithms;
 
-namespace PfspTests
+namespace PfspTests.Algorithms.Greedy
 {
     public class GreedyAlgorithmTests
     {
