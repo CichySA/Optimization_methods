@@ -78,10 +78,5 @@ var workerTasks = workerBuckets
 
 await Task.WhenAll(workerTasks);
 
-foreach (var record in records)
-{
-    Visualizer.DisplayLine($"{record.Instance} | {record.Algorithm} | Seed={record.Seed?.ToString() ?? "-"} | Best={record.Best?.Cost.ToString() ?? "-"} | Metrics={record.Metrics.Count}");
-}
-
 ResultSaver.SaveJson(outDir, jsonFileName, records);
 Visualizer.DisplayLine($"Done. Results saved to {Path.Combine(outDir, jsonFileName)}");

@@ -30,12 +30,14 @@ namespace PFSP.Algorithms.Evolutionary
 
         public static readonly Dictionary<string, Func<ICrossoverMethod>> CrossoverRegistry = new(StringComparer.OrdinalIgnoreCase)
         {
-            { OrderCrossover.Name, static () => new OrderCrossover() }
+            { OrderCrossover.Name, static () => new OrderCrossover() },
+            { CycleCrossover.Name, static () => new CycleCrossover() }
         };
 
         public static readonly Dictionary<string, Func<IMutationMethod>> MutationRegistry = new(StringComparer.OrdinalIgnoreCase)
         {
-            { SwapMutation.Name, static () => new SwapMutation() }
+            { SwapMutation.Name, static () => new SwapMutation() },
+            { InsertMutation.Name, static () => new InsertMutation() }
         };
 
         private static readonly Dictionary<string, string> ParameterFormatMapping = new()

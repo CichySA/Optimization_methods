@@ -10,7 +10,7 @@ namespace PFSP.Algorithms.Monitoring
         public const string CurrentCostByIteration = nameof(CurrentCostByIteration);
         public const string TemperatureByIteration = nameof(TemperatureByIteration);
         public const string BestByGeneration = nameof(BestByGeneration);
-        public const string MedianByGeneration = nameof(MedianByGeneration);
+        public const string MeanByGeneration = nameof(MeanByGeneration);
         public const string DeviationByGeneration = nameof(DeviationByGeneration);
         public const string BestInPopulationByGeneration = nameof(BestInPopulationByGeneration);
         public const string ElapsedOnFinished = nameof(ElapsedOnFinished);

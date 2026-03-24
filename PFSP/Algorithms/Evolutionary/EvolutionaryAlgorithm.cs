@@ -76,8 +76,7 @@ namespace PFSP.Algorithms.Evolutionary
 
                     if (state.Random.NextDouble() < parms.CrossoverRate)
                     {
-                        childPermutation1 = parms.CrossoverMethod.Crossover(parent1.Permutation, parent2.Permutation, state.Random);
-                        childPermutation2 = parms.CrossoverMethod.Crossover(parent2.Permutation, parent1.Permutation, state.Random);
+                        (childPermutation1, childPermutation2) = parms.CrossoverMethod.Crossover(parent1.Permutation, parent2.Permutation, state.Random);
                     }
                     else
                     {

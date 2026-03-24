@@ -52,9 +52,9 @@ namespace PFSP.Algorithms.Monitoring
                 state => state.Best is null ? null : state.Best.Cost),
 
             new DenseMetric<EvolutionaryAlgorithmState>(
-                AlgorithmMetricNames.MedianByGeneration,
+                AlgorithmMetricNames.MeanByGeneration,
                 AlgorithmEventKind.GenerationCompleted,
-                state => MedianCost(state.Population)),
+                state => MeanCost(state.Population)),
 
             new DenseMetric<EvolutionaryAlgorithmState>(
                 AlgorithmMetricNames.DeviationByGeneration,
@@ -114,14 +114,10 @@ namespace PFSP.Algorithms.Monitoring
             }
         }
 
-        private static double MedianCost(IEnumerable<ISolution> population)
+        private static double MeanCost(IEnumerable<ISolution> population)
         {
-            var costs = population.Select(solution => solution.Cost).OrderBy(cost => cost).ToArray();
-            if (costs.Length == 0)
-                return 0.0;
-
-            int middle = costs.Length / 2;
-            return costs.Length % 2 == 0 ? (costs[middle - 1] + costs[middle]) / 2.0 : costs[middle];
+            var costs = population.Select(solution => solution.Cost).ToArray();
+            return costs.Length == 0 ? 0.0 : costs.Average();
         }
 
         private static double StandardDeviation(IEnumerable<ISolution> population)

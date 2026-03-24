@@ -8,5 +8,5 @@ dependencies = [
     "matplotlib>=3.10.8",
     "notebook<7",
     "pandas>=3.0.1",
-    "scipy>=1.17.1"
+    "scipy>=1.17.1",
 ]

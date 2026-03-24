@@ -40,12 +40,12 @@ namespace PfspTests
             Assert.True(bestFoundAt <= evaluations);
 
             var bestByGeneration = Assert.IsType<double[]>(result1.ExperimentalData[AlgorithmMetricNames.BestByGeneration]);
-            var medianByGeneration = Assert.IsType<double[]>(result1.ExperimentalData[AlgorithmMetricNames.MedianByGeneration]);
+            var meanByGeneration = Assert.IsType<double[]>(result1.ExperimentalData[AlgorithmMetricNames.MeanByGeneration]);
             var deviationByGeneration = Assert.IsType<double[]>(result1.ExperimentalData[AlgorithmMetricNames.DeviationByGeneration]);
             var bestInPopulationByGeneration = Assert.IsType<double[]>(result1.ExperimentalData[AlgorithmMetricNames.BestInPopulationByGeneration]);
             var elapsedOnFinished = Assert.IsType<AlgorithmMetricPoint[]>(result1.ExperimentalData[AlgorithmMetricNames.ElapsedOnFinished]);
             Assert.Equal(parameters.Generations, bestByGeneration.Length);
-            Assert.Equal(parameters.Generations, medianByGeneration.Length);
+            Assert.Equal(parameters.Generations, meanByGeneration.Length);
             Assert.Equal(parameters.Generations, deviationByGeneration.Length);
             Assert.Equal(parameters.Generations, bestInPopulationByGeneration.Length);
             Assert.Single(elapsedOnFinished);

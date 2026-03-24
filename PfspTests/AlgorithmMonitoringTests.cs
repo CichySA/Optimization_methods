@@ -100,7 +100,7 @@ namespace PfspTests
                 EnabledMetrics =
                 [
                     AlgorithmMetricNames.BestByGeneration,
-                    AlgorithmMetricNames.MedianByGeneration,
+                    AlgorithmMetricNames.MeanByGeneration,
                     AlgorithmMetricNames.DeviationByGeneration,
                     AlgorithmMetricNames.BestInPopulationByGeneration,
                     AlgorithmMetricNames.ElapsedOnFinished
@@ -131,7 +131,7 @@ namespace PfspTests
             monitor.Emit(AlgorithmEventKind.Finished, state);
 
             Assert.Equal(10.0, Assert.IsType<double[]>(result.ExperimentalData[AlgorithmMetricNames.BestByGeneration])[0]);
-            Assert.Equal(20.0, Assert.IsType<double[]>(result.ExperimentalData[AlgorithmMetricNames.MedianByGeneration])[0]);
+            Assert.Equal(70.0 / 3.0, Assert.IsType<double[]>(result.ExperimentalData[AlgorithmMetricNames.MeanByGeneration])[0], 10);
             Assert.Equal(Math.Sqrt(155.55555555555554), Assert.IsType<double[]>(result.ExperimentalData[AlgorithmMetricNames.DeviationByGeneration])[0], 10);
             Assert.Single(Assert.IsType<AlgorithmMetricPoint[]>(result.ExperimentalData[AlgorithmMetricNames.ElapsedOnFinished]));
         }
