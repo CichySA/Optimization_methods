@@ -9,7 +9,9 @@ if (config is null)
 
 Console.WriteLine("Experiment Runner");
 
-var algorithms = config.Algorithms.SelectMany(AlgorithmFactory.CreateFromSpec).ToList();
+var algorithms = config.Algorithms
+    .SelectMany(spec => AlgorithmFactory.CreateFromSpec(spec, config.Parameters))
+    .ToList();
 var problems = ProblemLoader.LoadMany(config.Instances);
 var outDir = ResultSaver.ResolveOutputDirectory(config.OutDir);
 
@@ -77,7 +79,9 @@ var workerTasks = workerBuckets
 await Task.WhenAll(workerTasks);
 
 foreach (var record in records)
+{
     Visualizer.DisplayLine($"{record.Instance} | {record.Algorithm} | Seed={record.Seed?.ToString() ?? "-"} | Best={record.Best?.Cost.ToString() ?? "-"} | Metrics={record.Metrics.Count}");
+}
 
 ResultSaver.SaveJson(outDir, jsonFileName, records);
 Visualizer.DisplayLine($"Done. Results saved to {Path.Combine(outDir, jsonFileName)}");

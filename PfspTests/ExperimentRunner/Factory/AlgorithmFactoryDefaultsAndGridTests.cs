@@ -40,8 +40,12 @@ namespace PfspTests.ExperimentRunner.Factory
             var spec = new AlgorithmSpec
             {
                 Type = "Evolutionary",
-                Parameters = AlgorithmFactoryTestData.Elem("""{ "Seed": 9, "CrossoverRate": 0.7, "MutationRate": 0.1, "TournamentSize": 5 }"""),
-                ParameterGrid2D = AlgorithmFactoryTestData.Elem("""{ "PopulationSize": [10, 20], "Generations": [3, 4] }""")
+                Parameters = AlgorithmFactoryTestData.Elem("""
+                {
+                    "Seed": 9, "CrossoverRate": 0.7, "MutationRate": 0.1, "TournamentSize": 5,
+                    "ParameterGrid": { "PopulationSize": [10, 20], "Generations": [3, 4] }
+                }
+                """)
             };
 
             var expanded = AlgorithmFactory.CreateFromSpec(spec).ToList();
@@ -64,8 +68,11 @@ namespace PfspTests.ExperimentRunner.Factory
             var spec = new AlgorithmSpec
             {
                 Type = "Random",
-                Parameters = AlgorithmFactoryTestData.Elem("{}"),
-                ParameterGrid2D = AlgorithmFactoryTestData.Elem("""{ "Seed": [1, 2], "Samples": [10, 20] }""")
+                Parameters = AlgorithmFactoryTestData.Elem("""
+                {
+                    "ParameterGrid": { "Seed": [1, 2], "Samples": [10, 20] }
+                }
+                """)
             };
 
             var expanded = AlgorithmFactory.CreateFromSpec(spec).ToList();
@@ -118,8 +125,12 @@ namespace PfspTests.ExperimentRunner.Factory
             var spec = new AlgorithmSpec
             {
                 Type = "Evolutionary",
-                Parameters = AlgorithmFactoryTestData.Elem("""{ "Seed": 5, "CrossoverRate": 0.7, "MutationRate": 0.1, "TournamentSize": 5 }"""),
-                ParameterGrid2D = AlgorithmFactoryTestData.Elem("""{ "Generations": [11], "PopulationSize": [222] }""")
+                Parameters = AlgorithmFactoryTestData.Elem("""
+                {
+                    "Seed": 5, "CrossoverRate": 0.7, "MutationRate": 0.1, "TournamentSize": 5,
+                    "ParameterGrid": { "Generations": [11], "PopulationSize": [222] }
+                }
+                """)
             };
 
             var expanded = AlgorithmFactory.CreateFromSpec(spec).ToList();
@@ -129,6 +140,121 @@ namespace PfspTests.ExperimentRunner.Factory
             Assert.Equal(222, ep.PopulationSize);
             Assert.Equal(11, ep.Generations);
             Assert.Equal(5, ep.Seed);
+        }
+
+        // ── Parameter merging ───────────────────────────────────────────────
+
+        [Fact]
+        public void CreateFromSpec_GlobalParametersSupplyMissingValues()
+        {
+            var spec = new AlgorithmSpec
+            {
+                Type = "Random",
+                Parameters = AlgorithmFactoryTestData.Elem("""{ "Seed": 7 }""")
+            };
+            var global = AlgorithmFactoryTestData.Elem("""{ "Seed": 99, "Samples": 300 }""");
+
+            var (_, _, pars) = Assert.Single(AlgorithmFactory.CreateFromSpec(spec, globalParameters: global));
+
+            var rp = Assert.IsType<RandomSearchParameters>(pars);
+            Assert.Equal(7, rp.Seed);      // local wins
+            Assert.Equal(300, rp.Samples); // supplied by global
+        }
+
+        [Fact]
+        public void CreateFromSpec_GlobalEvaluationBudgetAppliedToRandom()
+        {
+            var spec = new AlgorithmSpec { Type = "Random", Parameters = AlgorithmFactoryTestData.Elem("{}") };
+            var global = AlgorithmFactoryTestData.Elem("""{"EvaluationBudget": 300}""");
+
+            var (_, _, pars) = Assert.Single(AlgorithmFactory.CreateFromSpec(spec, globalParameters: global));
+
+            Assert.Equal(300, Assert.IsType<RandomSearchParameters>(pars).Samples);
+        }
+
+        [Fact]
+        public void CreateFromSpec_LocalEvaluationBudgetWinsOverGlobal()
+        {
+            var spec = new AlgorithmSpec
+            {
+                Type = "Random",
+                Parameters = AlgorithmFactoryTestData.Elem("""{"EvaluationBudget": 100}""")
+            };
+            var global = AlgorithmFactoryTestData.Elem("""{"EvaluationBudget": 999}""");
+
+            var (_, _, pars) = Assert.Single(AlgorithmFactory.CreateFromSpec(spec, globalParameters: global));
+
+            Assert.Equal(100, Assert.IsType<RandomSearchParameters>(pars).Samples);
+        }
+
+        // ── EA EvaluationBudget validation ──────────────────────────────────
+        // NFE = PopulationSize + Generations * (PopulationSize - ElitismK)
+
+        [Fact]
+        public void CreateFromSpec_EvolutionaryNfeExceedsEvaluationBudget_ThrowsArgumentException()
+        {
+            // NFE = 10 + 10*(10-0) = 110 > 50
+            var spec = new AlgorithmSpec
+            {
+                Type = "Evolutionary",
+                Parameters = AlgorithmFactoryTestData.Elem(
+                    """{ "PopulationSize": 10, "Generations": 10, "EvaluationBudget": 50 }""")
+            };
+
+            var ex = Assert.Throws<ArgumentException>(() => AlgorithmFactory.CreateFromSpec(spec).ToList());
+            Assert.Contains("Computed NFE", ex.Message, StringComparison.Ordinal);
+            Assert.Contains("EvaluationBudget", ex.Message, StringComparison.Ordinal);
+        }
+
+        [Fact]
+        public void CreateFromSpec_EvolutionaryGlobalEvaluationBudgetViolatedByNfe_ThrowsArgumentException()
+        {
+            // NFE = 10 + 10*(10-0) = 110 > 50 (budget from global)
+            var spec = new AlgorithmSpec
+            {
+                Type = "Evolutionary",
+                Parameters = AlgorithmFactoryTestData.Elem("""{ "PopulationSize": 10, "Generations": 10 }""")
+            };
+            var global = AlgorithmFactoryTestData.Elem("""{"EvaluationBudget": 50}""");
+
+            var ex = Assert.Throws<ArgumentException>(
+                () => AlgorithmFactory.CreateFromSpec(spec, globalParameters: global).ToList());
+            Assert.Contains("Computed NFE", ex.Message, StringComparison.Ordinal);
+        }
+
+        // ── SA EvaluationBudget validation ──────────────────────────────────
+        // Error when Iterations > EvaluationBudget
+
+        [Fact]
+        public void CreateFromSpec_SimulatedAnnealingIterationsExceedEvaluationBudget_ThrowsArgumentException()
+        {
+            // 100 > 50
+            var spec = new AlgorithmSpec
+            {
+                Type = "SimulatedAnnealing",
+                Parameters = AlgorithmFactoryTestData.Elem("""{ "Iterations": 100, "EvaluationBudget": 50 }""")
+            };
+
+            var ex = Assert.Throws<ArgumentException>(() => AlgorithmFactory.CreateFromSpec(spec).ToList());
+            Assert.Contains("Iterations", ex.Message, StringComparison.Ordinal);
+            Assert.Contains("EvaluationBudget", ex.Message, StringComparison.Ordinal);
+        }
+
+        [Fact]
+        public void CreateFromSpec_SimulatedAnnealingGlobalEvaluationBudgetViolatedByIterations_ThrowsArgumentException()
+        {
+            // 100 > 50 (budget from global)
+            var spec = new AlgorithmSpec
+            {
+                Type = "SimulatedAnnealing",
+                Parameters = AlgorithmFactoryTestData.Elem("""{ "Iterations": 100 }""")
+            };
+            var global = AlgorithmFactoryTestData.Elem("""{"EvaluationBudget": 50}""");
+
+            var ex = Assert.Throws<ArgumentException>(
+                () => AlgorithmFactory.CreateFromSpec(spec, globalParameters: global).ToList());
+            Assert.Contains("Iterations", ex.Message, StringComparison.Ordinal);
+            Assert.Contains("EvaluationBudget", ex.Message, StringComparison.Ordinal);
         }
     }
 }

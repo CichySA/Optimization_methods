@@ -14,12 +14,16 @@ namespace PFSP.Algorithms.Evolutionary
         public const double DefaultCrossoverRate = 0.7;
         public const double DefaultMutationRate = 0.1;
         public const int DefaultTournamentSize = 5;
+        public const int DefaultElitismK = 0;
+        public const long DefaultEvaluationBudget = 0;
 
         public int Seed { get; set; } = DefaultSeed;
         public int PopulationSize { get; set; } = DefaultPopulationSize;
         public int Generations { get; set; } = DefaultGenerations;
         public double CrossoverRate { get; set; } = DefaultCrossoverRate;
         public double MutationRate { get; set; } = DefaultMutationRate;
+        public int ElitismK { get; set; } = DefaultElitismK;
+        public long EvaluationBudget { get; set; } = DefaultEvaluationBudget;
         public AlgorithmMonitoringOptions Monitoring { get; set; } = new();
 
         public ISelectionParameters SelectionParameters { get; set; }

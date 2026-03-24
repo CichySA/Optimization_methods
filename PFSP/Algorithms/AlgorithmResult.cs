@@ -20,6 +20,8 @@ namespace PFSP.Algorithms
 
         public bool HasBest => _best is not null;
 
+        public long EvaluationBudget { get; set; } = 0;
+
         internal IDictionary<string, object> ExperimentalDataStorage => _experimentalData;
 
         public IReadOnlyDictionary<string, object> ExperimentalData =>
@@ -29,6 +31,7 @@ namespace PFSP.Algorithms
                 {
                     List<double> dense => (object)dense.ToArray(),
                     List<AlgorithmMetricPoint> indexed => indexed.ToArray(),
+                    List<string> warnings => (object)warnings.ToArray(),
                     _ => pair.Value
                 });
 

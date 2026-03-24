@@ -28,6 +28,7 @@ namespace PFSP.Algorithms.SimulatedAnnealing
                 Temperature = parms.InitialTemperature,
                 Iteration = 0
             };
+            state.EvaluationBudget = parms.EvaluationBudget;
 
             monitor.Emit(AlgorithmEventKind.Started, state);
 

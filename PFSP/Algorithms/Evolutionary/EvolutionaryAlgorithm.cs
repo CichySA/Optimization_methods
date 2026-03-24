@@ -18,7 +18,11 @@ namespace PFSP.Algorithms.Evolutionary
                 instance,
                 parms,
                 new RandomPermutationSolutionGenerator(parms.Seed),
-                parms.Seed == 0 ? new Random() : new Random(parms.Seed));
+                parms.Seed == 0 ? new Random() : new Random(parms.Seed))
+            {
+                // EvaluationBudget = 0 means no constraint; positive value is the user-provided NFE limit.
+                EvaluationBudget = parms.EvaluationBudget
+            };
 
             monitor.Emit(AlgorithmEventKind.Started, state);
 
@@ -52,6 +56,13 @@ namespace PFSP.Algorithms.Evolutionary
 
                 var nextPopulation = new PermutationSolution[state.PopulationSize];
                 int filled = 0;
+
+                // Elitism: carry over the top k individuals without re-evaluation
+                if (parms.ElitismK > 0)
+                {
+                    foreach (var elite in state.Population.OrderBy(s => s.Cost).Take(parms.ElitismK))
+                        nextPopulation[filled++] = elite;
+                }
 
                 while (filled < state.PopulationSize)
                 {
@@ -115,6 +126,7 @@ namespace PFSP.Algorithms.Evolutionary
             }
 
             monitor.Emit(AlgorithmEventKind.Finished, state);
+            result.EvaluationBudget = state.EvaluationBudget;
             return result;
         }
     }

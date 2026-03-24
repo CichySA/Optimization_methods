@@ -15,16 +15,20 @@ namespace ExperimentRunner
         private const string SeedParameterName = "Seed";
         private static readonly JsonSerializerOptions JsonOptions = new() { PropertyNameCaseInsensitive = true };
 
-        public static IEnumerable<(string Name, IAlgorithm Algo, IParameters Params)> CreateFromSpec(AlgorithmSpec spec)
+        public static IEnumerable<(string Name, IAlgorithm Algo, IParameters Params)> CreateFromSpec(
+            AlgorithmSpec spec,
+            JsonElement globalParameters = default)
         {
-            foreach (var parameterSet in ExpandParameterSets(spec.Parameters, spec.ParameterGrid2D))
+            var mergedParameters = MergeParameters(globalParameters, spec.Parameters);
+            foreach (var parameterSet in ExpandParameterSets(mergedParameters))
             {
                 foreach (var seededParameters in ExpandRuns(spec.Type, spec.Iterations, parameterSet))
                     yield return CreateSingleFromSpec(spec.Type, seededParameters);
             }
         }
 
-        private static (string Name, IAlgorithm Algo, IParameters Params) CreateSingleFromSpec(string type, JsonElement parameters)
+        private static (string Name, IAlgorithm Algo, IParameters Params) CreateSingleFromSpec(
+            string type, JsonElement parameters)
         {
             return type.ToLowerInvariant() switch
             {
@@ -37,20 +41,20 @@ namespace ExperimentRunner
             };
         }
 
-        private static IEnumerable<JsonElement> ExpandParameterSets(JsonElement parameters, JsonElement parameterGrid2D)
+        // Expands the ParameterGrid key (if present) inside the merged parameters into all axis combinations.
+        // ParameterGrid is removed from the yielded parameter sets so algorithms never see it.
+        private static IEnumerable<JsonElement> ExpandParameterSets(JsonElement parameters)
         {
-            if (parameterGrid2D.ValueKind is JsonValueKind.Undefined or JsonValueKind.Null)
+            if (!TryGetParameter(parameters, "ParameterGrid", out var grid)
+                || grid.ValueKind is not JsonValueKind.Object)
             {
                 yield return parameters;
                 yield break;
             }
 
-            var (firstName, firstValues, secondName, secondValues) = ParseParameterGrid2D(parameterGrid2D);
-            foreach (var firstValue in firstValues)
-            {
-                foreach (var secondValue in secondValues)
-                    yield return MergeParameters(parameters, (firstName, firstValue), (secondName, secondValue));
-            }
+            var clean = RemoveParameter(parameters, "ParameterGrid");
+            foreach (var combination in CartesianProduct(grid))
+                yield return MergeParameters(clean, combination);
         }
 
         private static IEnumerable<JsonElement> ExpandRuns(string type, int iterations, JsonElement parameters)
@@ -78,9 +82,13 @@ namespace ExperimentRunner
                 ? JsonSerializer.Deserialize<RandomParametersDto>(parameters, JsonOptions) ?? new RandomParametersDto()
                 : new RandomParametersDto();
 
-            var pars = dto.TimeLimitMs.HasValue
-                ? RandomSearchParameters.ForTimeLimit(TimeSpan.FromMilliseconds(dto.TimeLimitMs.Value), dto.Seed)
-                : RandomSearchParameters.ForRuns(dto.Samples, dto.Seed);
+            RandomSearchParameters pars;
+            if (dto.TimeLimitMs.HasValue)
+                pars = RandomSearchParameters.ForTimeLimit(TimeSpan.FromMilliseconds(dto.TimeLimitMs.Value), dto.Seed);
+            else if (dto.EvaluationBudget.HasValue)
+                pars = RandomSearchParameters.ForRuns((int)Math.Max(1L, dto.EvaluationBudget.Value), dto.Seed);
+            else
+                pars = RandomSearchParameters.ForRuns(dto.Samples, dto.Seed);
 
             if (dto.Monitoring is not null)
                 pars = pars with { Monitoring = dto.Monitoring };
@@ -91,7 +99,10 @@ namespace ExperimentRunner
         private static (string Name, IAlgorithm Algo, IParameters Params) CreateEvolutionary(JsonElement parameters)
         {
             var pars = CreateEvolutionaryParameters(parameters);
-            return ($"Evolutionary_p{pars.PopulationSize}_g{pars.Generations}_s{pars.Seed}", new EvolutionaryAlgorithm(), pars);
+            var name = pars.ElitismK > 0
+                ? $"Evolutionary_p{pars.PopulationSize}_g{pars.Generations}_k{pars.ElitismK}_s{pars.Seed}"
+                : $"Evolutionary_p{pars.PopulationSize}_g{pars.Generations}_s{pars.Seed}";
+            return (name, new EvolutionaryAlgorithm(), pars);
         }
 
         private static (string Name, IAlgorithm Algo, IParameters Params) CreateSimulatedAnnealing(JsonElement parameters)
@@ -99,7 +110,6 @@ namespace ExperimentRunner
             var pars = CreateSimulatedAnnealingParameters(parameters);
             var neighborhood = TryGetParameterString(parameters, SimulatedAnnealingParameterFactory.NeighborhoodOperatorName)
                 ?? SimulatedAnnealingParameterFactory.SwapNeighborhoodName;
-
             return ($"SimulatedAnnealing_n{neighborhood}_i{pars.Iterations}_s{pars.Seed}", new SimulatedAnnealingAlgorithm(), pars);
         }
 
@@ -119,34 +129,71 @@ namespace ExperimentRunner
             return pars;
         }
 
-        private static (string FirstName, List<JsonElement> FirstValues, string SecondName, List<JsonElement> SecondValues)
-            ParseParameterGrid2D(JsonElement grid)
+        // Generates all axis combinations from a ParameterGrid JSON object.
+        // Each axis is a named array; the result is the cartesian product across all axes.
+        private static IEnumerable<(string Name, JsonElement Value)[]> CartesianProduct(JsonElement grid)
         {
-            if (grid.ValueKind != JsonValueKind.Object)
-                throw new ArgumentException("ParameterGrid2D must be a JSON object with exactly two parameter arrays.");
+            var axes = grid.EnumerateObject()
+                .Select(p => (p.Name, Values: ParseGridValues(p.Name, p.Value)))
+                .ToArray();
 
-            var properties = grid.EnumerateObject().ToList();
-            if (properties.Count != 2)
-                throw new ArgumentException("ParameterGrid2D must contain exactly two named parameter arrays.");
+            if (axes.Length == 0) yield break;
 
-            var first = properties[0];
-            var second = properties[1];
+            var sizes = Array.ConvertAll(axes, a => a.Values.Count);
+            var indices = new int[axes.Length];
+            do
+            {
+                var combo = new (string Name, JsonElement Value)[axes.Length];
+                for (int i = 0; i < axes.Length; i++)
+                    combo[i] = (axes[i].Name, axes[i].Values[indices[i]]);
+                yield return combo;
+            } while (Increment(indices, sizes));
+        }
 
-            var firstValues = ParseGridValues(first.Name, first.Value);
-            var secondValues = ParseGridValues(second.Name, second.Value);
-            return (first.Name, firstValues, second.Name, secondValues);
+        private static bool Increment(int[] indices, int[] sizes)
+        {
+            for (int i = indices.Length - 1; i >= 0; i--)
+            {
+                if (++indices[i] < sizes[i]) return true;
+                indices[i] = 0;
+            }
+            return false;
         }
 
         private static List<JsonElement> ParseGridValues(string parameterName, JsonElement values)
         {
             if (values.ValueKind != JsonValueKind.Array)
-                throw new ArgumentException($"ParameterGrid2D '{parameterName}' must be an array.");
+                throw new ArgumentException($"ParameterGrid '{parameterName}' must be an array.");
 
             var parsed = values.EnumerateArray().Select(v => v.Clone()).ToList();
             if (parsed.Count == 0)
-                throw new ArgumentException($"ParameterGrid2D '{parameterName}' array must not be empty.");
+                throw new ArgumentException($"ParameterGrid '{parameterName}' array must not be empty.");
 
             return parsed;
+        }
+
+        private static JsonElement RemoveParameter(JsonElement parameters, string key)
+        {
+            var obj = new JsonObject();
+            foreach (var property in parameters.EnumerateObject())
+                if (!string.Equals(property.Name, key, StringComparison.OrdinalIgnoreCase))
+                    obj[property.Name] = JsonNode.Parse(property.Value.GetRawText());
+            using var doc = JsonDocument.Parse(obj.ToJsonString());
+            return doc.RootElement.Clone();
+        }
+
+        // Merges two JSON objects; overrideParameters wins for any shared keys.
+        private static JsonElement MergeParameters(JsonElement baseParameters, JsonElement overrideParameters)
+        {
+            if (baseParameters.ValueKind is JsonValueKind.Undefined or JsonValueKind.Null)
+                return overrideParameters;
+            if (overrideParameters.ValueKind is JsonValueKind.Undefined or JsonValueKind.Null)
+                return baseParameters;
+
+            var overrides = overrideParameters.EnumerateObject()
+                .Select(p => (p.Name, p.Value.Clone()))
+                .ToArray();
+            return MergeParameters(baseParameters, overrides);
         }
 
         private static JsonElement MergeParameters(JsonElement baseParameters, params (string Name, JsonElement Value)[] overrides)
@@ -227,6 +274,7 @@ namespace ExperimentRunner
             public int Seed { get; set; } = 0;
             public int Samples { get; set; } = 100;
             public int? TimeLimitMs { get; set; }
+            public long? EvaluationBudget { get; set; }
             public AlgorithmMonitoringOptions? Monitoring { get; set; }
         }
     }

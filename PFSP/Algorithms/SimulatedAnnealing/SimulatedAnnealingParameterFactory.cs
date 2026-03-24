@@ -13,6 +13,7 @@ namespace PFSP.Algorithms.SimulatedAnnealing
     {
         public const string SeedName = "Seed";
         public const string IterationsName = "Iterations";
+        public const string EvaluationBudgetName = "EvaluationBudget";
         public const string InitialTemperatureName = "InitialTemperature";
         public const string CoolingRateName = "CoolingRate";
         public const string MinimumTemperatureName = "MinimumTemperature";
@@ -53,6 +54,7 @@ namespace PFSP.Algorithms.SimulatedAnnealing
         {
             { SeedName, "D" },
             { IterationsName, "D" },
+            { EvaluationBudgetName, "D" },
             { InitialTemperatureName, "F2" },
             { CoolingRateName, "F4" },
             { MinimumTemperatureName, "F4" },
@@ -104,6 +106,10 @@ namespace PFSP.Algorithms.SimulatedAnnealing
 
             if (p.Iterations <= 0)
                 errors.Add($"{IterationsName} must be > 0 (was {p.Iterations}).");
+            if (p.EvaluationBudget < 0)
+                errors.Add($"{EvaluationBudgetName} must be >= 0 (was {p.EvaluationBudget}).");
+            if (p.EvaluationBudget > 0 && p.Iterations > p.EvaluationBudget)
+                errors.Add($"{IterationsName} ({p.Iterations}) exceeds {EvaluationBudgetName} ({p.EvaluationBudget}). Reduce {IterationsName} or increase {EvaluationBudgetName}.");
             if (p.InitialTemperature <= 0)
                 errors.Add($"{InitialTemperatureName} must be > 0 (was {p.InitialTemperature}).");
             if (p.CoolingRate <= 0 || p.CoolingRate >= 1)
@@ -131,6 +137,7 @@ namespace PFSP.Algorithms.SimulatedAnnealing
         {
             public int Seed { get; set; } = SimulatedAnnealingParameters.DefaultSeed;
             public int Iterations { get; set; } = SimulatedAnnealingParameters.DefaultIterations;
+            public long EvaluationBudget { get; set; } = SimulatedAnnealingParameters.DefaultEvaluationBudget;
             public double InitialTemperature { get; set; } = SimulatedAnnealingParameters.DefaultInitialTemperature;
             public double CoolingRate { get; set; } = SimulatedAnnealingParameters.DefaultCoolingRate;
             public double MinimumTemperature { get; set; } = SimulatedAnnealingParameters.DefaultMinimumTemperature;
@@ -148,6 +155,7 @@ namespace PFSP.Algorithms.SimulatedAnnealing
             {
                 Seed = p.Seed,
                 Iterations = p.Iterations,
+                EvaluationBudget = p.EvaluationBudget,
                 InitialTemperature = p.InitialTemperature,
                 CoolingRate = p.CoolingRate,
                 MinimumTemperature = p.MinimumTemperature,
@@ -159,6 +167,8 @@ namespace PFSP.Algorithms.SimulatedAnnealing
             };
         }
 
+        // FromDto is a pure deserialization — do not silently modify parameter values here.
+        // Budget-driven iteration recalculation is handled explicitly by AlgorithmFactory.
         private static SimulatedAnnealingParameters FromDto(SimulatedAnnealingParametersDto dto)
         {
             var coolingName = dto.CoolingSchedule ?? ExponentialCoolingName;
@@ -166,6 +176,7 @@ namespace PFSP.Algorithms.SimulatedAnnealing
             {
                 Seed = dto.Seed,
                 Iterations = dto.Iterations,
+                EvaluationBudget = dto.EvaluationBudget,
                 InitialTemperature = dto.InitialTemperature,
                 CoolingRate = dto.CoolingRate,
                 MinimumTemperature = dto.MinimumTemperature,
@@ -245,6 +256,7 @@ namespace PFSP.Algorithms.SimulatedAnnealing
         [
             (SeedName, dto.Seed),
             (IterationsName, dto.Iterations),
+            (EvaluationBudgetName, dto.EvaluationBudget),
             (InitialTemperatureName, dto.InitialTemperature),
             (CoolingRateName, dto.CoolingRate),
             (MinimumTemperatureName, dto.MinimumTemperature),

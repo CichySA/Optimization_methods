@@ -13,9 +13,11 @@ namespace PFSP.Algorithms.SimulatedAnnealing
         public const double DefaultInitialTemperature = 100.0;
         public const double DefaultCoolingRate = 0.995;
         public const double DefaultMinimumTemperature = 0.0001;
+        public const long DefaultEvaluationBudget = 0;
 
         public int Seed { get; init; } = DefaultSeed;
         public int Iterations { get; init; } = DefaultIterations;
+        public long EvaluationBudget { get; init; } = DefaultEvaluationBudget;
         public double InitialTemperature { get; init; } = DefaultInitialTemperature;
         public double CoolingRate { get; init; } = DefaultCoolingRate;
         public double MinimumTemperature { get; init; } = DefaultMinimumTemperature;

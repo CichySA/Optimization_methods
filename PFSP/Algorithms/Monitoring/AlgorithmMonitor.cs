@@ -40,6 +40,8 @@ namespace PFSP.Algorithms.Monitoring
                     break;
                 case AlgorithmEventKind.Finished:
                     state.StopTimer();
+                    if (state.EvaluationBudget > 0 && state.Evaluations > state.EvaluationBudget)
+                        _recorder.RecordWarning("Algorithm went over NFE budget");
                     break;
             }
 

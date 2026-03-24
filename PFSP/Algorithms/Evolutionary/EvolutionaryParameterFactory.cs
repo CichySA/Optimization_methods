@@ -14,6 +14,8 @@ namespace PFSP.Algorithms.Evolutionary
         public const string SeedName = "Seed";
         public const string PopulationSizeName = "PopulationSize";
         public const string GenerationsName = "Generations";
+        public const string ElitismKName = "ElitismK";
+        public const string EvaluationBudgetName = "EvaluationBudget";
         public const string CrossoverRateName = "CrossoverRate";
         public const string MutationRateName = "MutationRate";
         public const string TournamentSizeName = "TournamentSize";
@@ -45,6 +47,8 @@ namespace PFSP.Algorithms.Evolutionary
             { SeedName, "D" },
             { PopulationSizeName, "D" },
             { GenerationsName, "D" },
+            { ElitismKName, "D" },
+            { EvaluationBudgetName, "D" },
             { CrossoverRateName, "F2" },
             { MutationRateName, "F2" },
             { TournamentSizeName, "D" },
@@ -110,6 +114,18 @@ namespace PFSP.Algorithms.Evolutionary
                 errors.Add($"{PopulationSizeName} must be > 0 (was {p.PopulationSize}).");
             if (p.Generations <= 0)
                 errors.Add($"{GenerationsName} must be > 0 (was {p.Generations}).");
+            if (p.ElitismK < 0)
+                errors.Add($"{ElitismKName} must be >= 0 (was {p.ElitismK}).");
+            if (p.ElitismK >= p.PopulationSize)
+                errors.Add($"{ElitismKName} ({p.ElitismK}) must be < {PopulationSizeName} ({p.PopulationSize}).");
+            if (p.EvaluationBudget < 0)
+                errors.Add($"{EvaluationBudgetName} must be >= 0 (was {p.EvaluationBudget}).");
+            if (p.EvaluationBudget > 0)
+            {
+                long computedNfe = p.PopulationSize + (long)p.Generations * (p.PopulationSize - p.ElitismK);
+                if (computedNfe > p.EvaluationBudget)
+                    errors.Add($"Computed NFE ({computedNfe}) exceeds {EvaluationBudgetName} ({p.EvaluationBudget}). Adjust {PopulationSizeName}, {GenerationsName}, or {ElitismKName}, or increase {EvaluationBudgetName}.");
+            }
             if (p.CrossoverRate is < 0.0 or > 1.0)
                 errors.Add($"{CrossoverRateName} must be in [0, 1] (was {p.CrossoverRate}).");
             if (p.MutationRate is < 0.0 or > 1.0)
@@ -141,6 +157,8 @@ namespace PFSP.Algorithms.Evolutionary
             public int Seed { get; set; } = EvolutionaryParameters.DefaultSeed;
             public int PopulationSize { get; set; } = EvolutionaryParameters.DefaultPopulationSize;
             public int Generations { get; set; } = EvolutionaryParameters.DefaultGenerations;
+            public int ElitismK { get; set; } = EvolutionaryParameters.DefaultElitismK;
+            public long EvaluationBudget { get; set; } = EvolutionaryParameters.DefaultEvaluationBudget;
             public double CrossoverRate { get; set; } = EvolutionaryParameters.DefaultCrossoverRate;
             public double MutationRate { get; set; } = EvolutionaryParameters.DefaultMutationRate;
             public int TournamentSize { get; set; } = EvolutionaryParameters.DefaultTournamentSize;
@@ -155,6 +173,8 @@ namespace PFSP.Algorithms.Evolutionary
             Seed = p.Seed,
             PopulationSize = p.PopulationSize,
             Generations = p.Generations,
+            ElitismK = p.ElitismK,
+            EvaluationBudget = p.EvaluationBudget,
             CrossoverRate = p.CrossoverRate,
             MutationRate = p.MutationRate,
             TournamentSize = p.SelectionParameters is TournamentSelectionParameters tsp ? tsp.TournamentSize : p.TournamentSize,
@@ -169,6 +189,8 @@ namespace PFSP.Algorithms.Evolutionary
             Seed = dto.Seed,
             PopulationSize = dto.PopulationSize,
             Generations = dto.Generations,
+            ElitismK = dto.ElitismK,
+            EvaluationBudget = dto.EvaluationBudget,
             CrossoverRate = dto.CrossoverRate,
             MutationRate = dto.MutationRate,
             SelectionParameters = new TournamentSelectionParameters { TournamentSize = dto.TournamentSize },
@@ -207,6 +229,8 @@ namespace PFSP.Algorithms.Evolutionary
             (SeedName, dto.Seed),
             (PopulationSizeName, dto.PopulationSize),
             (GenerationsName, dto.Generations),
+            (ElitismKName, dto.ElitismK),
+            (EvaluationBudgetName, dto.EvaluationBudget),
             (CrossoverRateName, dto.CrossoverRate),
             (MutationRateName, dto.MutationRate),
             (TournamentSizeName, dto.TournamentSize),

@@ -26,6 +26,8 @@ namespace PFSP.Algorithms.Monitoring
 
         public ISolution? Best { get; set; }
 
+        public long EvaluationBudget { get; set; } = 0;
+
         internal void StartTimer() => _stopwatch.Start();
 
         internal void StopTimer() => _stopwatch.Stop();

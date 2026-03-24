@@ -34,5 +34,17 @@ namespace PFSP.Algorithms.Monitoring
 
             ((List<AlgorithmMetricPoint>)series).Add(new AlgorithmMetricPoint(index, value));
         }
+
+        public void RecordWarning(string message)
+        {
+            ArgumentException.ThrowIfNullOrWhiteSpace(message);
+            var storage = _result.ExperimentalDataStorage;
+            if (!storage.TryGetValue(AlgorithmMetricNames.Warnings, out var existing) || existing is not List<string> list)
+            {
+                list = [];
+                storage[AlgorithmMetricNames.Warnings] = list;
+            }
+            list.Add(message);
+        }
     }
 }

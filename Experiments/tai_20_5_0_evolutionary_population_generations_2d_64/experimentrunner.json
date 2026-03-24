@@ -13,11 +13,11 @@
         "TournamentSize": 5,
         "SelectionMethod": "Tournament",
         "CrossoverMethod": "OX",
-        "MutationMethod": "Swap"
-      },
-      "ParameterGrid2D": {
-        "PopulationSize": [10, 20, 40, 60, 80, 100, 120, 160],
-        "Generations": [10, 20, 40, 60, 80, 100, 120, 160]
+        "MutationMethod": "Swap",
+        "ParameterGrid": {
+          "PopulationSize": [10, 20, 40, 60, 80, 100, 120, 160],
+          "Generations": [10, 20, 40, 60, 80, 100, 120, 160]
+        }
       }
     }
   ]

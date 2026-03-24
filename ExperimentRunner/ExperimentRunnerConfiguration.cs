@@ -7,7 +7,6 @@ namespace ExperimentRunner
         public string Type { get; init; } = "Random";
         public int Iterations { get; init; } = 1;
         public JsonElement Parameters { get; init; }
-        public JsonElement ParameterGrid2D { get; init; }
     }
 
     public sealed record ExperimentRunnerConfiguration
@@ -28,6 +27,7 @@ namespace ExperimentRunner
         public string[] Instances { get; init; } = DefaultInstances;
         public AlgorithmSpec[] Algorithms { get; init; } = DefaultAlgorithms;
         public string OutDir { get; init; } = DefaultOutDir;
+        public JsonElement Parameters { get; init; }
 
         public static ExperimentRunnerConfiguration Default => new();
     }

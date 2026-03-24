@@ -3,6 +3,7 @@ using PFSP.Algorithms.Evolutionary;
 using PFSP.Algorithms.Greedy;
 using PFSP.Algorithms.Monitoring;
 using PFSP.Algorithms.RandomSearch;
+using PFSP.Algorithms.SimulatedAnnealing;
 using PFSP.Evaluators;
 using PFSP.Instances;
 using PFSP.Solutions;
@@ -130,6 +131,42 @@ namespace PfspTests
             Assert.Equal(20.0, Assert.IsType<double[]>(result.ExperimentalData[AlgorithmMetricNames.MedianByGeneration])[0]);
             Assert.Equal(Math.Sqrt(155.55555555555554), Assert.IsType<double[]>(result.ExperimentalData[AlgorithmMetricNames.DeviationByGeneration])[0], 10);
             Assert.Single(Assert.IsType<AlgorithmMetricPoint[]>(result.ExperimentalData[AlgorithmMetricNames.ElapsedOnFinished]));
+        }
+
+        [Fact]
+        public void Evolutionary_WithRawParamsExceedingBudget_RecordsWarning()
+        {
+            // Bypass factory validation: PopSize=5, Gen=3 → NFE=20 > EvaluationBudget=10
+            var parms = new EvolutionaryParameters { PopulationSize = 5, Generations = 3, EvaluationBudget = 10, Seed = 1 };
+            var instance = Instance.CreateWithDefaultEvaluator(new double[2, 5]
+            {
+                { 1, 2, 3, 4, 5 },
+                { 5, 4, 3, 2, 1 }
+            });
+
+            var result = new EvolutionaryAlgorithm().Solve(instance, parms, TestContext.Current.CancellationToken);
+
+            var warnings = Assert.IsType<string[]>(result.ExperimentalData[AlgorithmMetricNames.Warnings]);
+            Assert.Single(warnings);
+            Assert.Contains("NFE budget", warnings[0], StringComparison.OrdinalIgnoreCase);
+        }
+
+        [Fact]
+        public void SimulatedAnnealing_WithRawParamsExceedingBudget_RecordsWarning()
+        {
+            // Bypass factory validation: Iterations=100 → 101 evals > EvaluationBudget=10
+            var parms = SimulatedAnnealingParameters.Default with { Iterations = 100, EvaluationBudget = 10, Seed = 1 };
+            var instance = Instance.CreateWithDefaultEvaluator(new double[2, 5]
+            {
+                { 1, 2, 3, 4, 5 },
+                { 5, 4, 3, 2, 1 }
+            });
+
+            var result = new SimulatedAnnealingAlgorithm().Solve(instance, parms, TestContext.Current.CancellationToken);
+
+            var warnings = Assert.IsType<string[]>(result.ExperimentalData[AlgorithmMetricNames.Warnings]);
+            Assert.Single(warnings);
+            Assert.Contains("NFE budget", warnings[0], StringComparison.OrdinalIgnoreCase);
         }
 
         private sealed class ConstantMetric : IAlgorithmMetric

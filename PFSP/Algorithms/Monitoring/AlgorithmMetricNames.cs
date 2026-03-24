@@ -14,5 +14,6 @@ namespace PFSP.Algorithms.Monitoring
         public const string DeviationByGeneration = nameof(DeviationByGeneration);
         public const string BestInPopulationByGeneration = nameof(BestInPopulationByGeneration);
         public const string ElapsedOnFinished = nameof(ElapsedOnFinished);
+        public const string Warnings = nameof(Warnings);
     }
 }
