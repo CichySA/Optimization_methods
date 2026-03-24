@@ -7,6 +7,9 @@ namespace PFSP.Algorithms.Evolutionary.Operators.CrossoverOperators
     /// </summary>
     public sealed class OrderCrossover : ICrossoverMethod
     {
+        public const string Name = "OX";
+        string ICrossoverMethod.Name => Name;
+
         /// <summary>
         /// Creates a new offspring array by performing OX between two parents
         /// </summary>

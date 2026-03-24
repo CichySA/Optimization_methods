@@ -256,5 +256,41 @@ namespace PfspTests.ExperimentRunner.Factory
             Assert.Contains("Iterations", ex.Message, StringComparison.Ordinal);
             Assert.Contains("EvaluationBudget", ex.Message, StringComparison.Ordinal);
         }
+
+        [Fact]
+        public void CreateFromSpec_EvolutionaryWithElitismAndBudget_GenerationsAdjustedToMatchBudget()
+        {
+            // Pop=10, K=2, Budget=500 → Gen = 1 + floor((500-10)/(10-2)) = 1 + 61 = 62
+            // NFE = 10 + (62-1)*(10-2) = 10 + 488 = 498 <= 500
+            var spec = new AlgorithmSpec
+            {
+                Type = "Evolutionary",
+                Parameters = AlgorithmFactoryTestData.Elem(
+                    """{ "PopulationSize": 10, "ElitismK": 2, "EvaluationBudget": 500 }""")
+            };
+
+            var (_, _, pars) = Assert.Single(AlgorithmFactory.CreateFromSpec(spec));
+
+            var ep = Assert.IsType<EvolutionaryParameters>(pars);
+            Assert.Equal(62, ep.Generations);
+            long nfe = ep.PopulationSize + (long)(ep.PopulationSize - ep.ElitismK) * (ep.Generations - 1);
+            Assert.True(nfe <= ep.EvaluationBudget);
+        }
+
+        [Fact]
+        public void CreateFromSpec_EvolutionaryWithElitismButNoBudget_GenerationsUnchanged()
+        {
+            var spec = new AlgorithmSpec
+            {
+                Type = "Evolutionary",
+                Parameters = AlgorithmFactoryTestData.Elem(
+                    """{ "PopulationSize": 10, "Generations": 50, "ElitismK": 2 }""")
+            };
+
+            var (_, _, pars) = Assert.Single(AlgorithmFactory.CreateFromSpec(spec));
+
+            var ep = Assert.IsType<EvolutionaryParameters>(pars);
+            Assert.Equal(50, ep.Generations);
+        }
     }
 }

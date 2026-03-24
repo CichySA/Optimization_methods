@@ -16,6 +16,7 @@ namespace PfspTests
             parameters.Seed = 12345;
             parameters.PopulationSize = 50;
             parameters.Generations = 50;
+            parameters.Monitoring = new AlgorithmMonitoringOptions { Enabled = true };
 
             var algorithm = new EvolutionaryAlgorithm();
 
@@ -32,7 +33,9 @@ namespace PfspTests
             var bestFoundAt = (long)result1.GetSingleDenseMetric(AlgorithmMetricNames.BestFoundAtEvaluation);
 
             Assert.Equal(Enumerable.Range(0, instance.Jobs), result1.Best.Permutation.OrderBy(x => x));
-            Assert.Equal((long)parameters.PopulationSize * (parameters.Generations + 1), evaluations);
+            Assert.Equal(
+                (long)parameters.PopulationSize + (long)(parameters.PopulationSize - parameters.ElitismK) * (parameters.Generations - 1),
+                evaluations);
             Assert.True(bestFoundAt > 0);
             Assert.True(bestFoundAt <= evaluations);
 
@@ -41,10 +44,10 @@ namespace PfspTests
             var deviationByGeneration = Assert.IsType<double[]>(result1.ExperimentalData[AlgorithmMetricNames.DeviationByGeneration]);
             var bestInPopulationByGeneration = Assert.IsType<double[]>(result1.ExperimentalData[AlgorithmMetricNames.BestInPopulationByGeneration]);
             var elapsedOnFinished = Assert.IsType<AlgorithmMetricPoint[]>(result1.ExperimentalData[AlgorithmMetricNames.ElapsedOnFinished]);
-            Assert.Equal(parameters.Generations + 1, bestByGeneration.Length);
-            Assert.Equal(parameters.Generations + 1, medianByGeneration.Length);
-            Assert.Equal(parameters.Generations + 1, deviationByGeneration.Length);
-            Assert.Equal(parameters.Generations + 1, bestInPopulationByGeneration.Length);
+            Assert.Equal(parameters.Generations, bestByGeneration.Length);
+            Assert.Equal(parameters.Generations, medianByGeneration.Length);
+            Assert.Equal(parameters.Generations, deviationByGeneration.Length);
+            Assert.Equal(parameters.Generations, bestInPopulationByGeneration.Length);
             Assert.Single(elapsedOnFinished);
         }
     }

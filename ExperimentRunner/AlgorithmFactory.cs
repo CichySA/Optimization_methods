@@ -51,12 +51,12 @@ namespace ExperimentRunner
                 yield return parameters;
                 yield break;
             }
-
             var clean = RemoveParameter(parameters, "ParameterGrid");
             foreach (var combination in CartesianProduct(grid))
                 yield return MergeParameters(clean, combination);
         }
 
+        // For stochastic algorithms, expands the parameters into multiple sets with different seeds based on the Iterations count.
         private static IEnumerable<JsonElement> ExpandRuns(string type, int iterations, JsonElement parameters)
         {
             if (!IsStochastic(type))
@@ -99,18 +99,13 @@ namespace ExperimentRunner
         private static (string Name, IAlgorithm Algo, IParameters Params) CreateEvolutionary(JsonElement parameters)
         {
             var pars = CreateEvolutionaryParameters(parameters);
-            var name = pars.ElitismK > 0
-                ? $"Evolutionary_p{pars.PopulationSize}_g{pars.Generations}_k{pars.ElitismK}_s{pars.Seed}"
-                : $"Evolutionary_p{pars.PopulationSize}_g{pars.Generations}_s{pars.Seed}";
-            return (name, new EvolutionaryAlgorithm(), pars);
+            return (EvolutionaryParameterFactory.ToName(pars), new EvolutionaryAlgorithm(), pars);
         }
 
         private static (string Name, IAlgorithm Algo, IParameters Params) CreateSimulatedAnnealing(JsonElement parameters)
         {
             var pars = CreateSimulatedAnnealingParameters(parameters);
-            var neighborhood = TryGetParameterString(parameters, SimulatedAnnealingParameterFactory.NeighborhoodOperatorName)
-                ?? SimulatedAnnealingParameterFactory.SwapNeighborhoodName;
-            return ($"SimulatedAnnealing_n{neighborhood}_i{pars.Iterations}_s{pars.Seed}", new SimulatedAnnealingAlgorithm(), pars);
+            return (SimulatedAnnealingParameterFactory.ToName(pars), new SimulatedAnnealingAlgorithm(), pars);
         }
 
         private static EvolutionaryParameters CreateEvolutionaryParameters(JsonElement parameters)
@@ -160,6 +155,7 @@ namespace ExperimentRunner
             return false;
         }
 
+        // Parses a single axis of the ParameterGrid, ensuring it's a non-empty array.
         private static List<JsonElement> ParseGridValues(string parameterName, JsonElement values)
         {
             if (values.ValueKind != JsonValueKind.Array)

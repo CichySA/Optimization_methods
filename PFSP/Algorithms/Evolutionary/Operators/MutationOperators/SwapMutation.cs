@@ -4,6 +4,9 @@ namespace PFSP.Algorithms.Evolutionary.Operators.MutationOperators
 {
     public sealed class SwapMutation : IMutationMethod
     {
+        public const string Name = "Swap";
+        string IMutationMethod.Name => Name;
+
         /// <summary>
         /// swap two randomly selected positions in the permutation
         /// </summary>

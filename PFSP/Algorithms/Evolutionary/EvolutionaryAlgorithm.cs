@@ -47,10 +47,10 @@ namespace PFSP.Algorithms.Evolutionary
                     state.BestFoundAtEvaluation = state.Evaluations;
             }
 
-            state.Generation = 0;
+            state.Generation = 1;
             monitor.Emit(AlgorithmEventKind.GenerationCompleted, state);
 
-            for (int generation = 0; generation < parms.Generations; generation++)
+            for (; state.Generation < parms.Generations; state.Generation++)
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
@@ -121,7 +121,6 @@ namespace PFSP.Algorithms.Evolutionary
                 }
 
                 state.Population = nextPopulation;
-                state.Generation = generation + 1;
                 monitor.Emit(AlgorithmEventKind.GenerationCompleted, state);
             }
 

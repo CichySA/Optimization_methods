@@ -29,5 +29,20 @@ namespace PFSP.Algorithms.SimulatedAnnealing
         public ICoolingScheduleParameters CoolingScheduleParameters { get; init; } = new LinearCoolingScheduleParameters();
 
         public static SimulatedAnnealingParameters Default => new();
+
+        public object ToSerializableObject() => new
+        {
+            Seed,
+            Iterations,
+            EvaluationBudget,
+            InitialTemperature,
+            CoolingRate,
+            MinimumTemperature,
+            NeighborhoodOperator = NeighborhoodOperator.Name,
+            AcceptanceFunction = AcceptanceFunction.Name,
+            CoolingSchedule = CoolingSchedule.Name,
+            CoolingScheduleParameters,
+            Monitoring
+        };
     }
 }

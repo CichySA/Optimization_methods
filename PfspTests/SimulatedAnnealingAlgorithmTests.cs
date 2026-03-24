@@ -17,7 +17,8 @@ namespace PfspTests
                 Iterations = 1000,
                 InitialTemperature = 100.0,
                 CoolingRate = 0.995,
-                MinimumTemperature = 0.0001
+                MinimumTemperature = 0.0001,
+                Monitoring = new AlgorithmMonitoringOptions { Enabled = true }
             };
 
             var algorithm = new SimulatedAnnealingAlgorithm();

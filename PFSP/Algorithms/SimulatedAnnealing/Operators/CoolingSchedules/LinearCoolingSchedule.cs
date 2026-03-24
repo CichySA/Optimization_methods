@@ -4,6 +4,9 @@ namespace PFSP.Algorithms.SimulatedAnnealing.Operators.CoolingSchedules
 {
     public sealed class LinearCoolingSchedule : ICoolingSchedule
     {
+        public const string Name = "Linear";
+        string ICoolingSchedule.Name => Name;
+
         public double NextTemperature(double currentTemperature, CoolingScheduleParameters parameters)
         {
             if (parameters.OperatorParameters is not LinearCoolingScheduleParameters)

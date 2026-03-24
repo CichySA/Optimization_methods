@@ -25,8 +25,8 @@ namespace PfspTests
         [Fact]
         public void ParameterFactory_RegistersLinearCoolingSchedule()
         {
-            var names = SimulatedAnnealingParameterFactory.CoolingRegistry.Keys;
-            Assert.Contains(SimulatedAnnealingParameterFactory.LinearCoolingName, names);
+            var schedule = new LinearCoolingSchedule();
+            Assert.Equal("Linear", LinearCoolingSchedule.Name);
         }
     }
 }

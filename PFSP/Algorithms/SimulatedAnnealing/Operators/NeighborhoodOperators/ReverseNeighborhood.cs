@@ -7,6 +7,9 @@ namespace PFSP.Algorithms.SimulatedAnnealing.Operators.NeighborhoodOperators
     /// </summary>
     public sealed class ReverseNeighborhood : INeighborhoodOperator
     {
+        public const string Name = "Reverse";
+        string INeighborhoodOperator.Name => Name;
+
         public int[] CreateNeighbor(int[] permutation, Random rnd)
         {
             ArgumentNullException.ThrowIfNull(permutation);

@@ -7,6 +7,9 @@ namespace PFSP.Algorithms.SimulatedAnnealing.Operators.AcceptanceFunctions
     /// </summary>
     public sealed class ThresholdAcceptanceFunction : IAcceptanceFunction
     {
+        public const string Name = "Threshold";
+        string IAcceptanceFunction.Name => Name;
+
         public bool Accept(double currentCost, double candidateCost, double temperature, Random rnd)
         {
             return candidateCost <= currentCost + temperature;

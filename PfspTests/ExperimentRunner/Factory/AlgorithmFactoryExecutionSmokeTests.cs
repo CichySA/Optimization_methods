@@ -11,7 +11,7 @@ namespace PfspTests.ExperimentRunner.Factory
         [Fact]
         public void CreateFromSpec_Random_SolvesInstance_ReturnsBestSolution()
         {
-            var spec = new AlgorithmSpec { Type = "Random", Parameters = AlgorithmFactoryTestData.Elem("""{ "Seed": 1, "Samples": 20 }""") };
+            var spec = new AlgorithmSpec { Type = "Random", Parameters = AlgorithmFactoryTestData.Elem("""{ "Seed": 1, "Samples": 20, "Monitoring": { "Enabled": true } }""") };
             var (_, algo, pars) = Assert.Single(AlgorithmFactory.CreateFromSpec(spec));
 
             var result = algo.Solve(AlgorithmFactoryTestData.SmallInstance(), pars, TestContext.Current.CancellationToken);

@@ -25,6 +25,7 @@ namespace PfspTests
             {
                 Monitoring = new AlgorithmMonitoringOptions
                 {
+                    Enabled = true,
                     EnabledMetrics = [AlgorithmMetricNames.BestCostByEvaluation]
                 }
             };
@@ -43,6 +44,7 @@ namespace PfspTests
             var result = new AlgorithmResult();
             var monitor = new AlgorithmMonitor(result, new AlgorithmMonitoringOptions
             {
+                Enabled = true,
                 EnabledMetrics = [AlgorithmMetricNames.BestByGeneration, AlgorithmMetricNames.ElapsedOnFinished]
             });
             var best = PermutationSolution.WrapBuffer([0, 1, 2], 10.0);
@@ -67,7 +69,7 @@ namespace PfspTests
         public void Monitor_AllowsAdditionalMetrics()
         {
             var result = new AlgorithmResult();
-            var monitor = new AlgorithmMonitor(result, new AlgorithmMonitoringOptions(), [new ConstantMetric()]);
+            var monitor = new AlgorithmMonitor(result, new AlgorithmMonitoringOptions { Enabled = true }, [new ConstantMetric()]);
             var instance = Instance.CreateWithDefaultEvaluator(new double[1, 1] { { 1 } });
             var solution = PermutationSolution.WrapBuffer([0], 1.0);
             var state = new GreedyAlgorithmState(instance, new GreedyParameters())
@@ -94,6 +96,7 @@ namespace PfspTests
             var result = new AlgorithmResult();
             var monitor = new AlgorithmMonitor(result, new AlgorithmMonitoringOptions
             {
+                Enabled = true,
                 EnabledMetrics =
                 [
                     AlgorithmMetricNames.BestByGeneration,

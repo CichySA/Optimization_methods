@@ -5,7 +5,7 @@ namespace PFSP.Algorithms.Monitoring
 {
     public sealed record AlgorithmMonitoringOptions
     {
-        public bool Enabled { get; init; } = true;
+        public bool Enabled { get; init; } = false;
         public List<string> EnabledMetrics { get; init; } = [];
 
         internal bool IsMetricEnabled(string metricName)

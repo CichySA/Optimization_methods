@@ -7,6 +7,9 @@ namespace PFSP.Algorithms.SimulatedAnnealing.Operators.NeighborhoodOperators
     /// </summary>
     public sealed class InsertNeighborhood : INeighborhoodOperator
     {
+        public const string Name = "Insert";
+        string INeighborhoodOperator.Name => Name;
+
         public int[] CreateNeighbor(int[] permutation, Random rnd)
         {
             ArgumentNullException.ThrowIfNull(permutation);

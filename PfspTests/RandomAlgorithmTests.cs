@@ -58,7 +58,10 @@ namespace PfspTests
 
             var instance = Instance.CreateWithDefaultEvaluator(matrix);
 
-            var parameters = RandomSearchParameters.ForRuns(samples, seed);
+            var parameters = RandomSearchParameters.ForRuns(samples, seed) with
+            {
+                Monitoring = new AlgorithmMonitoringOptions { Enabled = true }
+            };
 
             // Act
             var result = alg.Solve(instance, parameters);
@@ -132,7 +135,8 @@ namespace PfspTests
             var instance = Instance.Create(matrix, new TotalFlowTimeEvaluator());
             var algo = new RandomSearchAlgorithm();
 
-            var result = algo.Solve(instance, RandomSearchParameters.ForTimeLimit(TimeSpan.FromMilliseconds(100), seed: 1), TestContext.Current.CancellationToken);
+            var result = algo.Solve(instance, RandomSearchParameters.ForTimeLimit(TimeSpan.FromMilliseconds(100), seed: 1)
+                with { Monitoring = new AlgorithmMonitoringOptions { Enabled = true } }, TestContext.Current.CancellationToken);
 
             Assert.NotNull(result.Best);
             Assert.True(result.GetSingleDenseMetric(AlgorithmMetricNames.Evaluations) >= 1);

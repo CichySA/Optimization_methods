@@ -7,6 +7,9 @@ namespace PFSP.Algorithms.SimulatedAnnealing.Operators.AcceptanceFunctions
     /// </summary>
     public sealed class ProbabilisticAcceptanceFunction : IAcceptanceFunction
     {
+        public const string Name = "Probabilistic";
+        string IAcceptanceFunction.Name => Name;
+
         public bool Accept(double currentCost, double candidateCost, double temperature, Random rnd)
         {
             if (candidateCost <= currentCost)

@@ -40,5 +40,21 @@ namespace PFSP.Algorithms.Evolutionary
         public IMutationMethod MutationMethod { get; set; } = new SwapMutation();
 
         public static EvolutionaryParameters Default => new();
+
+        public object ToSerializableObject() => new
+        {
+            Seed,
+            PopulationSize,
+            Generations,
+            ElitismK,
+            EvaluationBudget,
+            CrossoverRate,
+            MutationRate,
+            TournamentSize,
+            SelectionMethod = SelectionMethod.Name,
+            CrossoverMethod = CrossoverMethod.Name,
+            MutationMethod = MutationMethod.Name,
+            Monitoring
+        };
     }
 }

@@ -4,6 +4,9 @@ namespace PFSP.Algorithms.SimulatedAnnealing.Operators.CoolingSchedules
 {
     public sealed class ExponentialCoolingSchedule : ICoolingSchedule
     {
+        public const string Name = "Exponential";
+        string ICoolingSchedule.Name => Name;
+
         public double NextTemperature(double currentTemperature, CoolingScheduleParameters parameters)
         {
             if (parameters.OperatorParameters is not ExponentialCoolingScheduleParameters exponential)

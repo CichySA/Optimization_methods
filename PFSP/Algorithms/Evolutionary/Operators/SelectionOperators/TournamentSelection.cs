@@ -8,6 +8,9 @@ namespace PFSP.Algorithms.Evolutionary.Operators.SelectionOperators
     /// </summary>
     public sealed class TournamentSelection : ISelectionMethod
     {
+        public const string Name = "Tournament";
+        string ISelectionMethod.Name => Name;
+
         /// <summary>
         /// Tournament selection using OneMax principle: randomly select a specified number of solutions from the population and return the best one among them.
         /// </summary>

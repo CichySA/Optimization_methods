@@ -23,23 +23,19 @@ namespace PFSP.Algorithms.Evolutionary
         public const string CrossoverMethodName = "CrossoverMethod";
         public const string MutationMethodName = "MutationMethod";
 
-        public const string TournamentMethod = "Tournament";
-        public const string OXMethod = "OX";
-        public const string SwapMethod = "Swap";
-
         public static readonly Dictionary<string, Func<ISelectionMethod>> SelectionRegistry = new(StringComparer.OrdinalIgnoreCase)
         {
-            { TournamentMethod, static () => new TournamentSelection() }
+            { TournamentSelection.Name, static () => new TournamentSelection() }
         };
 
         public static readonly Dictionary<string, Func<ICrossoverMethod>> CrossoverRegistry = new(StringComparer.OrdinalIgnoreCase)
         {
-            { OXMethod, static () => new OrderCrossover() }
+            { OrderCrossover.Name, static () => new OrderCrossover() }
         };
 
         public static readonly Dictionary<string, Func<IMutationMethod>> MutationRegistry = new(StringComparer.OrdinalIgnoreCase)
         {
-            { SwapMethod, static () => new SwapMutation() }
+            { SwapMutation.Name, static () => new SwapMutation() }
         };
 
         private static readonly Dictionary<string, string> ParameterFormatMapping = new()
@@ -63,6 +59,14 @@ namespace PFSP.Algorithms.Evolutionary
             var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
             var dto = JsonSerializer.Deserialize<EvolutionaryParametersDto>(json, options) ?? new EvolutionaryParametersDto();
             return FromDto(dto);
+        }
+
+        /// <summary>Constructs the canonical algorithm name from parameters using the factory's field definitions and format mapping.</summary>
+        public static string ToName(EvolutionaryParameters p)
+        {
+            var dto = ToDto(p);
+            var fields = BuildOutputFields(dto);
+            return "Evolutionary_" + string.Join("_", fields.Select(f => $"{f.Name}{FormatValue(f.Name, f.Value, ParameterFormatMapping)}"));
         }
 
         /// <summary>Serializes parameters to an indented JSON string.</summary>
@@ -122,7 +126,7 @@ namespace PFSP.Algorithms.Evolutionary
                 errors.Add($"{EvaluationBudgetName} must be >= 0 (was {p.EvaluationBudget}).");
             if (p.EvaluationBudget > 0)
             {
-                long computedNfe = p.PopulationSize + (long)p.Generations * (p.PopulationSize - p.ElitismK);
+                long computedNfe = p.PopulationSize + (long)(p.Generations - 1) * (p.PopulationSize - p.ElitismK);
                 if (computedNfe > p.EvaluationBudget)
                     errors.Add($"Computed NFE ({computedNfe}) exceeds {EvaluationBudgetName} ({p.EvaluationBudget}). Adjust {PopulationSizeName}, {GenerationsName}, or {ElitismKName}, or increase {EvaluationBudgetName}.");
             }
@@ -162,9 +166,9 @@ namespace PFSP.Algorithms.Evolutionary
             public double CrossoverRate { get; set; } = EvolutionaryParameters.DefaultCrossoverRate;
             public double MutationRate { get; set; } = EvolutionaryParameters.DefaultMutationRate;
             public int TournamentSize { get; set; } = EvolutionaryParameters.DefaultTournamentSize;
-            public string? SelectionMethod { get; set; } = TournamentMethod;
-            public string? CrossoverMethod { get; set; } = OXMethod;
-            public string? MutationMethod { get; set; } = SwapMethod;
+            public string? SelectionMethod { get; set; } = TournamentSelection.Name;
+            public string? CrossoverMethod { get; set; } = OrderCrossover.Name;
+            public string? MutationMethod { get; set; } = SwapMutation.Name;
             public AlgorithmMonitoringOptions Monitoring { get; set; } = new();
         }
 
@@ -178,39 +182,44 @@ namespace PFSP.Algorithms.Evolutionary
             CrossoverRate = p.CrossoverRate,
             MutationRate = p.MutationRate,
             TournamentSize = p.SelectionParameters is TournamentSelectionParameters tsp ? tsp.TournamentSize : p.TournamentSize,
-            SelectionMethod = ResolveOperatorName(p.SelectionMethod, SelectionRegistry),
-            CrossoverMethod = ResolveOperatorName(p.CrossoverMethod, CrossoverRegistry),
-            MutationMethod = ResolveOperatorName(p.MutationMethod, MutationRegistry),
+            SelectionMethod = p.SelectionMethod.Name,
+            CrossoverMethod = p.CrossoverMethod.Name,
+            MutationMethod = p.MutationMethod.Name,
             Monitoring = p.Monitoring
         };
 
-        private static EvolutionaryParameters FromDto(EvolutionaryParametersDto dto) => new()
+        /// <summary>
+        /// If ElitismK and EvaluationBudget are set, they change the effective number of generations that can be run within the evaluation budget.
+        /// </summary>
+        /// <param name="dto"></param>
+        /// <returns></returns>
+        private static EvolutionaryParameters FromDto(EvolutionaryParametersDto dto)
         {
-            Seed = dto.Seed,
-            PopulationSize = dto.PopulationSize,
-            Generations = dto.Generations,
-            ElitismK = dto.ElitismK,
-            EvaluationBudget = dto.EvaluationBudget,
-            CrossoverRate = dto.CrossoverRate,
-            MutationRate = dto.MutationRate,
-            SelectionParameters = new TournamentSelectionParameters { TournamentSize = dto.TournamentSize },
-            SelectionMethod = ResolveOperator(dto.SelectionMethod, SelectionRegistry, SelectionMethodName),
-            CrossoverMethod = ResolveOperator(dto.CrossoverMethod, CrossoverRegistry, CrossoverMethodName),
-            MutationMethod = ResolveOperator(dto.MutationMethod, MutationRegistry, MutationMethodName),
-            Monitoring = dto.Monitoring
-        };
+            int generations = dto.Generations;
+            if (dto.ElitismK > 0 && dto.EvaluationBudget > 0 && dto.PopulationSize > dto.ElitismK)
+            {
+                long remainder = dto.EvaluationBudget - dto.PopulationSize;
+                if (remainder > 0)
+                    generations = (int)(1 + remainder / (dto.PopulationSize - dto.ElitismK));
+            }
 
-        // Finds the registered name for an operator instance by matching its type.
-        private static string ResolveOperatorName<T>(T method, Dictionary<string, Func<T>> registry) where T : class
-        {
-            var methodType = method.GetType();
-            foreach (var item in registry)
-                if (methodType == item.Value().GetType()) return item.Key;
-
-            throw new ArgumentException($"Unknown operator instance of type {methodType.Name}. No matching type found in registry.");
+            return new()
+            {
+                Seed = dto.Seed,
+                PopulationSize = dto.PopulationSize,
+                Generations = generations,
+                ElitismK = dto.ElitismK,
+                EvaluationBudget = dto.EvaluationBudget,
+                CrossoverRate = dto.CrossoverRate,
+                MutationRate = dto.MutationRate,
+                SelectionParameters = new TournamentSelectionParameters { TournamentSize = dto.TournamentSize },
+                SelectionMethod = ResolveOperator(dto.SelectionMethod, SelectionRegistry, SelectionMethodName),
+                CrossoverMethod = ResolveOperator(dto.CrossoverMethod, CrossoverRegistry, CrossoverMethodName),
+                MutationMethod = ResolveOperator(dto.MutationMethod, MutationRegistry, MutationMethodName),
+                Monitoring = dto.Monitoring
+            };
         }
 
-        // Finds a registered operator instance by name; throws if the name is missing or unrecognised.
         private static T ResolveOperator<T>(string? name, Dictionary<string, Func<T>> registry, string parameterName) where T : class
         {
             if (string.IsNullOrWhiteSpace(name))

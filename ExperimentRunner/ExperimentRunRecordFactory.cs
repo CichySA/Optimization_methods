@@ -22,7 +22,7 @@ namespace ExperimentRunner
             {
                 Instance = instanceName,
                 Algorithm = algorithmName,
-                Parameters = parameters,
+                Parameters = parameters.ToSerializableObject(),
                 Seed = seed,
                 Best = new ExperimentSolutionRecord
                 {

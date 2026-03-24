@@ -21,33 +21,25 @@ namespace PFSP.Algorithms.SimulatedAnnealing
         public const string AcceptanceFunctionName = "AcceptanceFunction";
         public const string CoolingScheduleName = "CoolingSchedule";
 
-        public const string SwapNeighborhoodName = "Swap";
-        public const string InsertNeighborhoodName = "Insert";
-        public const string ReverseNeighborhoodName = "Reverse";
-        public const string ProbabilisticAcceptanceName = "Probabilistic";
-        public const string ThresholdAcceptanceName = "Threshold";
-        public const string ExponentialCoolingName = "Exponential";
-        public const string LinearCoolingName = "Linear";
-
         private static readonly JsonSerializerOptions JsonOptions = new() { PropertyNameCaseInsensitive = true };
 
         public static readonly Dictionary<string, Func<INeighborhoodOperator>> NeighborhoodRegistry = new(StringComparer.OrdinalIgnoreCase)
         {
-            { SwapNeighborhoodName, static () => new SwapNeighborhood() },
-            { InsertNeighborhoodName, static () => new InsertNeighborhood() },
-            { ReverseNeighborhoodName, static () => new ReverseNeighborhood() }
+            { SwapNeighborhood.Name, static () => new SwapNeighborhood() },
+            { InsertNeighborhood.Name, static () => new InsertNeighborhood() },
+            { ReverseNeighborhood.Name, static () => new ReverseNeighborhood() }
         };
 
         public static readonly Dictionary<string, Func<IAcceptanceFunction>> AcceptanceRegistry = new(StringComparer.OrdinalIgnoreCase)
         {
-            { ProbabilisticAcceptanceName, static () => new ProbabilisticAcceptanceFunction() },
-            { ThresholdAcceptanceName, static () => new ThresholdAcceptanceFunction() }
+            { ProbabilisticAcceptanceFunction.Name, static () => new ProbabilisticAcceptanceFunction() },
+            { ThresholdAcceptanceFunction.Name, static () => new ThresholdAcceptanceFunction() }
         };
 
         public static readonly Dictionary<string, Func<ICoolingSchedule>> CoolingRegistry = new(StringComparer.OrdinalIgnoreCase)
         {
-            { ExponentialCoolingName, static () => new ExponentialCoolingSchedule() },
-            { LinearCoolingName, static () => new LinearCoolingSchedule() }
+            { ExponentialCoolingSchedule.Name, static () => new ExponentialCoolingSchedule() },
+            { LinearCoolingSchedule.Name, static () => new LinearCoolingSchedule() }
         };
 
         private static readonly Dictionary<string, string> ParameterFormatMapping = new()
@@ -62,6 +54,14 @@ namespace PFSP.Algorithms.SimulatedAnnealing
             { AcceptanceFunctionName, "S" },
             { CoolingScheduleName, "S" }
         };
+
+        /// <summary>Constructs the canonical algorithm name from parameters using the factory's field definitions and format mapping.</summary>
+        public static string ToName(SimulatedAnnealingParameters p)
+        {
+            var dto = ToDto(p);
+            var fields = BuildOutputFields(dto);
+            return "SimulatedAnnealing_" + string.Join("_", fields.Select(f => $"{f.Name}{FormatValue(f.Name, f.Value, ParameterFormatMapping)}"));
+        }
 
         public static SimulatedAnnealingParameters Default => SimulatedAnnealingParameters.Default;
 
@@ -123,11 +123,9 @@ namespace PFSP.Algorithms.SimulatedAnnealing
             if (p.CoolingSchedule is null)
                 errors.Add($"{CoolingScheduleName} must not be null.");
 
-            var coolingName = ResolveOperatorName(p.CoolingSchedule, CoolingRegistry);
+            var coolingName = p.CoolingSchedule.Name;
             if (!IsCoolingParametersCompatible(coolingName, p.CoolingScheduleParameters))
-            {
                 errors.Add($"CoolingScheduleParameters type '{p.CoolingScheduleParameters.GetType().Name}' is not compatible with CoolingSchedule '{coolingName}'.");
-            }
 
             if (errors.Count > 0)
                 throw new ArgumentException($"Invalid {nameof(SimulatedAnnealingParameters)}:{Environment.NewLine}{string.Join(Environment.NewLine, errors)}");
@@ -141,16 +139,16 @@ namespace PFSP.Algorithms.SimulatedAnnealing
             public double InitialTemperature { get; set; } = SimulatedAnnealingParameters.DefaultInitialTemperature;
             public double CoolingRate { get; set; } = SimulatedAnnealingParameters.DefaultCoolingRate;
             public double MinimumTemperature { get; set; } = SimulatedAnnealingParameters.DefaultMinimumTemperature;
-            public string? NeighborhoodOperator { get; set; } = SwapNeighborhoodName;
-            public string? AcceptanceFunction { get; set; } = ProbabilisticAcceptanceName;
-            public string? CoolingSchedule { get; set; } = ExponentialCoolingName;
+            public string? NeighborhoodOperator { get; set; } = SwapNeighborhood.Name;
+            public string? AcceptanceFunction { get; set; } = ProbabilisticAcceptanceFunction.Name;
+            public string? CoolingSchedule { get; set; } = ExponentialCoolingSchedule.Name;
             public JsonElement CoolingScheduleParameters { get; set; }
             public AlgorithmMonitoringOptions Monitoring { get; set; } = new();
         }
 
         private static SimulatedAnnealingParametersDto ToDto(SimulatedAnnealingParameters p)
         {
-            var coolingName = ResolveOperatorName(p.CoolingSchedule, CoolingRegistry);
+            var coolingName = p.CoolingSchedule.Name;
             return new SimulatedAnnealingParametersDto
             {
                 Seed = p.Seed,
@@ -159,8 +157,8 @@ namespace PFSP.Algorithms.SimulatedAnnealing
                 InitialTemperature = p.InitialTemperature,
                 CoolingRate = p.CoolingRate,
                 MinimumTemperature = p.MinimumTemperature,
-                NeighborhoodOperator = ResolveOperatorName(p.NeighborhoodOperator, NeighborhoodRegistry),
-                AcceptanceFunction = ResolveOperatorName(p.AcceptanceFunction, AcceptanceRegistry),
+                NeighborhoodOperator = p.NeighborhoodOperator.Name,
+                AcceptanceFunction = p.AcceptanceFunction.Name,
                 CoolingSchedule = coolingName,
                 CoolingScheduleParameters = SerializeCoolingScheduleParameters(coolingName, p.CoolingScheduleParameters),
                 Monitoring = p.Monitoring
@@ -171,7 +169,7 @@ namespace PFSP.Algorithms.SimulatedAnnealing
         // Budget-driven iteration recalculation is handled explicitly by AlgorithmFactory.
         private static SimulatedAnnealingParameters FromDto(SimulatedAnnealingParametersDto dto)
         {
-            var coolingName = dto.CoolingSchedule ?? ExponentialCoolingName;
+            var coolingName = dto.CoolingSchedule ?? ExponentialCoolingSchedule.Name;
             return new SimulatedAnnealingParameters
             {
                 Seed = dto.Seed,
@@ -180,25 +178,33 @@ namespace PFSP.Algorithms.SimulatedAnnealing
                 InitialTemperature = dto.InitialTemperature,
                 CoolingRate = dto.CoolingRate,
                 MinimumTemperature = dto.MinimumTemperature,
-                NeighborhoodOperator = ResolveOperator(dto.NeighborhoodOperator, NeighborhoodRegistry, NeighborhoodOperatorName),
-                AcceptanceFunction = ResolveOperator(dto.AcceptanceFunction, AcceptanceRegistry, AcceptanceFunctionName),
+                NeighborhoodOperator = ResolveOperator(dto.NeighborhoodOperator ?? SwapNeighborhood.Name, NeighborhoodRegistry, NeighborhoodOperatorName),
+                AcceptanceFunction = ResolveOperator(dto.AcceptanceFunction ?? ProbabilisticAcceptanceFunction.Name, AcceptanceRegistry, AcceptanceFunctionName),
                 CoolingSchedule = ResolveOperator(coolingName, CoolingRegistry, CoolingScheduleName),
                 CoolingScheduleParameters = DeserializeCoolingScheduleParameters(coolingName, dto.CoolingScheduleParameters),
                 Monitoring = dto.Monitoring
             };
         }
 
+        private static T ResolveOperator<T>(string name, Dictionary<string, Func<T>> registry, string parameterName) where T : class
+        {
+            if (!registry.TryGetValue(name, out var found))
+                throw new ArgumentException(
+                    $"Unknown {parameterName} '{name}'. Valid values: {string.Join(", ", registry.Keys)}");
+            return found();
+        }
+
         private static JsonElement SerializeCoolingScheduleParameters(string coolingScheduleName, ICoolingScheduleParameters parameters)
         {
             return coolingScheduleName switch
             {
-                LinearCoolingName when parameters is LinearCoolingScheduleParameters linear
+                var n when n == LinearCoolingSchedule.Name && parameters is LinearCoolingScheduleParameters linear
                     => JsonSerializer.SerializeToElement(linear, JsonOptions),
-                ExponentialCoolingName when parameters is ExponentialCoolingScheduleParameters exponential
+                var n when n == ExponentialCoolingSchedule.Name && parameters is ExponentialCoolingScheduleParameters exponential
                     => JsonSerializer.SerializeToElement(exponential, JsonOptions),
-                LinearCoolingName
+                var n when n == LinearCoolingSchedule.Name
                     => throw new ArgumentException($"{nameof(LinearCoolingSchedule)} requires {nameof(LinearCoolingScheduleParameters)}."),
-                ExponentialCoolingName
+                var n when n == ExponentialCoolingSchedule.Name
                     => throw new ArgumentException($"{nameof(ExponentialCoolingSchedule)} requires {nameof(ExponentialCoolingScheduleParameters)}."),
                 _ => throw new ArgumentException($"Unknown cooling schedule '{coolingScheduleName}'.")
             };
@@ -206,12 +212,11 @@ namespace PFSP.Algorithms.SimulatedAnnealing
 
         private static ICoolingScheduleParameters DeserializeCoolingScheduleParameters(string coolingScheduleName, JsonElement json)
         {
-            return coolingScheduleName switch
-            {
-                LinearCoolingName => DeserializeOrDefault<LinearCoolingScheduleParameters>(json),
-                ExponentialCoolingName => DeserializeOrDefault<ExponentialCoolingScheduleParameters>(json),
-                _ => throw new ArgumentException($"Unknown cooling schedule '{coolingScheduleName}'.")
-            };
+            if (coolingScheduleName == LinearCoolingSchedule.Name)
+                return DeserializeOrDefault<LinearCoolingScheduleParameters>(json);
+            if (coolingScheduleName == ExponentialCoolingSchedule.Name)
+                return DeserializeOrDefault<ExponentialCoolingScheduleParameters>(json);
+            throw new ArgumentException($"Unknown cooling schedule '{coolingScheduleName}'.");
         }
 
         private static T DeserializeOrDefault<T>(JsonElement json) where T : ICoolingScheduleParameters, new()
@@ -224,32 +229,9 @@ namespace PFSP.Algorithms.SimulatedAnnealing
 
         private static bool IsCoolingParametersCompatible(string coolingScheduleName, ICoolingScheduleParameters parameters)
         {
-            return coolingScheduleName switch
-            {
-                LinearCoolingName => parameters is LinearCoolingScheduleParameters,
-                ExponentialCoolingName => parameters is ExponentialCoolingScheduleParameters,
-                _ => false
-            };
-        }
-
-        private static string ResolveOperatorName<T>(T method, Dictionary<string, Func<T>> registry) where T : class
-        {
-            var methodType = method.GetType();
-            foreach (var item in registry)
-                if (methodType == item.Value().GetType()) return item.Key;
-
-            throw new ArgumentException($"Unknown operator instance of type {methodType.Name}. No matching type found in registry.");
-        }
-
-        private static T ResolveOperator<T>(string? name, Dictionary<string, Func<T>> registry, string parameterName) where T : class
-        {
-            if (string.IsNullOrWhiteSpace(name))
-                throw new ArgumentException($"{parameterName} must be specified. Valid values: {string.Join(", ", registry.Keys)}");
-
-            if (!registry.TryGetValue(name, out var found))
-                throw new ArgumentException($"Unknown {parameterName} '{name}'. Valid values: {string.Join(", ", registry.Keys)}");
-
-            return found();
+            if (coolingScheduleName == LinearCoolingSchedule.Name) return parameters is LinearCoolingScheduleParameters;
+            if (coolingScheduleName == ExponentialCoolingSchedule.Name) return parameters is ExponentialCoolingScheduleParameters;
+            return false;
         }
 
         private static (string Name, object? Value)[] BuildOutputFields(SimulatedAnnealingParametersDto dto) =>
