@@ -12,7 +12,7 @@ namespace PFSP.Algorithms.Evolutionary
             ArgumentNullException.ThrowIfNull(instance);
             var parms = parameters as EvolutionaryParameters ?? throw new ArgumentException("parameters must be EvolutionaryParameters", nameof(parameters));
 
-            var result = new AlgorithmResult();
+            var result = new AlgorithmResult(parameters);
             var monitor = new AlgorithmMonitor(result, parms.Monitoring);
             var state = new EvolutionaryAlgorithmState(
                 instance,

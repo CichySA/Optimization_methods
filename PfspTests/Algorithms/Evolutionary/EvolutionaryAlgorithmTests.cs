@@ -44,12 +44,12 @@ namespace PfspTests.Algorithms.Evolutionary
             var meanByGeneration = Assert.IsType<double[]>(result1.ExperimentalData[AlgorithmMetricNames.MeanByGeneration]);
             var deviationByGeneration = Assert.IsType<double[]>(result1.ExperimentalData[AlgorithmMetricNames.DeviationByGeneration]);
             var bestInPopulationByGeneration = Assert.IsType<double[]>(result1.ExperimentalData[AlgorithmMetricNames.BestInPopulationByGeneration]);
-            var elapsedOnFinished = Assert.IsType<AlgorithmMetricPoint[]>(result1.ExperimentalData[AlgorithmMetricNames.ElapsedOnFinished]);
+            var elapsedMs = Assert.IsType<double[]>(result1.ExperimentalData[AlgorithmMetricNames.ElapsedMs]);
             Assert.Equal(parameters.Generations, bestByGeneration.Length);
             Assert.Equal(parameters.Generations, meanByGeneration.Length);
             Assert.Equal(parameters.Generations, deviationByGeneration.Length);
             Assert.Equal(parameters.Generations, bestInPopulationByGeneration.Length);
-            Assert.Single(elapsedOnFinished);
+            Assert.Single(elapsedMs);
         }
     }
 }

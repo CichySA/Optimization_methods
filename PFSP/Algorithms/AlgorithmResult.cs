@@ -4,15 +4,17 @@ namespace PFSP.Algorithms
 {
     public sealed class AlgorithmResult
     {
-        private readonly Dictionary<string, object> _experimentalData = new();
+        private readonly Dictionary<string, object> _experimentalData = [];
         private ISolution? _best;
 
-        public AlgorithmResult()
+        public AlgorithmResult(IParameters parms)
         {
+            Parameters = parms;
         }
 
-        public AlgorithmResult(ISolution best)
+        public AlgorithmResult(IParameters parms, ISolution best)
         {
+            Parameters = parms;
             SetBest(best);
         }
 
@@ -21,6 +23,8 @@ namespace PFSP.Algorithms
         public bool HasBest => _best is not null;
 
         public long EvaluationBudget { get; set; } = 0;
+
+        public IParameters Parameters { get; set; }
 
         internal IDictionary<string, object> ExperimentalDataStorage => _experimentalData;
 

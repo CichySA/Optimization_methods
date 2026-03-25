@@ -1,3 +1,4 @@
+using System.Runtime.InteropServices;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using PFSP.Algorithms;
@@ -52,8 +53,24 @@ namespace ExperimentRunner
                 yield break;
             }
             var clean = RemoveParameter(parameters, "ParameterGrid");
-            foreach (var combination in CartesianProduct(grid))
-                yield return MergeParameters(clean, combination);
+            // Read the Product value (if present) and remove it from the clean parameter set so
+            // yielded combinations don't still contain the Product marker.
+            var productValue = TryGetParameterString(parameters, "Product");
+            var cleanWithoutProduct = RemoveParameter(clean, "Product");
+
+            var usePairwise = productValue is not null &&
+                              string.Equals(productValue, "Pairwise", StringComparison.OrdinalIgnoreCase);
+
+            if (usePairwise)
+            {
+                foreach (var combination in Pairwise(grid))
+                    yield return MergeParameters(cleanWithoutProduct, combination);
+            }
+            else
+            {
+                foreach (var combination in CartesianProduct(grid))
+                    yield return MergeParameters(cleanWithoutProduct, combination);
+            }
         }
 
         // For stochastic algorithms, expands the parameters into multiple sets with different seeds based on the Iterations count.
@@ -144,6 +161,31 @@ namespace ExperimentRunner
                 yield return combo;
             } while (Increment(indices, sizes));
         }
+
+
+        // Returns an enumerable of index-aligned pairs from two arrays of equal length.
+        // Throws if either array is null or their lengths differ.
+        private static IEnumerable<(string Name, JsonElement Value)[]> Pairwise(JsonElement grid)
+        {
+            var axes = grid.EnumerateObject()
+                .Select(p => (p.Name, Values: ParseGridValues(p.Name, p.Value)))
+                .ToArray();
+
+            if (axes.Length != 2)
+                throw new ArgumentException("Pairwise product requires exactly two axes in the ParameterGrid.");
+            var len = axes[0].Values.Count;
+            if (len != axes[1].Values.Count)
+                throw new ArgumentException("Both axes must have the same length for pairwise iteration.");
+
+            for (int i = 0; i < len; i++)
+            {
+                var combo = new (string Name, JsonElement Value)[2];
+                combo[0] = (axes[0].Name, axes[0].Values[i]);
+                combo[1] = (axes[1].Name, axes[1].Values[i]);
+                yield return combo;
+            }
+        }
+
 
         private static bool Increment(int[] indices, int[] sizes)
         {

@@ -1,0 +1,34 @@
+{
+  "Instances": [
+    "tai_20_5_0",
+    "tai_20_10_0",
+    "tai_20_20_0",
+    "tai_100_10_0",
+    "tai_100_20_0",
+    "tai_500_20_0"
+  ],
+  "OutDir": "tai_100_10_0_product_test",
+    "Monitoring": {
+      "Enabled": false,
+      "EnabledMetrics": [
+        "ElapsedMs"
+      ]
+    },
+  
+  "Seed": 42,
+  "Algorithms": [
+    {
+      "Type": "Evolutionary",
+      "Iterations": 3,
+      "Parameters": {
+      "Seed": 42,
+        "PopulationSize": 20,
+        "Generations": 20,
+        "ParadmeterGrid": {
+          "CrossoverRate": [0.05, 0.1, 0.15, 0.2, 0.25, 0.3, 0.35, 0.4, 0.45, 0.5],
+          "MutationRate": [0.02, 0.04, 0.06, 0.08, 0.1, 0.12, 0.14, 0.16, 0.18, 0.2]
+        }
+      }
+    }
+  ]
+}

@@ -66,10 +66,6 @@ namespace PFSP.Algorithms.Monitoring
                 AlgorithmEventKind.GenerationCompleted,
                 state => BestPopulationCost(state.Population)),
 
-            new IndexedMetric<AlgorithmState>(
-                AlgorithmMetricNames.ElapsedOnFinished,
-                AlgorithmEventKind.Finished,
-                state => (state.Evaluations, state.Elapsed.TotalMilliseconds))
         ];
 
         private sealed class DenseMetric<TState>(

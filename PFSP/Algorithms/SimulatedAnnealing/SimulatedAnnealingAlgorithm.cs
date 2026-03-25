@@ -17,7 +17,7 @@ namespace PFSP.Algorithms.SimulatedAnnealing
             ArgumentNullException.ThrowIfNull(instance);
             var parms = parameters as SimulatedAnnealingParameters ?? throw new ArgumentException("parameters must be SimulatedAnnealingParameters", nameof(parameters));
 
-            var result = new AlgorithmResult();
+            var result = new AlgorithmResult(parameters);
             var monitor = new AlgorithmMonitor(result, parms.Monitoring);
             var state = new SimulatedAnnealingState(
                 instance,

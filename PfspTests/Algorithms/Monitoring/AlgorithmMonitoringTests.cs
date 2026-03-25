@@ -7,6 +7,7 @@ using PFSP.Algorithms.SimulatedAnnealing;
 using PFSP.Evaluators;
 using PFSP.Instances;
 using PFSP.Solutions;
+using System.Collections.Generic;
 
 namespace PfspTests.Algorithms.Monitoring
 {
@@ -39,18 +40,65 @@ namespace PfspTests.Algorithms.Monitoring
         }
 
         [Fact]
-        public void Monitor_EmittingUnrelatedEvent_DoesNotRecordEnabledMetrics()
+        public void ElapsedMs_IsRecordedInMilliseconds()
         {
-            var result = new AlgorithmResult();
+            var parameters = new EvolutionaryParameters()
+            {
+                PopulationSize = 2,
+                Generations = 1,
+                Seed = 42,
+                Monitoring = new AlgorithmMonitoringOptions
+                {
+                    Enabled = true,
+                    EnabledMetrics = [ AlgorithmMetricNames.ElapsedMs ]
+                }
+            };
+            var result = new AlgorithmResult(parameters);
             var monitor = new AlgorithmMonitor(result, new AlgorithmMonitoringOptions
             {
                 Enabled = true,
-                EnabledMetrics = [AlgorithmMetricNames.BestByGeneration, AlgorithmMetricNames.ElapsedOnFinished]
+                EnabledMetrics = [ AlgorithmMetricNames.ElapsedMs ]
+            });
+
+            var instance = Instance.CreateWithDefaultEvaluator(new double[1, 1] { { 1 } });
+            var state = new EvolutionaryAlgorithmState(
+                instance,
+                parameters,
+                new PFSP.Solutions.PermutationSolutionGenerators.RandomPermutationSolutionGenerator(1),
+                new Random(1));
+
+            // Start the timer, wait a short while, then finish and verify the recorded value is in milliseconds and > 0
+            monitor.Emit(AlgorithmEventKind.Started, state);
+            System.Threading.Thread.Sleep(15);
+            monitor.Emit(AlgorithmEventKind.Finished, state);
+
+            var points = Assert.IsType<double[]>(result.ExperimentalData[AlgorithmMetricNames.ElapsedMs]);
+            Assert.Single(points);
+            Assert.True(points[0] > 0.0, "ElapsedMs should record a positive millisecond duration");
+        }
+
+        [Fact]
+        public void Monitor_EmittingUnrelatedEvent_DoesNotRecordEnabledMetrics()
+        {
+            var parameters = new EvolutionaryParameters()
+            {
+                Seed = 42,
+                Monitoring = new AlgorithmMonitoringOptions
+                {
+                    Enabled = true,
+                    EnabledMetrics = [AlgorithmMetricNames.ElapsedMs]
+                }
+            };
+            var result = new AlgorithmResult(parameters);
+            var monitor = new AlgorithmMonitor(result, new AlgorithmMonitoringOptions
+            {
+                Enabled = true,
+                EnabledMetrics = [AlgorithmMetricNames.BestByGeneration, AlgorithmMetricNames.ElapsedMs]
             });
             var best = PermutationSolution.WrapBuffer([0, 1, 2], 10.0);
             var state = new EvolutionaryAlgorithmState(
                 Instance.CreateWithDefaultEvaluator(new double[1, 3] { { 1, 2, 3 } }),
-                new EvolutionaryParameters(),
+                parameters,
                 new PFSP.Solutions.PermutationSolutionGenerators.RandomPermutationSolutionGenerator(1),
                 new Random(1))
             {
@@ -68,11 +116,12 @@ namespace PfspTests.Algorithms.Monitoring
         [Fact]
         public void Monitor_AllowsAdditionalMetrics()
         {
-            var result = new AlgorithmResult();
+            var parameters = new GreedyParameters();
+            var result = new AlgorithmResult(parameters);
             var monitor = new AlgorithmMonitor(result, new AlgorithmMonitoringOptions { Enabled = true }, [new ConstantMetric()]);
             var instance = Instance.CreateWithDefaultEvaluator(new double[1, 1] { { 1 } });
             var solution = PermutationSolution.WrapBuffer([0], 1.0);
-            var state = new GreedyAlgorithmState(instance, new GreedyParameters())
+            var state = new GreedyAlgorithmState(instance, parameters)
             {
                 Candidate = solution,
                 Best = solution,
@@ -93,7 +142,8 @@ namespace PfspTests.Algorithms.Monitoring
         [Fact]
         public void EvolutionaryMetrics_RecordGenerationStatisticsAndFinishedElapsed()
         {
-            var result = new AlgorithmResult();
+            var parameters = new EvolutionaryParameters();
+            var result = new AlgorithmResult(parameters);
             var monitor = new AlgorithmMonitor(result, new AlgorithmMonitoringOptions
             {
                 Enabled = true,
@@ -103,14 +153,14 @@ namespace PfspTests.Algorithms.Monitoring
                     AlgorithmMetricNames.MeanByGeneration,
                     AlgorithmMetricNames.DeviationByGeneration,
                     AlgorithmMetricNames.BestInPopulationByGeneration,
-                    AlgorithmMetricNames.ElapsedOnFinished
+                    AlgorithmMetricNames.ElapsedMs
                 ]
             });
             var instance = Instance.CreateWithDefaultEvaluator(new double[1, 3] { { 1, 2, 3 } });
             var best = PermutationSolution.WrapBuffer([0, 1, 2], 10.0);
             var state = new EvolutionaryAlgorithmState(
                 instance,
-                new EvolutionaryParameters(),
+                parameters,
                 new PFSP.Solutions.PermutationSolutionGenerators.RandomPermutationSolutionGenerator(1),
                 new Random(1))
             {
@@ -133,7 +183,8 @@ namespace PfspTests.Algorithms.Monitoring
             Assert.Equal(10.0, Assert.IsType<double[]>(result.ExperimentalData[AlgorithmMetricNames.BestByGeneration])[0]);
             Assert.Equal(70.0 / 3.0, Assert.IsType<double[]>(result.ExperimentalData[AlgorithmMetricNames.MeanByGeneration])[0], 10);
             Assert.Equal(Math.Sqrt(155.55555555555554), Assert.IsType<double[]>(result.ExperimentalData[AlgorithmMetricNames.DeviationByGeneration])[0], 10);
-            Assert.Single(Assert.IsType<AlgorithmMetricPoint[]>(result.ExperimentalData[AlgorithmMetricNames.ElapsedOnFinished]));
+            var elapsed = Assert.IsType<double[]>(result.ExperimentalData[AlgorithmMetricNames.ElapsedMs]);
+            Assert.Single(elapsed);
         }
 
         [Fact]

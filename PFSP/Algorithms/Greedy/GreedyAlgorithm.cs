@@ -42,7 +42,7 @@ namespace PFSP.Algorithms.Greedy
             ArgumentNullException.ThrowIfNull(construct);
             var greedyParameters = parameters as GreedyParameters ?? throw new ArgumentException("parameters must be GreedyParameters", nameof(parameters));
 
-            var result = new AlgorithmResult();
+            var result = new AlgorithmResult(parameters);
             var state = new GreedyAlgorithmState(instance, greedyParameters);
             var monitor = new AlgorithmMonitor(result, greedyParameters.Monitoring);
 

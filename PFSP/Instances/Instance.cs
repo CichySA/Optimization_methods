@@ -1,4 +1,5 @@
 using System;
+using System.Runtime.InteropServices;
 using PFSP.Evaluators;
 using PFSP.Solutions;
 
@@ -63,6 +64,15 @@ namespace PFSP.Instances
         public double Evaluate(int[] permutation)
         {
             return Evaluator.Evaluate(this, permutation);
+        }
+
+        public ReadOnlySpan<double> GetMachineRow(int machine)
+        {
+            if ((uint)machine >= (uint)Machines)
+                throw new ArgumentOutOfRangeException(nameof(machine));
+
+            ref double rowStart = ref Matrix[machine, 0];
+            return MemoryMarshal.CreateReadOnlySpan(ref rowStart, Jobs);
         }
     }
 }

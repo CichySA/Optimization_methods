@@ -372,3 +372,4 @@ FodyWeavers.xsd
 # local files
 Plan.md
 .github
+*.diagsession

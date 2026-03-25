@@ -13,7 +13,7 @@ namespace PFSP.Algorithms.RandomSearch
             ArgumentNullException.ThrowIfNull(instance);
             var p = parameters as RandomSearchParameters ?? throw new ArgumentException("parameters must be RandomParameters", nameof(parameters));
 
-            var result = new AlgorithmResult();
+            var result = new AlgorithmResult(parameters);
             var state = new RandomSearchState(instance, p);
             var monitor = new AlgorithmMonitor(result, p.Monitoring);
 

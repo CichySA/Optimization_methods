@@ -15,7 +15,7 @@ namespace PfspTests.ExperimentRunner
         public void Create_CompressesDenseZeroBasedMetricsToSimpleArrays()
         {
             var parameters = new EvolutionaryParameters { Seed = 42, PopulationSize = 10, Generations = 5 };
-            var result = new AlgorithmResult();
+            var result = new AlgorithmResult(parameters);
             var recorder = new AlgorithmMetricRecorder(result);
             result.SetBest(PermutationSolution.WrapBuffer([0, 1, 2], 12.5));
             recorder.RecordDense(AlgorithmMetricNames.Evaluations, 30);
@@ -25,7 +25,6 @@ namespace PfspTests.ExperimentRunner
             recorder.RecordDense("BestByGeneration", 12.5);
             recorder.RecordDense("MedianByGeneration", 25.0);
             recorder.RecordDense("MedianByGeneration", 15.0);
-            recorder.RecordIndexed("ElapsedOnFinished", 30, 123.0);
 
             var record = ExperimentRunRecordFactory.Create(
                 "tai_20_5_0",
@@ -46,10 +45,8 @@ namespace PfspTests.ExperimentRunner
             Assert.Equal([20.0, 12.5], Assert.IsType<double[]>(record.Metrics["BestByGeneration"]));
             Assert.Equal([25.0, 15.0], Assert.IsType<double[]>(record.Metrics["MedianByGeneration"]));
 
-            var elapsedOnFinished = Assert.IsType<AlgorithmMetricPoint[]>(record.Metrics["ElapsedOnFinished"]);
-            Assert.Single(elapsedOnFinished);
-            Assert.Equal(30, elapsedOnFinished[0].Index);
-            Assert.Equal(123.0, elapsedOnFinished[0].Value);
+            var elapsed = Assert.IsType<double[]>(record.Metrics[AlgorithmMetricNames.ElapsedMs]);
+            Assert.Equal(new double[] { 123.0 }, elapsed);
         }
     }
 }

@@ -32,10 +32,11 @@ namespace PFSP.Evaluators
 
                 // m=0
                 {
+                    var row = instance.GetMachineRow(0);
                     double left = 0.0;
                     for (int p = 0; p < assigned; p++)
                     {
-                        double cur = instance.Matrix[0, permutation[p]] + left;
+                        double cur = row[permutation[p]] + left;
                         comp[p] = cur;
                         left = cur;
                     }
@@ -43,10 +44,12 @@ namespace PFSP.Evaluators
 
                 for (int m = 1; m < lastMachine; m++)
                 {
+                    var row = instance.GetMachineRow(m);
                     double left = 0.0;
                     for (int p = 0; p < assigned; p++)
                     {
-                        double cur = instance.Matrix[m, permutation[p]] + Math.Max(comp[p], left);
+                        double up = comp[p];
+                        double cur = row[permutation[p]] + (up > left ? up : left);
                         comp[p] = cur;
                         left = cur;
                     }
@@ -54,10 +57,12 @@ namespace PFSP.Evaluators
 
                 if (lastMachine > 0)
                 {
+                    var row = instance.GetMachineRow(lastMachine);
                     double left = 0.0;
                     for (int p = 0; p < assigned; p++)
                     {
-                        double cur = instance.Matrix[lastMachine, permutation[p]] + Math.Max(comp[p], left);
+                        double up = comp[p];
+                        double cur = row[permutation[p]] + (up > left ? up : left);
                         comp[p] = cur;
                         left = cur;
                         timeFlow += cur;
