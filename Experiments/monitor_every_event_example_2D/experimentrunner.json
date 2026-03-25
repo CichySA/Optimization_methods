@@ -2,7 +2,7 @@
   "Instances": [
     "tai_20_5_0"
   ],
-  "OutDir": "monitor_every_event_example_2D",
+  "OutDir": "Experiments/monitor_every_event_example_2D",
   "Parameters": {
     "Monitoring": {
       "Enabled": false,

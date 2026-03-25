@@ -2,7 +2,7 @@
   "Instances": [
     "tai_20_5_0"
   ],
-  "OutDir": "tai_20_5_0_evolutionary_population_generations_2d_64",
+  "OutDir": "Experiments/tai_20_5_0_evolutionary_population_generations_2d_64",
   "Algorithms": [
     {
       "Type": "Evolutionary",

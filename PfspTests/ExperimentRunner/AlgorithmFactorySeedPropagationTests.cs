@@ -43,7 +43,7 @@ namespace PfspTests.ExperimentRunner
                 result,
                 DateTimeOffset.UtcNow);
 
-            var expected = 1_000_003 * 2 + 42;
+            var expected = (1_000_003 * 2) ^ 42;
             Assert.Equal(expected, record.Seed);
             // Verify seed serializes correctly when the record is saved to JSON
             var fileName = Guid.NewGuid().ToString() + ".json";
@@ -87,7 +87,7 @@ namespace PfspTests.ExperimentRunner
                 result,
                 DateTimeOffset.UtcNow);
 
-            var expected = 1_000_003 * 2 + 42;
+            var expected = (1_000_003 * 2) ^ 42;
             Assert.Equal(expected, record.Seed);
             // Verify seed serializes correctly when the record is saved to JSON
             var fileName = Guid.NewGuid().ToString() + ".json";
@@ -132,7 +132,7 @@ namespace PfspTests.ExperimentRunner
                 result,
                 DateTimeOffset.UtcNow);
 
-            var expected = 1_000_003 * 2 + 42;
+            var expected = (1_000_003 * 2) ^ 42;
             Assert.Equal(expected, record.Seed);
 
             var fileName = Guid.NewGuid().ToString() + ".json";

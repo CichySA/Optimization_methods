@@ -55,10 +55,7 @@ namespace ExperimentRunner
                 yield break;
             }
             var clean = RemoveParameter(parameters, "ParameterGrid");
-            // Read the Product value (if present) and remove it from the clean parameter set so
-            // yielded combinations don't still contain the Product marker.
             var productValue = TryGetParameterString(parameters, "Product");
-            var cleanWithoutProduct = RemoveParameter(clean, "Product");
 
             var usePairwise = productValue is not null &&
                               string.Equals(productValue, "Pairwise", StringComparison.OrdinalIgnoreCase);
@@ -66,12 +63,12 @@ namespace ExperimentRunner
             if (usePairwise)
             {
                 foreach (var combination in Pairwise(grid))
-                    yield return MergeParameters(cleanWithoutProduct, combination);
+                    yield return MergeParameters(clean, combination);
             }
             else
             {
                 foreach (var combination in CartesianProduct(grid))
-                    yield return MergeParameters(cleanWithoutProduct, combination);
+                    yield return MergeParameters(clean, combination);
             }
         }
 

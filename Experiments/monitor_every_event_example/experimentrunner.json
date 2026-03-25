@@ -2,13 +2,13 @@
   "Instances": [
     "tai_20_5_0"
   ],
-  "OutDir": "monitor_every_event_example",
+  "OutDir": "Experiments/monitor_every_event_example",
   "Algorithms": [
     {
       "Type": "Evolutionary",
-      "Iterations" : 5,
       "Parameters": {
         "Seed": 42,
+        "Samples": 3,
         "PopulationSize": 30,
         "Generations": 20,
         "CrossoverRate": 0.7,
@@ -21,7 +21,7 @@
           "Enabled": true,
           "EnabledMetrics": [
             "BestByGeneration",
-            "MedianByGeneration",
+            "MeanByGeneration",
             "DeviationByGeneration",
             "BestInPopulationByGeneration",
             "ElapsedOnFinished"

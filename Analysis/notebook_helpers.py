@@ -184,12 +184,13 @@ def resolve_output_paths(experiment_name: str) -> tuple[Path, Path, Path, Path]:
     )
 
 
-def run_experiment(experiment_name: str) -> tuple[subprocess.CompletedProcess[str], Path, Path, Path, Path]:
+def run_experiment(experiment_name: str, output = False) -> tuple[subprocess.CompletedProcess[str], Path, Path, Path, Path]:
     config_path, out_dir, results_csv, results_json = resolve_output_paths(experiment_name)
     cmd = ["dotnet", "run", "--project", "ExperimentRunner", "--", "--config", str(config_path)]
     print("Running:", " ".join(cmd))
     result = subprocess.run(cmd, cwd=REPO_ROOT, capture_output=True, text=True, check=False)
-    print(result.stdout)
+    if output:
+        print(result.stdout)
     if result.stderr.strip():
         print("STDERR:\n" + result.stderr)
     if result.returncode != 0:

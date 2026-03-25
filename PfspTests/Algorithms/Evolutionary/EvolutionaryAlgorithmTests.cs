@@ -51,5 +51,29 @@ namespace PfspTests.Algorithms.Evolutionary
             Assert.Equal(parameters.Generations, bestInPopulationByGeneration.Length);
             Assert.Single(elapsedMs);
         }
+
+        [Fact]
+        public void FixedSeed_OnTai500_20_0_SmokeTest_ProducesValidPermutation()
+        {
+            var instance = InstanceReader.Read("tai_500_20_0");
+
+            var parameters = EvolutionaryParameters.Default;
+            parameters.Seed = 12345;
+            parameters.PopulationSize = 20;
+            parameters.Generations = 5;
+            parameters.Monitoring = new AlgorithmMonitoringOptions { Enabled = true };
+
+            var algorithm = new EvolutionaryAlgorithm();
+            var result = algorithm.Solve(instance, parameters, TestContext.Current.CancellationToken);
+
+            Assert.NotNull(result.Best);
+            Assert.Equal(instance.Jobs, result.Best.Permutation.Length);
+            Assert.Equal(Enumerable.Range(0, instance.Jobs), result.Best.Permutation.OrderBy(x => x));
+
+            var evaluations = (long)result.GetSingleDenseMetric(AlgorithmMetricNames.Evaluations);
+            Assert.Equal(
+                (long)parameters.PopulationSize + (long)(parameters.PopulationSize - parameters.ElitismK) * (parameters.Generations - 1),
+                evaluations);
+        }
     }
 }
