@@ -15,9 +15,6 @@ namespace PFSP.Evaluators
 
         public double Evaluate(Instance instance, int[] permutation)
         {
-#if DEBUG || XUNIT
-            ValidateInputs(instance, permutation);
-#endif
 
             int machines = instance.Machines;
             int assigned = permutation.Length;
@@ -79,19 +76,6 @@ namespace PFSP.Evaluators
             finally
             {
                 ArrayPool<double>.Shared.Return(comp);
-            }
-        }
-
-        private static void ValidateInputs(Instance instance, int[] permutation)
-        {
-            ArgumentNullException.ThrowIfNull(instance);
-            ArgumentNullException.ThrowIfNull(permutation);
-            if (instance.Jobs == 0 || permutation.Length == 0 || permutation.Length > instance.Jobs)
-                throw new ArgumentException($"invalid permutation");
-            for (int i = 0; i < permutation.Length; i++)
-            {
-                if ((uint)permutation[i] >= (uint)instance.Jobs)
-                    throw new ArgumentException($"invalid permutation");
             }
         }
     }

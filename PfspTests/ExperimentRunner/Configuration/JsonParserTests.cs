@@ -42,9 +42,9 @@ namespace PfspTests.ExperimentRunner.Configuration
         [Fact]
         public void Load_ExperimentName_ResolvesExperimentRunnerJsonUnderExperiments()
         {
-            var config = ExperimentRunnerConfigurationJsonParser.Load("tai_all_default_all_algorithms");
+            var config = ExperimentRunnerConfigurationJsonParser.Load("Experiments\\tai_all_default_all_algorithms");
 
-            Assert.Equal("tai_all_default_all_algorithms", config.OutDir);
+            Assert.Equal("Experiments/tai_all_default_all_algorithms", config.OutDir);
             Assert.NotEmpty(config.Algorithms);
         }
 
@@ -229,7 +229,7 @@ namespace PfspTests.ExperimentRunner.Configuration
             var path = WriteTemp("""
             {
                 "Algorithms": [
-                    { "Type": "Random", "Iterations": 3, "Parameters": { "Seed": 7, "Samples": 10 } }
+                    { "Type": "Random", "Samples": 3, "Parameters": { "Seed": 7, "Iterations": 10 } }
                 ]
             }
             """);
@@ -237,7 +237,7 @@ namespace PfspTests.ExperimentRunner.Configuration
             var spec = ExperimentRunnerConfigurationJsonParser.Load(path).Algorithms.Single();
 
             Assert.Equal("Random", spec.Type);
-            Assert.Equal(3, spec.Iterations);
+            Assert.Equal(3, spec.Samples);
         }
     }
 }

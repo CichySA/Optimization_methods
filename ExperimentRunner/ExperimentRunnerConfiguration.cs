@@ -5,7 +5,8 @@ namespace ExperimentRunner
     public sealed record AlgorithmSpec
     {
         public string Type { get; init; } = "Random";
-        public int Iterations { get; init; } = 1;
+        // Stochastic run count
+        public int? Samples { get; init; }
         public JsonElement Parameters { get; init; }
     }
 

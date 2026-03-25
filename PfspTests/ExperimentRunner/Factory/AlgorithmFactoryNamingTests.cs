@@ -8,9 +8,9 @@ namespace PfspTests.ExperimentRunner.Factory
     public class AlgorithmFactoryNamingTests
     {
         [Fact]
-        public void CreateFromSpec_RandomName_ContainsSamplesAndSeed()
+        public void CreateFromSpec_RandomName_ContainsIterationsAndSeed()
         {
-            var spec = new AlgorithmSpec { Type = "Random", Parameters = AlgorithmFactoryTestData.Elem("""{ "Seed": 42, "Samples": 200 }""") };
+            var spec = new AlgorithmSpec { Type = "Random", Parameters = AlgorithmFactoryTestData.Elem("""{ "Seed": 42, "Iterations": 200 }""") };
 
             var (name, _, _) = Assert.Single(AlgorithmFactory.CreateFromSpec(spec));
 

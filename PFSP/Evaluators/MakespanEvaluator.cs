@@ -17,8 +17,8 @@ namespace PFSP.Evaluators
         public double Evaluate(Instance instance, int[] permutation)
         {
 #if DEBUG || XUNIT
-            if (instance == null) throw new ArgumentNullException(nameof(instance));
-            if (permutation == null) throw new ArgumentNullException(nameof(permutation));
+            ArgumentNullException.ThrowIfNull(instance);
+            ArgumentNullException.ThrowIfNull(permutation);
             if (permutation.Length == 0 || permutation.Length > instance.Jobs)
                 throw new ArgumentException("invalid permutation length");
             for (int i = 0; i < permutation.Length; i++)

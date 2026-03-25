@@ -8,7 +8,7 @@ namespace ExperimentRunner
 
         public static ExperimentRunnerConfiguration Load(string pathOrExperimentName)
         {
-            var resolvedPath = PathResolver.ResolveExperimentConfigPath(pathOrExperimentName);
+            var resolvedPath = PathResolver.ResolveExperimentConfigPath(Path.Combine(PathResolver.ResolveSolutionDirectory(), pathOrExperimentName));
             if (!File.Exists(resolvedPath))
                 throw new FileNotFoundException($"Config file not found: {resolvedPath}", resolvedPath);
 

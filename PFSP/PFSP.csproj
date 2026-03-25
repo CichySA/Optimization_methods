@@ -9,8 +9,19 @@
   </PropertyGroup>
 
   <ItemGroup>
-	<EmbeddedResource Include="..\Instances\Taillard\**\*.fsp" />
-    <EmbeddedResource Include="..\Instances\Custom\**\*.fsp" />
+	<EmbeddedResource Include="..\Instances\Taillard\**\*.fsp">
+      <Link>Resources\Taillard\%(RecursiveDir)%(Filename)%(Extension)</Link>
+    </EmbeddedResource>
+    <EmbeddedResource Include="..\Instances\Custom\**\*.fsp">
+      <Link>Resources\Custom\%(RecursiveDir)%(Filename)%(Extension)</Link>
+    </EmbeddedResource>
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="..\Report\Report_Outline.tex">
+      <Link>Report\Report_Outline.tex</Link>
+      <Visible>true</Visible>
+    </None>
   </ItemGroup>
 
 </Project>

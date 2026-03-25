@@ -8,17 +8,6 @@ namespace ExperimentRunner
             return Path.GetFullPath(Path.Combine(baseDir, "..", "..", "..", ".."));
         }
 
-        public static string ResolveExperimentsDirectory()
-            => Path.Combine(ResolveSolutionDirectory(), "Experiments");
-
-        public static string ResolveExperimentDirectory(string experimentName)
-        {
-            if (string.IsNullOrWhiteSpace(experimentName))
-                throw new ArgumentException("Experiment name is null or empty.", nameof(experimentName));
-
-            return Path.Combine(ResolveExperimentsDirectory(), experimentName.Trim());
-        }
-
         public static string ResolveExperimentConfigPath(string configPathOrExperimentName)
         {
             if (string.IsNullOrWhiteSpace(configPathOrExperimentName))
@@ -30,9 +19,6 @@ namespace ExperimentRunner
 
             if (Directory.Exists(trimmed))
                 return Path.Combine(Path.GetFullPath(trimmed), "experimentrunner.json");
-
-            if (!Path.IsPathRooted(trimmed) && Path.GetExtension(trimmed).Length == 0)
-                return Path.Combine(ResolveExperimentDirectory(trimmed), "experimentrunner.json");
 
             return Path.GetFullPath(trimmed);
         }

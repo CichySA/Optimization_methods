@@ -144,7 +144,8 @@ Every instance is run against every algorithm spec — the full cross-product.
 | `Budget` | `integer` | _(none)_ | **Local** evaluation budget. Overrides the global `Budget` and any `EvaluationBudget` set inside `Parameters`. |
 | `TimeLimitMs` | `integer` | _(none)_ | **Local** time limit in milliseconds. Overrides the global `TimeLimitMs`. |
 | `Parameters` | `object` | algorithm defaults | Algorithm-specific parameters (see per-algorithm tables below). Omit entirely to use all defaults. |
-| `ParameterGrid2D` | `object` | _(none)_ | Two-dimensional parameter sweep (see below). |
+| `Parameters.ParameterGrid` | `object` | _(none)_ | Parameter sweep axes. Values are expanded into multiple parameter sets (see below). |
+| `Parameters.Product` | `string` | `
 
 ### Algorithm types
 

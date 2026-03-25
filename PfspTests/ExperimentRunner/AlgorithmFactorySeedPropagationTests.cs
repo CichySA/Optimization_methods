@@ -16,13 +16,12 @@ namespace PfspTests.ExperimentRunner
     public class AlgorithmFactorySeedPropagationTests
     {
         [Fact]
-        public void CreateFromSpec_WithSeedAndIterations_ThirdAlgorithmHasExpectedRecordedSeed()
+        public void CreateFromSpec_WithSeedAndSamples_ThirdAlgorithmHasExpectedRecordedSeed()
         {
             var spec = new AlgorithmSpec
             {
                 Type = "Evolutionary",
-                Iterations = 3,
-                Parameters = AlgorithmFactoryTestData.Elem("{ \"Seed\": 42 }")
+                Parameters = AlgorithmFactoryTestData.Elem("{ \"Seed\": 42, \"Samples\": 3 }")
             };
 
             var algos = AlgorithmFactory.CreateFromSpec(spec).ToList();
@@ -61,12 +60,11 @@ namespace PfspTests.ExperimentRunner
         [Fact]
         public void CreateFromSpec_FromJsonElement_ThirdAlgorithmHasExpectedRecordedSeed()
         {
-            var parametersElement = JsonDocument.Parse("{ \"Seed\": 42 }").RootElement.Clone();
+            var parametersElement = JsonDocument.Parse("{ \"Seed\": 42, \"Samples\": 3 }").RootElement.Clone();
 
             var spec = new AlgorithmSpec
             {
                 Type = "Evolutionary",
-                Iterations = 3,
                 Parameters = parametersElement
             };
 
@@ -109,8 +107,7 @@ namespace PfspTests.ExperimentRunner
             var algorithmSpecJson = JsonDocument.Parse("""
             {
               "Type": "Evolutionary",
-              "Iterations": 3,
-              "Parameters": { "Seed": 42 }
+              "Parameters": { "Seed": 42, "Samples": 3 }
             }
             """).RootElement.Clone();
 

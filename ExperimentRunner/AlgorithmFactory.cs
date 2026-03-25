@@ -23,7 +23,9 @@ namespace ExperimentRunner
             var mergedParameters = MergeParameters(globalParameters, spec.Parameters);
             foreach (var parameterSet in ExpandParameterSets(mergedParameters))
             {
-                foreach (var seededParameters in ExpandRuns(spec.Type, spec.Iterations, parameterSet))
+                var samples = TryGetParameterInt(parameterSet, "Samples") ?? 1;
+
+                foreach (var seededParameters in ExpandRuns(spec.Type, samples, parameterSet))
                     yield return CreateSingleFromSpec(spec.Type, seededParameters);
             }
         }
@@ -73,8 +75,8 @@ namespace ExperimentRunner
             }
         }
 
-        // For stochastic algorithms, expands the parameters into multiple sets with different seeds based on the Iterations count.
-        private static IEnumerable<JsonElement> ExpandRuns(string type, int iterations, JsonElement parameters)
+        // For stochastic algorithms, expands the parameters into multiple sets with different seeds based on the run-sample count.
+        private static IEnumerable<JsonElement> ExpandRuns(string type, int samples, JsonElement parameters)
         {
             if (!IsStochastic(type))
             {
@@ -82,13 +84,13 @@ namespace ExperimentRunner
                 yield break;
             }
 
-            if (iterations <= 0)
-                throw new ArgumentException($"Iterations must be greater than zero for stochastic algorithm '{type}'.", nameof(iterations));
+            if (samples <= 0)
+                throw new ArgumentException($"Samples must be greater than zero for stochastic algorithm '{type}'.", nameof(samples));
 
             var baseSeed = TryGetParameterInt(parameters, SeedParameterName) ?? 0;
-            for (int iteration = 0; iteration < iterations; iteration++)
+            for (int sample = 0; sample < samples; sample++)
             {
-                var seed = baseSeed == 0 ? 0 : unchecked(baseSeed + iteration * SeedStride);
+                var seed = baseSeed == 0 ? 0 : (baseSeed ^ unchecked(sample * SeedStride)) & int.MaxValue;
                 yield return MergeParameters(parameters, (SeedParameterName, JsonSerializer.SerializeToElement(seed)));
             }
         }
@@ -105,12 +107,12 @@ namespace ExperimentRunner
             else if (dto.EvaluationBudget.HasValue)
                 pars = RandomSearchParameters.ForRuns((int)Math.Max(1L, dto.EvaluationBudget.Value), dto.Seed);
             else
-                pars = RandomSearchParameters.ForRuns(dto.Samples, dto.Seed);
+                pars = RandomSearchParameters.ForRuns(dto.Iterations, dto.Seed);
 
             if (dto.Monitoring is not null)
                 pars = pars with { Monitoring = dto.Monitoring };
 
-            return ($"Random_{pars.Samples}_s{pars.Seed}", new RandomSearchAlgorithm(), pars);
+            return ($"Random_{pars.Iterations}_s{pars.Seed}", new RandomSearchAlgorithm(), pars);
         }
 
         private static (string Name, IAlgorithm Algo, IParameters Params) CreateEvolutionary(JsonElement parameters)
@@ -310,7 +312,7 @@ namespace ExperimentRunner
         private sealed class RandomParametersDto
         {
             public int Seed { get; set; } = 0;
-            public int Samples { get; set; } = 100;
+            public int Iterations { get; set; } = 100;
             public int? TimeLimitMs { get; set; }
             public long? EvaluationBudget { get; set; }
             public AlgorithmMonitoringOptions? Monitoring { get; set; }

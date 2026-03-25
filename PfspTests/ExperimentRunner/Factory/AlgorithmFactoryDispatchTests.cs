@@ -13,7 +13,7 @@ namespace PfspTests.ExperimentRunner.Factory
         [Fact]
         public void CreateFromSpec_RandomType_ReturnsRandomAlgorithmWithCorrectParameters()
         {
-            var spec = new AlgorithmSpec { Type = "Random", Parameters = AlgorithmFactoryTestData.Elem("""{ "Seed": 7, "Samples": 50 }""") };
+            var spec = new AlgorithmSpec { Type = "Random", Parameters = AlgorithmFactoryTestData.Elem("""{ "Seed": 7, "Iterations": 50 }""") };
 
             var (name, algo, pars) = Assert.Single(AlgorithmFactory.CreateFromSpec(spec));
 
@@ -21,7 +21,7 @@ namespace PfspTests.ExperimentRunner.Factory
             Assert.IsType<RandomSearchAlgorithm>(algo);
             var rp = Assert.IsType<RandomSearchParameters>(pars);
             Assert.Equal(7, rp.Seed);
-            Assert.Equal(50, rp.Samples);
+            Assert.Equal(50, rp.Iterations);
         }
 
         [Fact]
@@ -73,7 +73,7 @@ namespace PfspTests.ExperimentRunner.Factory
         [InlineData("Random")]
         public void CreateFromSpec_TypeIsCaseInsensitive(string type)
         {
-            var spec = new AlgorithmSpec { Type = type, Parameters = AlgorithmFactoryTestData.Elem("""{ "Samples": 10 }""") };
+            var spec = new AlgorithmSpec { Type = type, Parameters = AlgorithmFactoryTestData.Elem("""{ "Iterations": 10 }""") };
 
             var (_, algo, _) = Assert.Single(AlgorithmFactory.CreateFromSpec(spec));
 

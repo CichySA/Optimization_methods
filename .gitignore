@@ -373,3 +373,7 @@ FodyWeavers.xsd
 Plan.md
 .github
 *.diagsession
+./VSCodeCounter
+Reports/*
+!Reports/*.pdf
+!Reports/*.tex

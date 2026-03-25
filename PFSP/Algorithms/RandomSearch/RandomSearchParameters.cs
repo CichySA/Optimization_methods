@@ -10,33 +10,41 @@ namespace PFSP.Algorithms.RandomSearch
     public sealed record RandomSearchParameters : IParameters
     {
         public int Seed { get; init; }
-        public int Samples { get; init; }
+        public int Iterations { get; init; }
         public TimeSpan? TimeLimit { get; init; }
         public AlgorithmMonitoringOptions Monitoring { get; init; } = new();
         public bool UseTimeLimit => TimeLimit.HasValue;
 
         private RandomSearchParameters() { }
 
-        private RandomSearchParameters(int seed, int samples, TimeSpan? timeLimit)
+        private RandomSearchParameters(int seed, int iterations, TimeSpan? timeLimit)
         {
             Seed = seed;
-            Samples = samples;
+            Iterations = iterations;
             TimeLimit = timeLimit;
         }
 
-        private static void Validate(int seed, int samples, TimeSpan? timeLimit)
+        private static void Validate(int seed, int iterations, TimeSpan? timeLimit)
         {
             if (seed < 0)
-                throw new ArgumentException("Seed must be non-negative (0 means random)", nameof(seed));
+                throw new ArgumentException(
+                    $"Seed must be non-negative (0 means random). Actual: {seed}.",
+                    nameof(seed));
 
-            if (timeLimit.HasValue && samples > 0)
-                throw new ArgumentException("Both Samples and TimeLimit cannot be specified at the same time.");
+            if (timeLimit.HasValue && iterations > 0)
+                throw new ArgumentException(
+                    $"Both Iterations and TimeLimit cannot be specified at the same time. Iterations: {iterations}, TimeLimit: {timeLimit}.",
+                    nameof(iterations));
 
-            if (!timeLimit.HasValue && samples <= 0)
-                throw new ArgumentException("Samples must be greater than zero when TimeLimit is not provided.");
+            if (!timeLimit.HasValue && iterations <= 0)
+                throw new ArgumentException(
+                    $"Iterations must be greater than zero when TimeLimit is not provided. Actual: {iterations}.",
+                    nameof(iterations));
 
             if (timeLimit.HasValue && timeLimit.Value <= TimeSpan.Zero)
-                throw new ArgumentException("TimeLimit must be greater than zero when specified.", nameof(timeLimit));
+                throw new ArgumentException(
+                    $"TimeLimit must be greater than zero when specified. Actual: {timeLimit}.",
+                    nameof(timeLimit));
         }
 
         // Simple, explicit factories are easy to understand for callers.

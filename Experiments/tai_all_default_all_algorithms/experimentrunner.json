@@ -7,19 +7,22 @@
     "tai_100_20_0",
     "tai_500_20_0"
   ],
-  "OutDir": "tai_all_default_all_algorithms",
+  "OutDir": "Experiments/tai_all_default_all_algorithms",
+  "Parameters": {
+      "Samples" : 5
+  },
   "Algorithms": [
     {
       "Type": "Random",
       "Parameters": {
-        "Seed": 12345,
-        "Samples": 10000
+        "Seed": 42,
+        "Iterations": 10000
       }
     },
     {
       "Type": "Evolutionary",
       "Parameters": {
-        "Seed": 12345,
+        "Seed": 42,
         "PopulationSize": 100,
         "Generations": 100,
         "CrossoverRate": 0.7,
@@ -40,7 +43,7 @@
         "AcceptanceFunction": "Probabilistic",
         "CoolingSchedule": "Linear",
         "NeighborhoodOperator": "Swap",
-        "Seed": 12345
+        "Seed": 42
       }
     },
     {

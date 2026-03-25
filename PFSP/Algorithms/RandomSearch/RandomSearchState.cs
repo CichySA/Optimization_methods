@@ -14,7 +14,7 @@ namespace PFSP.Algorithms.RandomSearch
             RandomSearchParameters parameters)
             : base(instance, parameters)
         {
-            RemainingIterations = parameters.Samples;
+            RemainingIterations = parameters.Iterations;
             Generator = new RandomPermutationSolutionGenerator(parameters.Seed);
             CandidatePermutation = new int[instance.Jobs];
             CandidateBuffer = PermutationSolution.WrapBuffer(CandidatePermutation, 0.0);

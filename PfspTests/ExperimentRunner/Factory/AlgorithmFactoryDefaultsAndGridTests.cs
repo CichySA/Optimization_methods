@@ -11,14 +11,14 @@ namespace PfspTests.ExperimentRunner.Factory
     public class AlgorithmFactoryDefaultsAndGridTests
     {
         [Fact]
-        public void CreateFromSpec_RandomWithEmptyParameters_UsesDefaultSamplesAndSeed()
+        public void CreateFromSpec_RandomWithEmptyParameters_UsesDefaultIterationsAndSeed()
         {
             var spec = new AlgorithmSpec { Type = "Random", Parameters = AlgorithmFactoryTestData.Elem("{}") };
 
             var (_, _, pars) = Assert.Single(AlgorithmFactory.CreateFromSpec(spec));
 
             var rp = Assert.IsType<RandomSearchParameters>(pars);
-            Assert.Equal(100, rp.Samples);
+            Assert.Equal(100, rp.Iterations);
             Assert.Equal(0, rp.Seed);
         }
 
@@ -70,7 +70,7 @@ namespace PfspTests.ExperimentRunner.Factory
                 Type = "Random",
                 Parameters = AlgorithmFactoryTestData.Elem("""
                 {
-                    "ParameterGrid": { "Seed": [1, 2], "Samples": [10, 20] }
+                    "ParameterGrid": { "Seed": [1, 2], "Iterations": [10, 20] }
                 }
                 """)
             };
@@ -80,7 +80,7 @@ namespace PfspTests.ExperimentRunner.Factory
             Assert.Equal(4, expanded.Count);
 
             var allPars = expanded.Select(e => Assert.IsType<RandomSearchParameters>(e.Params)).ToList();
-            var combos = allPars.Select(p => (p.Seed, p.Samples)).ToHashSet();
+            var combos = allPars.Select(p => (p.Seed, p.Iterations)).ToHashSet();
             Assert.Contains((1, 10), combos);
             Assert.Contains((1, 20), combos);
             Assert.Contains((2, 10), combos);
@@ -88,19 +88,37 @@ namespace PfspTests.ExperimentRunner.Factory
         }
 
         [Fact]
-        public void CreateFromSpec_RandomWithIterations_DerivesSeedsFromBaseSeed()
+        public void CreateFromSpec_RandomWithSamples_DerivesSeedsFromBaseSeed()
         {
             var spec = new AlgorithmSpec
             {
                 Type = "Random",
-                Iterations = 3,
-                Parameters = AlgorithmFactoryTestData.Elem("""{ "Seed": 7, "Samples": 10 }""")
+                Parameters = AlgorithmFactoryTestData.Elem("""{ "Seed": 7, "Samples": 3, "Iterations": 10 }""")
             };
-
+            
             var expanded = AlgorithmFactory.CreateFromSpec(spec).ToList();
 
             var allPars = expanded.Select(e => Assert.IsType<RandomSearchParameters>(e.Params)).ToList();
-            Assert.Equal([7, unchecked(7 + 1_000_003), unchecked(7 + 2 * 1_000_003)], allPars.Select(p => p.Seed).ToArray());
+            Assert.Equal([7, (7 ^ 1_000_003) & int.MaxValue, (7 ^ (2 * 1_000_003)) & int.MaxValue], [.. allPars.Select(p => p.Seed)]);
+            Assert.All(allPars, p => Assert.Equal(10, p.Iterations));
+        }
+
+
+        [Fact]
+        public void CreateFromSpec_GlobalParametersSamples_PropagatesToRunExpansion_WhenSpecSamplesNotProvided()
+        {
+            var spec = new AlgorithmSpec
+            {
+                Type = "Evolutionary",
+                Parameters = AlgorithmFactoryTestData.Elem("""{ "Seed": 5, "PopulationSize": 10, "Generations": 3 }""")
+            };
+            var global = AlgorithmFactoryTestData.Elem("""{ "Samples": 3 }""");
+
+            var expanded = AlgorithmFactory.CreateFromSpec(spec, globalParameters: global).ToList();
+            Assert.Equal(3, expanded.Count);
+
+            var allPars = expanded.Select(e => Assert.IsType<EvolutionaryParameters>(e.Params)).ToList();
+            Assert.Equal([5, (5 ^ 1_000_003) & int.MaxValue, (5 ^ (2 * 1_000_003)) & int.MaxValue], allPars.Select(p => p.Seed).ToArray());
         }
 
         [Fact]
@@ -109,14 +127,13 @@ namespace PfspTests.ExperimentRunner.Factory
             var spec = new AlgorithmSpec
             {
                 Type = "SimulatedAnnealing",
-                Iterations = 2,
-                Parameters = AlgorithmFactoryTestData.Elem("""{ "Seed": 11, "Iterations": 50 }""")
+                Parameters = AlgorithmFactoryTestData.Elem("""{ "Seed": 11, "Samples": 2, "Iterations": 50 }""")
             };
 
             var expanded = AlgorithmFactory.CreateFromSpec(spec).ToList();
 
             var allPars = expanded.Select(e => Assert.IsType<SimulatedAnnealingParameters>(e.Params)).ToList();
-            Assert.Equal([11, unchecked(11 + 1_000_003)], allPars.Select(p => p.Seed).ToArray());
+            Assert.Equal([11, (11 ^ 1_000_003) & int.MaxValue], allPars.Select(p => p.Seed).ToArray());
         }
 
         [Fact]
@@ -152,13 +169,13 @@ namespace PfspTests.ExperimentRunner.Factory
                 Type = "Random",
                 Parameters = AlgorithmFactoryTestData.Elem("""{ "Seed": 7 }""")
             };
-            var global = AlgorithmFactoryTestData.Elem("""{ "Seed": 99, "Samples": 300 }""");
+            var global = AlgorithmFactoryTestData.Elem( """{"Iterations": 300 }""");
 
             var (_, _, pars) = Assert.Single(AlgorithmFactory.CreateFromSpec(spec, globalParameters: global));
 
             var rp = Assert.IsType<RandomSearchParameters>(pars);
             Assert.Equal(7, rp.Seed);      // local wins
-            Assert.Equal(300, rp.Samples); // supplied by global
+            Assert.Equal(300, rp.Iterations); // supplied by global
         }
 
         [Fact]
@@ -169,7 +186,7 @@ namespace PfspTests.ExperimentRunner.Factory
 
             var (_, _, pars) = Assert.Single(AlgorithmFactory.CreateFromSpec(spec, globalParameters: global));
 
-            Assert.Equal(300, Assert.IsType<RandomSearchParameters>(pars).Samples);
+            Assert.Equal(300, Assert.IsType<RandomSearchParameters>(pars).Iterations);
         }
 
         [Fact]
@@ -184,7 +201,23 @@ namespace PfspTests.ExperimentRunner.Factory
 
             var (_, _, pars) = Assert.Single(AlgorithmFactory.CreateFromSpec(spec, globalParameters: global));
 
-            Assert.Equal(100, Assert.IsType<RandomSearchParameters>(pars).Samples);
+            Assert.Equal(100, Assert.IsType<RandomSearchParameters>(pars).Iterations);
+        }
+
+        [Fact]
+        public void CreateFromSpec_GlobalIterationsAndLocalSamples_DoesNotThrow_AndExpandsRuns()
+        {
+            var spec = new AlgorithmSpec
+            {
+                Type = "Random",
+                Parameters = AlgorithmFactoryTestData.Elem("""{ "Samples": 10000 }""")
+            };
+            var global = AlgorithmFactoryTestData.Elem("""{ "Iterations": 5, "Seed": 42 }""");
+
+            var expanded = AlgorithmFactory.CreateFromSpec(spec, globalParameters: global).ToList();
+
+            Assert.Equal(10000, expanded.Count);
+            Assert.All(expanded, e => Assert.Equal(5, Assert.IsType<RandomSearchParameters>(e.Params).Iterations));
         }
 
         // ── EA EvaluationBudget validation ──────────────────────────────────
@@ -291,6 +324,23 @@ namespace PfspTests.ExperimentRunner.Factory
 
             var ep = Assert.IsType<EvolutionaryParameters>(pars);
             Assert.Equal(50, ep.Generations);
+        }
+
+        [Fact]
+        public void CreateFromSpec_GlobalParametersIterations_PropagateToRandomParameters_WhenLocalMissing()
+        {
+            var spec = new AlgorithmSpec
+            {
+                Type = "Random",
+                Parameters = AlgorithmFactoryTestData.Elem("""{ "Seed": 5 }""")
+            };
+            var global = AlgorithmFactoryTestData.Elem("""{ "Iterations": 300 }""");
+
+            var expanded = AlgorithmFactory.CreateFromSpec(spec, globalParameters: global).ToList();
+            var (_, _, pars) = Assert.Single(expanded);
+            var rp = Assert.IsType<RandomSearchParameters>(pars);
+            Assert.Equal(300, rp.Iterations);
+            Assert.Equal(5, rp.Seed);
         }
     }
 }
