@@ -51,16 +51,12 @@ namespace ExperimentRunner
 
         public static string ResolveOutputDirectory(string configuredOutDir)
         {
-            var solutionDir = ResolveSolutionDirectory();
-
             if (string.IsNullOrWhiteSpace(configuredOutDir))
                 throw new ArgumentException("Output directory is null or empty.", nameof(configuredOutDir));
 
             var outDir = Path.IsPathRooted(configuredOutDir)
-                ? configuredOutDir
-                : configuredOutDir.StartsWith("Experiments", StringComparison.OrdinalIgnoreCase)
-                    ? Path.Combine(solutionDir, configuredOutDir)
-                    : Path.Combine(solutionDir, "Experiments", configuredOutDir);
+                ? Path.GetFullPath(configuredOutDir)
+                : Path.GetFullPath(Path.Combine(ResolveSolutionDirectory(), configuredOutDir));
 
             Directory.CreateDirectory(outDir);
             return outDir;

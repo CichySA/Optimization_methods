@@ -8,6 +8,8 @@ using PFSP.Evaluators;
 using PFSP.Instances;
 using PFSP.Solutions;
 using System.Collections.Generic;
+using System.Text.Json;
+using Newtonsoft.Json;
 
 namespace PfspTests.Algorithms.Monitoring
 {
@@ -75,6 +77,51 @@ namespace PfspTests.Algorithms.Monitoring
             var points = Assert.IsType<double[]>(result.ExperimentalData[AlgorithmMetricNames.ElapsedMs]);
             Assert.Single(points);
             Assert.True(points[0] > 0.0, "ElapsedMs should record a positive millisecond duration");
+        }
+
+        [Fact]
+        public void ElapsedMs_MetricSerializesAsNumericJsonArray()
+        {
+            var parameters = new EvolutionaryParameters()
+            {
+                PopulationSize = 2,
+                Generations = 1,
+                Seed = 42,
+                Monitoring = new AlgorithmMonitoringOptions
+                {
+                    Enabled = true,
+                    EnabledMetrics = [ AlgorithmMetricNames.ElapsedMs ]
+                }
+            };
+            var result = new AlgorithmResult(parameters);
+            var monitor = new AlgorithmMonitor(result, new AlgorithmMonitoringOptions
+            {
+                Enabled = true,
+                EnabledMetrics = [ AlgorithmMetricNames.ElapsedMs ]
+            });
+
+            var instance = Instance.CreateWithDefaultEvaluator(new double[1, 1] { { 1 } });
+            var state = new EvolutionaryAlgorithmState(
+                instance,
+                parameters,
+                new PFSP.Solutions.PermutationSolutionGenerators.RandomPermutationSolutionGenerator(1),
+                new Random(1));
+
+            monitor.Emit(AlgorithmEventKind.Started, state);
+            System.Threading.Thread.Sleep(15);
+            monitor.Emit(AlgorithmEventKind.Finished, state);
+
+            var json = JsonConvert.SerializeObject(new { Metrics = result.ExperimentalData });
+            using var doc = JsonDocument.Parse(json);
+
+            var elapsedMs = doc.RootElement
+                .GetProperty("Metrics")
+                .GetProperty(AlgorithmMetricNames.ElapsedMs);
+
+            Assert.Equal(JsonValueKind.Array, elapsedMs.ValueKind);
+            Assert.True(elapsedMs.GetArrayLength() > 0);
+            var first = elapsedMs.EnumerateArray().First();
+            Assert.Equal(JsonValueKind.Number, first.ValueKind);
         }
 
         [Fact]
