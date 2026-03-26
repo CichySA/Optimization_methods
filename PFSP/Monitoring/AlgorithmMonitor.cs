@@ -1,8 +1,9 @@
+using PFSP.Algorithms;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace PFSP.Algorithms.Monitoring
+namespace PFSP.Monitoring
 {
     public sealed class AlgorithmMonitor
     {

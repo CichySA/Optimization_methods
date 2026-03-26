@@ -81,11 +81,17 @@ namespace PfspTests.ExperimentRunner.Factory
         }
 
         [Fact]
-        public void CreateFromSpec_UnknownType_ThrowsArgumentException()
+        public void CreateFromSpec_UnknownType_IsSkipped_WhenCombinedWithValidAlgorithm()
         {
-            var spec = new AlgorithmSpec { Type = "DoesNotExist" };
+            var good = new AlgorithmSpec { Type = "Greedy" };
+            var bad = new AlgorithmSpec { Type = "DoesNotExist" };
 
-            Assert.Throws<ArgumentException>(() => AlgorithmFactory.CreateFromSpec(spec).ToList());
+            var combined = AlgorithmFactory.CreateFromSpec(good).Concat(AlgorithmFactory.CreateFromSpec(bad)).ToList();
+
+            // The bad spec should be skipped and only the valid algorithm should be created
+            Assert.Single(combined);
+            Assert.Equal("Greedy", combined[0].Name);
+            Assert.IsType<GreedyAlgorithm>(combined[0].Algo);
         }
     }
 }

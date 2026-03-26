@@ -1,5 +1,5 @@
 using ExperimentRunner;
-using PFSP.Algorithms.Monitoring;
+using PFSP.Monitoring;
 
 namespace PfspTests.ExperimentRunner.Factory
 {

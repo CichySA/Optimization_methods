@@ -12,6 +12,7 @@
     {
       "Type": "SimulatedAnnealing",
       "Parameters": {
+        "Samples": 5,
         "Iterations": 20000,
         "InitialTemperature": 100.0,
         "CoolingRate": 0.995,
@@ -20,7 +21,7 @@
         "CoolingSchedule": "Linear",
         "ParameterGrid": {
           "NeighborhoodOperator": ["Swap", "Insert", "Reverse"],
-          "Seed": [22, 151555, 5252525, 6687883, 33331882]
+          "Seed": [42]
         }
       }
     }

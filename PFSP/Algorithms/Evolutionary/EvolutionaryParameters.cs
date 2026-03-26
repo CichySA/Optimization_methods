@@ -2,7 +2,7 @@ using PFSP.Algorithms.Evolutionary.Operators;
 using PFSP.Algorithms.Evolutionary.Operators.CrossoverOperators;
 using PFSP.Algorithms.Evolutionary.Operators.MutationOperators;
 using PFSP.Algorithms.Evolutionary.Operators.SelectionOperators;
-using PFSP.Algorithms.Monitoring;
+using PFSP.Monitoring;
 
 namespace PFSP.Algorithms.Evolutionary
 {

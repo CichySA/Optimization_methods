@@ -1,5 +1,5 @@
-using PFSP.Algorithms.Monitoring;
 using PFSP.Instances;
+using PFSP.Monitoring;
 using PFSP.Solutions;
 using System.Diagnostics;
 

@@ -1,5 +1,5 @@
-using PFSP.Algorithms.Monitoring;
 using PFSP.Instances;
+using PFSP.Monitoring;
 using PFSP.Solutions;
 using PFSP.Solutions.PermutationSolutionGenerators;
 
@@ -42,9 +42,13 @@ namespace PFSP.Algorithms.Evolutionary
                 }
 
                 monitor.Emit(AlgorithmEventKind.CandidateEvaluated, state);
+                // Budget check: if we exceeded the NFE budget, finish early with a warning metric.
+                if (HandleEvaluationBudget(state, result))
+                    return result;
 
                 if (newBest)
                     state.BestFoundAtEvaluation = state.Evaluations;
+
             }
 
             state.Generation = 1;
@@ -126,17 +130,34 @@ namespace PFSP.Algorithms.Evolutionary
                         result.SetBest(child2);
                     }
                     monitor.Emit(AlgorithmEventKind.CandidateEvaluated, state);
+
+                    if (HandleEvaluationBudget(state, result))
+                        break;
                     if (newBest2)
                         state.BestFoundAtEvaluation = state.Evaluations;
                 }
-
                 (state.Population, state.NextPopulation) = (state.NextPopulation, state.Population);
                 monitor.Emit(AlgorithmEventKind.GenerationCompleted, state);
+                if (HandleEvaluationBudget(state, result))
+                    break;
+
             }
 
             monitor.Emit(AlgorithmEventKind.Finished, state);
             result.EvaluationBudget = state.EvaluationBudget;
             return result;
+        }
+
+        private static bool HandleEvaluationBudget(
+            EvolutionaryAlgorithmState state,
+            AlgorithmResult result)
+        {
+            if (state.EvaluationBudget > 0 && state.Evaluations > state.EvaluationBudget)
+            {
+                result.EvaluationBudget = state.EvaluationBudget;
+                return true;
+            }
+            return false;
         }
     }
 }

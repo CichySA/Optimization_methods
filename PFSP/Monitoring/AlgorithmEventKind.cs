@@ -1,4 +1,4 @@
-namespace PFSP.Algorithms.Monitoring
+namespace PFSP.Monitoring
 {
     public enum AlgorithmEventKind
     {

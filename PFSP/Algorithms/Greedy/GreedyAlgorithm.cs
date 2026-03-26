@@ -1,4 +1,4 @@
-using PFSP.Algorithms.Monitoring;
+using PFSP.Monitoring;
 using PFSP.Instances;
 using PFSP.Solutions;
 

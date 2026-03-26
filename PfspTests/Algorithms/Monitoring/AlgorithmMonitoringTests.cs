@@ -1,15 +1,14 @@
+using Newtonsoft.Json;
 using PFSP.Algorithms;
 using PFSP.Algorithms.Evolutionary;
 using PFSP.Algorithms.Greedy;
-using PFSP.Algorithms.Monitoring;
 using PFSP.Algorithms.RandomSearch;
 using PFSP.Algorithms.SimulatedAnnealing;
 using PFSP.Evaluators;
 using PFSP.Instances;
+using PFSP.Monitoring;
 using PFSP.Solutions;
-using System.Collections.Generic;
 using System.Text.Json;
-using Newtonsoft.Json;
 
 namespace PfspTests.Algorithms.Monitoring
 {
@@ -52,14 +51,14 @@ namespace PfspTests.Algorithms.Monitoring
                 Monitoring = new AlgorithmMonitoringOptions
                 {
                     Enabled = true,
-                    EnabledMetrics = [ AlgorithmMetricNames.ElapsedMs ]
+                    EnabledMetrics = [AlgorithmMetricNames.ElapsedMs]
                 }
             };
             var result = new AlgorithmResult(parameters);
             var monitor = new AlgorithmMonitor(result, new AlgorithmMonitoringOptions
             {
                 Enabled = true,
-                EnabledMetrics = [ AlgorithmMetricNames.ElapsedMs ]
+                EnabledMetrics = [AlgorithmMetricNames.ElapsedMs]
             });
 
             var instance = Instance.CreateWithDefaultEvaluator(new double[1, 1] { { 1 } });
@@ -90,14 +89,14 @@ namespace PfspTests.Algorithms.Monitoring
                 Monitoring = new AlgorithmMonitoringOptions
                 {
                     Enabled = true,
-                    EnabledMetrics = [ AlgorithmMetricNames.ElapsedMs ]
+                    EnabledMetrics = [AlgorithmMetricNames.ElapsedMs]
                 }
             };
             var result = new AlgorithmResult(parameters);
             var monitor = new AlgorithmMonitor(result, new AlgorithmMonitoringOptions
             {
                 Enabled = true,
-                EnabledMetrics = [ AlgorithmMetricNames.ElapsedMs ]
+                EnabledMetrics = [AlgorithmMetricNames.ElapsedMs]
             });
 
             var instance = Instance.CreateWithDefaultEvaluator(new double[1, 1] { { 1 } });
@@ -238,7 +237,7 @@ namespace PfspTests.Algorithms.Monitoring
         public void Evolutionary_WithRawParamsExceedingBudget_RecordsWarning()
         {
             // Bypass factory validation: PopSize=5, Gen=3 → NFE=20 > EvaluationBudget=10
-            var parms = new EvolutionaryParameters { PopulationSize = 5, Generations = 3, EvaluationBudget = 10, Seed = 1 };
+            var parms = new EvolutionaryParameters { PopulationSize = 5, Generations = 10, EvaluationBudget = 43, Seed = 1 };
             var instance = Instance.CreateWithDefaultEvaluator(new double[2, 5]
             {
                 { 1, 2, 3, 4, 5 },

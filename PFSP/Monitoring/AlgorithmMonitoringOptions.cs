@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace PFSP.Algorithms.Monitoring
+namespace PFSP.Monitoring
 {
     public sealed record AlgorithmMonitoringOptions
     {

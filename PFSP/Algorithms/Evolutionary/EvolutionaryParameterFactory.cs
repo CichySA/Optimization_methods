@@ -1,11 +1,10 @@
 using System.Globalization;
-using System.Text;
 using System.Text.Json;
 using PFSP.Algorithms.Evolutionary.Operators;
 using PFSP.Algorithms.Evolutionary.Operators.CrossoverOperators;
 using PFSP.Algorithms.Evolutionary.Operators.MutationOperators;
 using PFSP.Algorithms.Evolutionary.Operators.SelectionOperators;
-using PFSP.Algorithms.Monitoring;
+using PFSP.Monitoring;
 
 namespace PFSP.Algorithms.Evolutionary
 {
@@ -71,50 +70,14 @@ namespace PFSP.Algorithms.Evolutionary
             return "Evolutionary_" + string.Join("_", fields.Select(f => $"{f.Name}{FormatValue(f.Name, f.Value, ParameterFormatMapping)}"));
         }
 
-        /// <summary>Serializes parameters to an indented JSON string.</summary>
-        public static string ToJson(EvolutionaryParameters p)
-        {
-            return JsonSerializer.Serialize(ToDto(p), new JsonSerializerOptions { WriteIndented = true });
-        }
-
-        /// <summary>Serializes parameters to a CSV string (header + values row).</summary>
-        public static string ToCsv(EvolutionaryParameters p)
-        {
-            var dto = ToDto(p);
-            var fields = BuildOutputFields(dto);
-            var header = string.Join(",", fields.Select(f => f.Name));
-            var values = string.Join(",", fields.Select(f => FormatValue(f.Name, f.Value, ParameterFormatMapping)));
-            return header + Environment.NewLine + values;
-        }
-
-        /// <summary>Formats parameters as a human-readable multiline string.</summary>
-        public static string ToConsoleString(EvolutionaryParameters p)
-        {
-            var dto = ToDto(p);
-
-            var fields = BuildOutputFields(dto);
-            var sb = new StringBuilder();
-            for (int i = 0; i < fields.Length; i++)
-            {
-                var (name, value) = fields[i];
-                sb.Append(name)
-                  .Append(": ")
-                  .Append(FormatValue(name, value, ParameterFormatMapping));
-
-                if (i < fields.Length - 1)
-                    sb.Append(Environment.NewLine);
-            }
-
-            return sb.ToString();
-        }
-
         /// <summary>
         /// Validates the parameters and throws <see cref="ArgumentException"/> listing all violations
-        /// if any are found.
+        /// if any are found. If EvaluationBudget &gt; 0, PopulationSize/Generations are considered
+        /// budget-driven and both should not be explicitly provided at the same time.
         /// </summary>
         public static void Validate(EvolutionaryParameters p)
         {
-            List<string> errors = [];
+            var errors = new List<string>();
 
             if (p.PopulationSize <= 0)
                 errors.Add($"{PopulationSizeName} must be > 0 (was {p.PopulationSize}).");
@@ -126,12 +89,8 @@ namespace PFSP.Algorithms.Evolutionary
                 errors.Add($"{ElitismKName} ({p.ElitismK}) must be < {PopulationSizeName} ({p.PopulationSize}).");
             if (p.EvaluationBudget < 0)
                 errors.Add($"{EvaluationBudgetName} must be >= 0 (was {p.EvaluationBudget}).");
-            if (p.EvaluationBudget > 0)
-            {
-                long computedNfe = p.PopulationSize + (long)(p.Generations - 1) * (p.PopulationSize - p.ElitismK);
-                if (computedNfe > p.EvaluationBudget)
-                    errors.Add($"Computed NFE ({computedNfe}) exceeds {EvaluationBudgetName} ({p.EvaluationBudget}). Adjust {PopulationSizeName}, {GenerationsName}, or {ElitismKName}, or increase {EvaluationBudgetName}.");
-            }
+
+
             if (p.CrossoverRate is < 0.0 or > 1.0)
                 errors.Add($"{CrossoverRateName} must be in [0, 1] (was {p.CrossoverRate}).");
             if (p.MutationRate is < 0.0 or > 1.0)
@@ -153,9 +112,10 @@ namespace PFSP.Algorithms.Evolutionary
                 errors.Add($"{MutationMethodName} must not be null.");
 
             if (errors.Count > 0)
-                throw new ArgumentException(
-                    $"Invalid {nameof(EvolutionaryParameters)}:{Environment.NewLine}{string.Join(Environment.NewLine, errors)}");
+                throw new ArgumentException($"Invalid {nameof(EvolutionaryParameters)}:{Environment.NewLine}{string.Join(Environment.NewLine, errors)}");
         }
+
+
 
         // --- DTO (defaults mirror Default) ---
         private sealed class EvolutionaryParametersDto

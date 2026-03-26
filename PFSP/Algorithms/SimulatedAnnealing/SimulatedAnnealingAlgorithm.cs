@@ -1,6 +1,6 @@
-using PFSP.Algorithms.Monitoring;
 using PFSP.Algorithms.SimulatedAnnealing.Operators;
 using PFSP.Instances;
+using PFSP.Monitoring;
 using PFSP.Solutions;
 using PFSP.Solutions.PermutationSolutionGenerators;
 

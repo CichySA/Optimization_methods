@@ -1,4 +1,6 @@
-namespace PFSP.Algorithms.Monitoring
+using PFSP.Algorithms;
+
+namespace PFSP.Monitoring
 {
     public interface IAlgorithmMetric
     {

@@ -1,8 +1,8 @@
-using PFSP.Algorithms.Monitoring;
 using PFSP.Algorithms.SimulatedAnnealing.Operators;
 using PFSP.Algorithms.SimulatedAnnealing.Operators.AcceptanceFunctions;
 using PFSP.Algorithms.SimulatedAnnealing.Operators.CoolingSchedules;
 using PFSP.Algorithms.SimulatedAnnealing.Operators.NeighborhoodOperators;
+using PFSP.Monitoring;
 
 namespace PFSP.Algorithms.SimulatedAnnealing
 {

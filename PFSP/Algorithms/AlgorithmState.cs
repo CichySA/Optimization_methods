@@ -2,7 +2,7 @@ using PFSP.Instances;
 using PFSP.Solutions;
 using System.Diagnostics;
 
-namespace PFSP.Algorithms.Monitoring
+namespace PFSP.Algorithms
 {
     public abstract class AlgorithmState
     {

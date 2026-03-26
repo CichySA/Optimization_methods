@@ -1,7 +1,7 @@
 using ExperimentRunner;
 using PFSP.Algorithms;
 using PFSP.Algorithms.Evolutionary;
-using PFSP.Algorithms.Monitoring;
+using PFSP.Monitoring;
 using PFSP.Solutions;
 
 namespace PfspTests.ExperimentRunner

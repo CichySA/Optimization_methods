@@ -1,12 +1,11 @@
-using System.Runtime.InteropServices;
-using System.Text.Json;
-using System.Text.Json.Nodes;
 using PFSP.Algorithms;
 using PFSP.Algorithms.Evolutionary;
 using PFSP.Algorithms.Greedy;
-using PFSP.Algorithms.Monitoring;
 using PFSP.Algorithms.RandomSearch;
 using PFSP.Algorithms.SimulatedAnnealing;
+using PFSP.Monitoring;
+using System.Text.Json;
+using System.Text.Json.Nodes;
 
 namespace ExperimentRunner
 {
@@ -26,7 +25,19 @@ namespace ExperimentRunner
                 var samples = TryGetParameterInt(parameterSet, "Samples") ?? 1;
 
                 foreach (var seededParameters in ExpandRuns(spec.Type, samples, parameterSet))
-                    yield return CreateSingleFromSpec(spec.Type, seededParameters);
+                {
+                    (string, IAlgorithm, IParameters) result;
+                    try
+                    {
+                        result = CreateSingleFromSpec(spec.Type, seededParameters);
+                    }
+                    catch (Exception ex)
+                    {
+                        Visualizer.DisplayLine($"[AlgorithmFactory] Error with algorithm '{spec.Type}' parameters: {ex.Message}");
+                        continue; // Skip this configuration
+                    }
+                    yield return result;
+                }
             }
         }
 
@@ -35,12 +46,12 @@ namespace ExperimentRunner
         {
             return type.ToLowerInvariant() switch
             {
-                "random"             => CreateRandom(parameters),
-                "evolutionary"       => CreateEvolutionary(parameters),
+                "random" => CreateRandom(parameters),
+                "evolutionary" => CreateEvolutionary(parameters),
                 "simulatedannealing" => CreateSimulatedAnnealing(parameters),
-                "greedy"             => ("Greedy", new GreedyAlgorithm(), new GreedyParameters()),
-                "spt"                => ("SPT", new SptAlgorithm(), new GreedyParameters()),
-                _                    => throw new ArgumentException($"Unknown algorithm type '{type}'.")
+                "greedy" => ("Greedy", new GreedyAlgorithm(), new GreedyParameters()),
+                "spt" => ("SPT", new SptAlgorithm(), new GreedyParameters()),
+                _ => throw new ArgumentException($"Unknown algorithm type '{type}'.")
             };
         }
 
@@ -94,22 +105,48 @@ namespace ExperimentRunner
 
         private static (string Name, IAlgorithm Algo, IParameters Params) CreateRandom(JsonElement parameters)
         {
+            var hasTimeLimitMs = TryGetParameter(parameters, nameof(RandomParametersDto.TimeLimitMs), out _);
+            var hasIterations = TryGetParameter(parameters, nameof(RandomParametersDto.Iterations), out _);
+            var hasEvaluationBudget = TryGetParameter(parameters, nameof(RandomParametersDto.EvaluationBudget), out _);
+
             var dto = parameters.ValueKind != JsonValueKind.Undefined
                 ? JsonSerializer.Deserialize<RandomParametersDto>(parameters, JsonOptions) ?? new RandomParametersDto()
                 : new RandomParametersDto();
 
+            // If both Iterations and EvaluationBudget are provided, ensure budget is not smaller than iterations.
+            if (hasEvaluationBudget && dto.EvaluationBudget.HasValue)
+            {
+                if (dto.EvaluationBudget.Value < 0)
+                    throw new ArgumentException($"{RandomParameterFactory.EvaluationBudgetName} must be >= 0 (was {dto.EvaluationBudget.Value}).");
+
+                if (hasIterations && dto.EvaluationBudget.Value > 0 && dto.Iterations > dto.EvaluationBudget.Value)
+                    throw new ArgumentException($"Iterations ({dto.Iterations}) exceeds EvaluationBudget ({dto.EvaluationBudget.Value}). Reduce Iterations or increase EvaluationBudget.");
+            }
+
             RandomSearchParameters pars;
             if (dto.TimeLimitMs.HasValue)
+            {
                 pars = RandomSearchParameters.ForTimeLimit(TimeSpan.FromMilliseconds(dto.TimeLimitMs.Value), dto.Seed);
-            else if (dto.EvaluationBudget.HasValue)
-                pars = RandomSearchParameters.ForRuns((int)Math.Max(1L, dto.EvaluationBudget.Value), dto.Seed);
+            }
             else
-                pars = RandomSearchParameters.ForRuns(dto.Iterations, dto.Seed);
+            {
+                // Budget behavior:
+                // - if EvaluationBudget is unspecified or == 0 => use Iterations
+                // - if EvaluationBudget > 0 and Iterations unspecified => treat effective Iterations as EvaluationBudget
+                // - if EvaluationBudget > 0 and Iterations specified => Validate enforces Iterations <= EvaluationBudget
+                int effectiveIterations = dto.Iterations;
+                if (dto.EvaluationBudget.HasValue && dto.EvaluationBudget.Value > 0)
+                    effectiveIterations = checked((int)Math.Max(1L, dto.EvaluationBudget.Value));
+
+                pars = RandomSearchParameters.ForRuns(effectiveIterations, dto.Seed);
+            }
 
             if (dto.Monitoring is not null)
                 pars = pars with { Monitoring = dto.Monitoring };
 
-            return ($"Random_{pars.Iterations}_s{pars.Seed}", new RandomSearchAlgorithm(), pars);
+            RandomParameterFactory.Validate(pars);
+
+            return (RandomParameterFactory.ToName(pars), new RandomSearchAlgorithm(), pars);
         }
 
         private static (string Name, IAlgorithm Algo, IParameters Params) CreateEvolutionary(JsonElement parameters)
@@ -162,25 +199,29 @@ namespace ExperimentRunner
         }
 
 
-        // Returns an enumerable of index-aligned pairs from two arrays of equal length.
-        // Throws if either array is null or their lengths differ.
+        // Returns an enumerable of index-aligned tuples from any number of axes.
+        // Throws if any axis is null, empty, or their lengths differ.
         private static IEnumerable<(string Name, JsonElement Value)[]> Pairwise(JsonElement grid)
         {
             var axes = grid.EnumerateObject()
                 .Select(p => (p.Name, Values: ParseGridValues(p.Name, p.Value)))
                 .ToArray();
 
-            if (axes.Length != 2)
-                throw new ArgumentException("Pairwise product requires exactly two axes in the ParameterGrid.");
-            var len = axes[0].Values.Count;
-            if (len != axes[1].Values.Count)
-                throw new ArgumentException("Both axes must have the same length for pairwise iteration.");
+            if (axes.Length < 2)
+                throw new ArgumentException("Pairwise product requires at least two axes in the ParameterGrid.");
+
+            int len = axes[0].Values.Count;
+            foreach (var axis in axes)
+            {
+                if (axis.Values.Count != len)
+                    throw new ArgumentException("All axes must have the same length for pairwise iteration.");
+            }
 
             for (int i = 0; i < len; i++)
             {
-                var combo = new (string Name, JsonElement Value)[2];
-                combo[0] = (axes[0].Name, axes[0].Values[i]);
-                combo[1] = (axes[1].Name, axes[1].Values[i]);
+                var combo = new (string Name, JsonElement Value)[axes.Length];
+                for (int j = 0; j < axes.Length; j++)
+                    combo[j] = (axes[j].Name, axes[j].Values[i]);
                 yield return combo;
             }
         }
@@ -306,6 +347,8 @@ namespace ExperimentRunner
             _ => false
         };
 
+        // RandomParametersDto moved to its own file so it can be referenced by the
+        // RandomParameterFactory implementation.
         private sealed class RandomParametersDto
         {
             public int Seed { get; set; } = 0;

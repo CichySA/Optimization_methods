@@ -1,11 +1,9 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
+using PFSP.Algorithms;
 using PFSP.Algorithms.Evolutionary;
 using PFSP.Algorithms.SimulatedAnnealing;
 using PFSP.Solutions;
 
-namespace PFSP.Algorithms.Monitoring
+namespace PFSP.Monitoring
 {
     public static class StandardAlgorithmMetrics
     {
@@ -65,6 +63,16 @@ namespace PFSP.Algorithms.Monitoring
                 AlgorithmMetricNames.BestInPopulationByGeneration,
                 AlgorithmEventKind.GenerationCompleted,
                 state => BestPopulationCost(state.Population)),
+
+            new DenseMetric<EvolutionaryAlgorithmState>(
+                AlgorithmMetricNames.WorstInPopulationByGeneration,
+                AlgorithmEventKind.GenerationCompleted,
+                state => WorstPopulationCost(state.Population)),
+
+             new DenseMetric<EvolutionaryAlgorithmState>(
+                AlgorithmMetricNames.HemmingDistanceByGeneration,
+                AlgorithmEventKind.GenerationCompleted,
+                state => HemmingDistance(state.Population))
 
         ];
 
@@ -136,5 +144,47 @@ namespace PFSP.Algorithms.Monitoring
 
             return double.IsPositiveInfinity(best) ? 0.0 : best;
         }
+
+        private static double WorstPopulationCost(IEnumerable<ISolution> population)
+        {
+            double worst = double.NegativeInfinity;
+            foreach (var solution in population)
+                if (solution.Cost > worst)
+                    worst = solution.Cost;
+
+            return double.IsNegativeInfinity(worst) ? 0.0 : worst;
+        }
+
+        private static double HemmingDistance(IEnumerable<ISolution> population)
+        {
+            var solutions = population.ToArray();
+            int n = solutions.Length;
+            if (n < 2)
+                return 0.0;
+
+            int permutationLength = solutions[0].Permutation.Length;
+            double totalDistance = 0;
+            int pairCount = 0;
+
+            for (int i = 0; i < n - 1; i++)
+            {
+                var permA = solutions[i].Permutation;
+                for (int j = i + 1; j < n; j++)
+                {
+                    var permB = solutions[j].Permutation;
+                    int dist = 0;
+                    for (int k = 0; k < permutationLength; k++)
+                    {
+                        if (permA[k] != permB[k])
+                            dist++;
+                    }
+                    totalDistance += dist;
+                    pairCount++;
+                }
+            }
+
+            return pairCount > 0 ? totalDistance / pairCount : 0.0;
+        }
+
     }
 }

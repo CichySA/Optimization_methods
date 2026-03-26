@@ -1,8 +1,6 @@
-using PFSP.Algorithms;
-using PFSP.Algorithms.Monitoring;
 using PFSP.Algorithms.Evolutionary;
 using PFSP.Instances;
-using PfspTests;
+using PFSP.Monitoring;
 
 namespace PfspTests.Algorithms.Evolutionary
 {

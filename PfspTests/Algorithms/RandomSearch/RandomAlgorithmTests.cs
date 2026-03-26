@@ -1,8 +1,8 @@
 using PFSP.Algorithms;
-using PFSP.Algorithms.Monitoring;
 using PFSP.Algorithms.RandomSearch;
 using PFSP.Evaluators;
 using PFSP.Instances;
+using PFSP.Monitoring;
 
 namespace PfspTests.Algorithms.RandomSearch
 {

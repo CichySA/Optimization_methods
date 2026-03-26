@@ -1,4 +1,4 @@
-using PFSP.Algorithms.Monitoring;
+using PFSP.Monitoring;
 
 namespace PFSP.Algorithms.Greedy
 {

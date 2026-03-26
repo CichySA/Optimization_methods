@@ -1,4 +1,4 @@
-namespace PFSP.Algorithms.Monitoring
+namespace PFSP.Monitoring
 {
     public static class AlgorithmMetricNames
     {
@@ -13,7 +13,8 @@ namespace PFSP.Algorithms.Monitoring
         public const string MeanByGeneration = nameof(MeanByGeneration);
         public const string DeviationByGeneration = nameof(DeviationByGeneration);
         public const string BestInPopulationByGeneration = nameof(BestInPopulationByGeneration);
-        // ElapsedOnFinished removed: use ElapsedMs instead
+        public const string WorstInPopulationByGeneration = nameof(WorstInPopulationByGeneration);
+        public const string HemmingDistanceByGeneration = nameof(HemmingDistanceByGeneration);
         public const string Warnings = nameof(Warnings);
     }
 }
