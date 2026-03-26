@@ -8,9 +8,9 @@
       "Type": "Evolutionary",
       "Parameters": {
         "Seed": 42,
-        "Samples": 3,
-        "PopulationSize": 30,
-        "Generations": 20,
+        "Samples": 20,
+        "PopulationSize": 200,
+        "Generations": 200,
         "CrossoverRate": 0.7,
         "MutationRate": 0.1,
         "TournamentSize": 5,
@@ -20,10 +20,12 @@
         "Monitoring": {
           "Enabled": true,
           "EnabledMetrics": [
-            "BestByGeneration",
+            "BestInPopulationByGeneration",
+            "WorstInPopulationByGeneration",
+            "ElapsedMs",
+            "Evaluations",
             "MeanByGeneration",
-            "DeviationByGeneration",
-            "ElapsedOnFinished"
+            "DeviationByGeneration"
           ]
         }
       }

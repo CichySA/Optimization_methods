@@ -15,7 +15,8 @@
     "Monitoring": {
       "Enabled": true,
       "EnabledMetrics": [
-        "ElapsedMs"
+        "ElapsedMs",
+        "Evaluations"
       ]
     }
   },
@@ -38,7 +39,6 @@
         "Monitoring": {
           "Enabled": true,
           "EnabledMetrics": [
-            "ElapsedMs",
             "BestByGeneration",
             "WorstByGeneration",
             "MeanByGeneration",

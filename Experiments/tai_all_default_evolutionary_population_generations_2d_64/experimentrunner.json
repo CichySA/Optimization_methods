@@ -10,11 +10,12 @@
   "OutDir": "Experiments/tai_all_default_evolutionary_population_generations_2d_64",
   "Parameters": {
     "Seed": 42,
-    "Samples": 20,
+    "Samples": 1,
     "Monitoring": {
       "Enabled": true,
       "EnabledMetrics": [
-        "ElapsedMs"
+        "ElapsedMs",
+        "Evaluations"
       ]
     }
   },

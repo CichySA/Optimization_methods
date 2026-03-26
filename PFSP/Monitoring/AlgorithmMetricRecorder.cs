@@ -37,6 +37,18 @@ namespace PFSP.Monitoring
             ((List<AlgorithmMetricPoint>)series).Add(new AlgorithmMetricPoint(index, value));
         }
 
+        public bool TryGetLastDense(string name, out double value)
+        {
+            ArgumentException.ThrowIfNullOrWhiteSpace(name);
+            var storage = _result.ExperimentalDataStorage;
+            value = 0.0;
+            if (!storage.TryGetValue(name, out var series) || series is not List<double> list || list.Count == 0)
+                return false;
+
+            value = list[^1];
+            return true;
+        }
+
         public void RecordWarning(string message)
         {
             ArgumentException.ThrowIfNullOrWhiteSpace(message);

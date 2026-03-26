@@ -139,7 +139,7 @@ namespace PFSP.Algorithms.SimulatedAnnealing
             public double InitialTemperature { get; set; } = SimulatedAnnealingParameters.DefaultInitialTemperature;
             public double CoolingRate { get; set; } = SimulatedAnnealingParameters.DefaultCoolingRate;
             public double MinimumTemperature { get; set; } = SimulatedAnnealingParameters.DefaultMinimumTemperature;
-            public string? NeighborhoodOperator { get; set; } = SwapNeighborhood.Name;
+            public string? NeighborhoodOperator { get; set; } = InsertNeighborhood.Name;
             public string? AcceptanceFunction { get; set; } = ProbabilisticAcceptanceFunction.Name;
             public string? CoolingSchedule { get; set; } = ExponentialCoolingSchedule.Name;
             public JsonElement CoolingScheduleParameters { get; set; }

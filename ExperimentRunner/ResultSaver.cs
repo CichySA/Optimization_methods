@@ -19,7 +19,7 @@ namespace ExperimentRunner
 
         public static void AppendCsvLine(string outDir, string fileName, string line)
         {
-            File.AppendAllText(PathResolver.ResolveOutputFilePath(outDir, fileName), line + System.Environment.NewLine);
+            File.AppendAllText(PathResolver.ResolveOutputFilePath(outDir, fileName), line + Environment.NewLine);
         }
 
         public static void SaveJson(string outDir, string fileName, object data)

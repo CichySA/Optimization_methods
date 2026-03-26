@@ -50,6 +50,11 @@ namespace PFSP.Monitoring
                 state => state.Best is null ? null : state.Best.Cost),
 
             new DenseMetric<EvolutionaryAlgorithmState>(
+                AlgorithmMetricNames.WorstByGeneration,
+                AlgorithmEventKind.GenerationCompleted,
+                state => state.Population is null ? null : (double?)WorstPopulationCost(state.Population)),
+
+            new DenseMetric<EvolutionaryAlgorithmState>(
                 AlgorithmMetricNames.MeanByGeneration,
                 AlgorithmEventKind.GenerationCompleted,
                 state => MeanCost(state.Population)),
@@ -92,6 +97,17 @@ namespace PFSP.Monitoring
                 var value = selector(typedState);
                 if (!value.HasValue)
                     return;
+
+                // Special handling for worst-by-generation: only record if this value is worse
+                // (i.e., greater) than the previously recorded worst value.
+                if (string.Equals(name, AlgorithmMetricNames.WorstByGeneration, StringComparison.Ordinal))
+                {
+                    if (recorder.TryGetLastDense(name, out var last))
+                    {
+                        if (value.Value <= last)
+                            return; // not worse than previous
+                    }
+                }
 
                 recorder.RecordDense(name, value.Value);
             }
