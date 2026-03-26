@@ -23,7 +23,6 @@
             "BestByGeneration",
             "MeanByGeneration",
             "DeviationByGeneration",
-            "BestInPopulationByGeneration",
             "ElapsedOnFinished"
           ]
         }

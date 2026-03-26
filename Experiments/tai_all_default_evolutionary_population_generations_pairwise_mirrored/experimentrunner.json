@@ -10,7 +10,7 @@
   "OutDir": "Experiments/tai_all_default_evolutionary_population_generations_pairwise_mirrored",
   "Parameters": {
     "Seed": 42,
-    "Samples": 20,
+    "Samples": 1,
     "EvaluationBudget": 40000,
     "Monitoring": {
       "Enabled": true,
@@ -38,7 +38,11 @@
         "Monitoring": {
           "Enabled": true,
           "EnabledMetrics": [
-            "ElapsedMs"
+            "ElapsedMs",
+            "BestByGeneration",
+            "WorstByGeneration",
+            "MeanByGeneration",
+            "DeviationByGeneration"
           ]
         }
       }
