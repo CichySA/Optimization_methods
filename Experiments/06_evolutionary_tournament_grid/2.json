@@ -1,0 +1,41 @@
+{
+  "Instances": [
+    "tai_20_5_0",
+    "tai_20_10_0",
+    "tai_20_20_0"
+  ],
+  "OutDir": "Experiments/tai_20_evolutionary_tournament_grid",
+  "EvaluationBudget": 40000,
+  "Algorithms": [
+    {
+      "Type": "Evolutionary",
+      "Parameters": {
+        "Samples": 20,
+        "Seed": 42,
+        "PopulationSize": 625,
+        "Generations": 64,
+        "CrossoverRate": 0.7,
+        "MutationRate": 0.4,
+        "SelectionMethod": "Tournament",
+        "CrossoverMethod": "OX",
+        "MutationMethod": "Swap",
+        "ParameterGrid": {
+          "TournamentSize": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50]
+        },
+        "Monitoring": {
+          "Enabled": true,
+          "EnabledMetrics": [
+            "ElapsedMs",
+            "Evaluations",
+            "xBestInPopulationByGeneration",
+            "xWorstInPopulationByGeneration",
+            "xBestByGeneration",
+            "MeanByGeneration",
+            "xDeviationByGeneration",
+            "xHemmingDistanceByGeneration"
+          ]
+        }
+      }
+    }
+  ]
+}

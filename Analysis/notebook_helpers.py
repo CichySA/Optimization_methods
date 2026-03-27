@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+from functools import lru_cache
 from math import exp
 import re
 import subprocess
@@ -15,6 +16,7 @@ import pandas as pd
 REPO_ROOT = Path(__file__).resolve().parent.parent
 SUPPORTED_SUFFIXES = {".csv", ".json", ".jsonl", ".parquet"}
 EXPERIMENTS_ROOT = REPO_ROOT / "Experiments"
+BEST_KNOWN_PATH = EXPERIMENTS_ROOT / "best_known.json"
 
 try:
     from scipy.interpolate import RegularGridInterpolator
@@ -37,7 +39,9 @@ __all__ = [
     "REPO_ROOT",
     "EXPERIMENTS_ROOT",
     "SUPPORTED_SUFFIXES",
+    "BEST_KNOWN_PATH",
     "list_experiment_directories",
+    "get_best_known",
     "resolve_config_path",
     "load_config",
     "resolve_result_path",
@@ -51,6 +55,27 @@ def list_experiment_directories() -> List[Path]:
     if not EXPERIMENTS_ROOT.exists():
         return []
     return sorted(p for p in EXPERIMENTS_ROOT.iterdir() if p.is_dir())
+
+
+@lru_cache(maxsize=1)
+def _load_best_known() -> dict[str, float]:
+    if not BEST_KNOWN_PATH.exists():
+        raise FileNotFoundError(f"Best-known file not found: {BEST_KNOWN_PATH}")
+
+    data = json.loads(BEST_KNOWN_PATH.read_text(encoding="utf-8"))
+    if not isinstance(data, dict):
+        raise ValueError(f"Best-known file must contain a JSON object: {BEST_KNOWN_PATH}")
+
+    return {str(key): float(value) for key, value in data.items()}
+
+
+def get_best_known(instance_name: str, default: Optional[float] = None) -> Optional[float]:
+    best_known = _load_best_known()
+    key = str(instance_name).strip()
+    value = best_known.get(key)
+    if value is None:
+        value = best_known.get(key.replace("_", ""))
+    return value if value is not None else default
 
 # Replace invalid filename characters with underscores and trim whitespace
 def _safe_experiment_name(name: str) -> str:
