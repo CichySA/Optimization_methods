@@ -376,3 +376,4 @@ Plan.md
 ./VSCodeCounter
 Report/*
 ~!Report/Report_Outline.tex
+result_*.json

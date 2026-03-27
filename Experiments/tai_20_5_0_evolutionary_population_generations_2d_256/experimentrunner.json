@@ -3,11 +3,13 @@
     "tai_20_5_0"
   ],
   "OutDir": "Experiments/tai_20_5_0_evolutionary_population_generations_2d_256",
+  "Name": "2D_parameter_grid_test",
   "Algorithms": [
     {
       "Type": "Evolutionary",
       "Parameters": {
-        "Seed": 0,
+        "Samples": 20,
+        "Seed": 42,
         "CrossoverRate": 0.7,
         "MutationRate": 0.1,
         "TournamentSize": 5,

@@ -13,7 +13,6 @@ import numpy as np
 import pandas as pd
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
-EXPERIMENT_CONFIG_NAME = "experimentrunner.json"
 SUPPORTED_SUFFIXES = {".csv", ".json", ".jsonl", ".parquet"}
 EXPERIMENTS_ROOT = REPO_ROOT / "Experiments"
 
@@ -37,39 +36,14 @@ __all__ = [
     "gaussian_filter",
     "REPO_ROOT",
     "EXPERIMENTS_ROOT",
-    "EXPERIMENT_CONFIG_NAME",
     "SUPPORTED_SUFFIXES",
-    "list_supported_experiment_files",
     "list_experiment_directories",
-    "list_experiment_files",
-    "find_experiment_results_csv",
-    "load_experiment_file",
-    "read_csv",
-    "read_first_existing_csv",
-    "resolve_experiment_directory",
-    "resolve_experiment_config_path",
-    "get_config_path",
-    "load_experiment_config",
-    "get_out_dir_from_config",
-    "resolve_output_paths",
+    "resolve_config_path",
+    "load_config",
+    "resolve_result_path",
+    "load_result",
     "run_experiment",
-    "require_file",
-    "read_results_csv",
-    "read_results_table",
-    "read_results_json",
 ]
-
-
-def list_supported_experiment_files(
-    results_dir: Path,
-    supported_suffixes: Iterable[str] | None = None,
-) -> list[Path]:
-    suffixes = {s.lower() for s in (supported_suffixes or SUPPORTED_SUFFIXES)}
-    return sorted(
-        p
-        for p in results_dir.rglob("*")
-        if p.is_file() and p.suffix.lower() in suffixes
-    )
 
 
 def list_experiment_directories() -> List[Path]:
@@ -77,165 +51,106 @@ def list_experiment_directories() -> List[Path]:
         return []
     return sorted(p for p in EXPERIMENTS_ROOT.iterdir() if p.is_dir())
 
-
-def list_experiment_files(
-    experiment_name: Optional[str] = None,
-    supported_suffixes: Iterable[str] | None = None,
-) -> list[Path]:
-    base = resolve_experiment_directory(experiment_name) if experiment_name else EXPERIMENTS_ROOT
-    return list_supported_experiment_files(base, supported_suffixes=supported_suffixes)
-
-
-def find_experiment_results_csv(experiment_name: Optional[str] = None) -> Path:
-    filename = "experiment_results.csv"
-    if experiment_name:
-        candidate = resolve_experiment_directory(experiment_name) / filename
-        if candidate.exists():
-            return candidate
-        raise FileNotFoundError(f"{filename} not found for experiment: {experiment_name}")
-
-    candidates = sorted(EXPERIMENTS_ROOT.rglob(filename)) if EXPERIMENTS_ROOT.exists() else []
-    if not candidates:
-        raise FileNotFoundError(f"No {filename} found under {EXPERIMENTS_ROOT.resolve()}")
-    return candidates[0]
-
-
-def load_experiment_file(path: Path) -> pd.DataFrame:
-    suffix = path.suffix.lower()
-
-    if suffix == ".csv":
-        return pd.read_csv(path)
-    if suffix == ".parquet":
-        return pd.read_parquet(path)
-    if suffix == ".json":
-        data = json.loads(path.read_text(encoding="utf-8"))
-        if isinstance(data, (list, dict)):
-            return pd.json_normalize(data)
-        return pd.DataFrame({"value": [data]})
-    if suffix == ".jsonl":
-        return pd.read_json(path, lines=True)
-
-    raise ValueError(f"Unsupported file type: {path}")
-
-
-def read_csv(path: Path) -> pd.DataFrame:
-    if not path.exists():
-        raise FileNotFoundError(f"CSV file not found: {path.resolve()}")
-    return pd.read_csv(path)
-
-
-def read_first_existing_csv(candidate_paths: Iterable[Path]) -> tuple[Path, pd.DataFrame]:
-    csv_path = next((p for p in candidate_paths if p.exists()), None)
-    if csv_path is None:
-        searched = "\n".join(str(p.resolve()) for p in candidate_paths)
-        raise FileNotFoundError(f"Could not find CSV file. Searched:\n{searched}")
-    return csv_path, pd.read_csv(csv_path)
-
-
-def resolve_experiment_directory(experiment_name: str) -> Path:
-    if not experiment_name:
-        raise ValueError("experiment_name must not be empty")
-    return EXPERIMENTS_ROOT / experiment_name
-
-
+# Replace invalid filename characters with underscores and trim whitespace
 def _safe_experiment_name(name: str) -> str:
     safe = re.sub(r'[<>:"/\\|?*\s]+', '_', name.strip())
     return safe or "unnamed_experiment"
 
+# Trim `config_` or `result_` prefix from filename
+def _experiment_name_from_file_path(file_path: Path) -> str:
+    stem = file_path.stem
 
-def _experiment_name_from_config_path(config_path: Path) -> str:
-    stem = config_path.stem
-    if stem.lower() == "experimentrunner":
-        name = config_path.parent.name
+    if stem.lower().startswith("config_"):
+        name = stem[len("config_"):]
+    elif stem.lower().startswith("result_"):
+        name = stem[len("result_"):]
     else:
         name = stem
 
-    if name.lower().startswith("config_"):
-        name = name[len("config_"):]
-
     return _safe_experiment_name(name)
 
+# Return name from config "Name" field if set, otherwise derive from config filename
+def _effective_experiment_name(config_path: Path, config: dict) -> str:
+    derived_name = _experiment_name_from_file_path(config_path)
+    configured_name = _safe_experiment_name(str(config.get("Name") or ""))
+    return derived_name if configured_name == "unnamed_experiment" else configured_name
 
-def resolve_experiment_config_path(experiment_ref: str) -> Path:
+
+def _resolve_out_dir_path(outdir: str | Path) -> Path:
+    out_dir_path = Path(str(outdir))
+    normalized = out_dir_path if out_dir_path.is_absolute() else (REPO_ROOT / out_dir_path)
+    return normalized.resolve()
+
+
+def resolve_config_path(experiment_ref: str) -> tuple[Path, dict, Path]:
     if not experiment_ref:
         raise ValueError("experiment_ref must not be empty")
 
     ref_path = Path(experiment_ref)
+    if not ref_path.suffix:
+        ref_path = ref_path.with_suffix(".json")
 
-    if ref_path.suffix.lower() == ".json":
-        candidates = [
-            ref_path,
-            REPO_ROOT / ref_path,
-            EXPERIMENTS_ROOT / ref_path,
-        ]
+    if ref_path.is_absolute():
+        config_path = ref_path.resolve()
+    elif ref_path.parts and ref_path.parts[0].lower() == "experiments":
+        config_path = (REPO_ROOT / ref_path).resolve()
     else:
-        candidates = [
-            EXPERIMENTS_ROOT / ref_path / EXPERIMENT_CONFIG_NAME,
-            REPO_ROOT / ref_path / EXPERIMENT_CONFIG_NAME,
-            REPO_ROOT / ref_path,
-        ]
+        config_path = (EXPERIMENTS_ROOT / ref_path).resolve()
 
-    for candidate in candidates:
-        if candidate.exists():
-            return candidate.resolve()
+    try:
+        config = json.loads(config_path.read_text(encoding="utf-8"))
+    except FileNotFoundError as exc:
+        raise FileNotFoundError(f"Config not found: {config_path}") from exc
 
-    return candidates[0].resolve()
+    if not (out_dir := config.get("OutDir")):
+        raise ValueError("Missing OutDir in experiment config")
 
-
-def get_config_path(experiment_ref: str) -> Path:
-    return resolve_experiment_config_path(experiment_ref)
+    out_dir_path = _resolve_out_dir_path(out_dir)
+    return config_path, config, out_dir_path
 
 
-def load_experiment_config(experiment_ref: str) -> tuple[Path, dict]:
-    config_path = get_config_path(experiment_ref)
-    if not config_path.exists():
-        raise FileNotFoundError(f"Config not found: {config_path}")
-    config = json.loads(config_path.read_text(encoding="utf-8"))
+def load_config(experiment_ref: str) -> tuple[Path, dict]:
+    config_path, config, _ = resolve_config_path(experiment_ref)
     return config_path, config
 
 
-def get_out_dir_from_config(config: dict) -> str:
-    out_dir = config.get("OutDir")
-    if not out_dir:
-        raise ValueError("Missing OutDir in experiment config")
-    return str(out_dir)
+def resolve_result_path(outdir: str, experiment_ref: str) -> Path:
+    out_dir_path = _resolve_out_dir_path(outdir)
+    ref_path = Path(experiment_ref)
+    if not ref_path.suffix:
+        ref_path = ref_path.with_suffix(".json")
+
+    if not ref_path.stem.lower().startswith("result_"):
+        ref_path = ref_path.with_name(f"result_{ref_path.stem}{ref_path.suffix}")
+
+    return out_dir_path / ref_path
 
 
-def resolve_output_paths(experiment_ref: str) -> tuple[Path, Path, Path, Path]:
-    config_path, config = load_experiment_config(experiment_ref)
-    experiment_name = _experiment_name_from_config_path(config_path)
-    out_dir_value = Path(get_out_dir_from_config(config))
-    out_dir_name = out_dir_value.name
+def load_result(result_path: Path) -> pd.DataFrame:
+    if not result_path.exists():
+        raise FileNotFoundError(f"Expected file not found: {result_path}")
 
-    candidates: list[Path] = []
-    if out_dir_value.is_absolute():
-        candidates.append(out_dir_value)
-    else:
-        candidates.append(REPO_ROOT / out_dir_value)
-        candidates.append(EXPERIMENTS_ROOT / out_dir_value)
-        candidates.append(REPO_ROOT / out_dir_name)
-        candidates.append(EXPERIMENTS_ROOT / out_dir_name)
+    suffix = result_path.suffix.lower()
+    if suffix == ".csv":
+        return pd.read_csv(result_path)
+    if suffix == ".parquet":
+        return pd.read_parquet(result_path)
+    if suffix == ".json":
+        data = json.loads(result_path.read_text(encoding="utf-8"))
+        if isinstance(data, list):
+            return pd.json_normalize(data)
+        if isinstance(data, dict):
+            return pd.json_normalize([data])
+        return pd.DataFrame({"value": [data]})
+    if suffix == ".jsonl":
+        return pd.read_json(result_path, lines=True)
 
-    out_dir = next((p for p in candidates if p.exists()), candidates[0])
-
-    preferred_csv = out_dir / f"result_{experiment_name}.csv"
-    preferred_json = out_dir / f"result_{experiment_name}.json"
-    legacy_csv = out_dir / "experiment_results.csv"
-    legacy_json = out_dir / "experiment_results.json"
-
-    results_csv = preferred_csv if preferred_csv.exists() else legacy_csv
-    results_json = preferred_json if preferred_json.exists() else legacy_json
-
-    return (
-        config_path,
-        out_dir,
-        results_csv,
-        results_json,
-    )
+    raise ValueError(f"Unsupported file type: {result_path}")
 
 
-def run_experiment(experiment_ref: str, output = False) -> tuple[subprocess.CompletedProcess[str], Path, Path, Path, Path]:
-    config_path, out_dir, results_csv, results_json = resolve_output_paths(experiment_ref)
+def run_experiment(experiment_ref: str, output = False) -> tuple[str, Path, Path]:
+    config_path, config, out_dir = resolve_config_path(experiment_ref)
+    experiment_name = _effective_experiment_name(config_path, config)
     cmd = ["dotnet", "run", "--project", "ExperimentRunner", "--", "--config", str(config_path)]
     print("Running:", " ".join(cmd))
     result = subprocess.run(cmd, cwd=REPO_ROOT, capture_output=True, text=True, check=False)
@@ -245,37 +160,7 @@ def run_experiment(experiment_ref: str, output = False) -> tuple[subprocess.Comp
         print("STDERR:\n" + result.stderr)
     if result.returncode != 0:
         raise RuntimeError(f"ExperimentRunner failed with exit code {result.returncode}")
-    return result, config_path, out_dir, results_csv, results_json
+    results_json = resolve_result_path(out_dir, experiment_name)
+    return experiment_name, config_path, results_json
 
 
-def require_file(path: Path) -> Path:
-    if not path.exists():
-        raise FileNotFoundError(f"Expected file not found: {path}")
-    return path
-
-
-def read_results_csv(experiment_name: str) -> pd.DataFrame:
-    _, _, results_csv, _ = resolve_output_paths(experiment_name)
-    require_file(results_csv)
-    return pd.read_csv(results_csv)
-
-
-def read_results_table(experiment_name: str) -> pd.DataFrame:
-    _, _, results_csv, results_json = resolve_output_paths(experiment_name)
-    if results_csv.exists():
-        return pd.read_csv(results_csv)
-    if results_json.exists():
-        data = json.loads(results_json.read_text(encoding="utf-8"))
-        if isinstance(data, list):
-            return pd.json_normalize(data)
-        if isinstance(data, dict):
-            return pd.json_normalize([data])
-    raise FileNotFoundError(
-        f"Neither CSV nor JSON results found for experiment: {experiment_name}"
-    )
-
-
-def read_results_json(experiment_name: str) -> list[dict]:
-    _, _, _, results_json = resolve_output_paths(experiment_name)
-    require_file(results_json)
-    return json.loads(results_json.read_text(encoding="utf-8"))
