@@ -10,15 +10,8 @@
   "OutDir": "Experiments/tai_all_default_evolutionary_population_generations_pairwise_mirrored",
   "Parameters": {
     "Seed": 42,
-    "Samples": 1,
-    "EvaluationBudget": 40000,
-    "Monitoring": {
-      "Enabled": true,
-      "EnabledMetrics": [
-        "ElapsedMs",
-        "Evaluations"
-      ]
-    }
+    "Samples": 20,
+    "EvaluationBudget": 40000
   },
   "Algorithms": [
     {
@@ -33,14 +26,51 @@
         "MutationMethod": "Swap",
         "Product": "Pairwise",
         "ParameterGrid": {
-          "PopulationSize": [5, 10, 16, 25, 40, 64, 80, 125, 200, 320, 500, 625, 1000, 1600, 2500, 4000, 8000],
-          "Generations": [8000, 4000, 2500, 1600, 1000, 625, 500, 320, 200, 125, 80, 64, 40, 25, 16, 10, 5]
+          "PopulationSize": [
+            5,
+            10,
+            16,
+            25,
+            40,
+            64,
+            80,
+            125,
+            200,
+            320,
+            500,
+            625,
+            1000,
+            1600,
+            2500,
+            4000,
+            8000
+          ],
+          "Generations": [
+            8000,
+            4000,
+            2500,
+            1600,
+            1000,
+            625,
+            500,
+            320,
+            200,
+            125,
+            80,
+            64,
+            40,
+            25,
+            16,
+            10,
+            5
+          ]
         },
         "Monitoring": {
           "Enabled": true,
           "EnabledMetrics": [
+            "ElapsedMs",
+            "Evaluations",
             "BestByGeneration",
-            "WorstByGeneration",
             "MeanByGeneration",
             "DeviationByGeneration"
           ]

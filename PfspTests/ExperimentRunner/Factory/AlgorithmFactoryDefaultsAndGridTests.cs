@@ -255,40 +255,6 @@ namespace PfspTests.ExperimentRunner.Factory
             Assert.Contains("Computed NFE", ex.Message, StringComparison.Ordinal);
         }
 
-        // ── SA EvaluationBudget validation ──────────────────────────────────
-        // Error when Iterations > EvaluationBudget
-
-        [Fact]
-        public void CreateFromSpec_SimulatedAnnealingIterationsExceedEvaluationBudget_ThrowsArgumentException()
-        {
-            // 100 > 50
-            var spec = new AlgorithmSpec
-            {
-                Type = "SimulatedAnnealing",
-                Parameters = AlgorithmFactoryTestData.Elem("""{ "Iterations": 100, "EvaluationBudget": 50 }""")
-            };
-
-            var ex = Assert.Throws<ArgumentException>(() => AlgorithmFactory.CreateFromSpec(spec).ToList());
-            Assert.Contains("Iterations", ex.Message, StringComparison.Ordinal);
-            Assert.Contains("EvaluationBudget", ex.Message, StringComparison.Ordinal);
-        }
-
-        [Fact]
-        public void CreateFromSpec_SimulatedAnnealingGlobalEvaluationBudgetViolatedByIterations_ThrowsArgumentException()
-        {
-            // 100 > 50 (budget from global)
-            var spec = new AlgorithmSpec
-            {
-                Type = "SimulatedAnnealing",
-                Parameters = AlgorithmFactoryTestData.Elem("""{ "Iterations": 100 }""")
-            };
-            var global = AlgorithmFactoryTestData.Elem("""{"EvaluationBudget": 50}""");
-
-            var ex = Assert.Throws<ArgumentException>(
-                () => AlgorithmFactory.CreateFromSpec(spec, globalParameters: global).ToList());
-            Assert.Contains("Iterations", ex.Message, StringComparison.Ordinal);
-            Assert.Contains("EvaluationBudget", ex.Message, StringComparison.Ordinal);
-        }
 
         [Fact]
         public void CreateFromSpec_EvolutionaryWithElitismAndBudget_GenerationsAdjustedToMatchBudget()

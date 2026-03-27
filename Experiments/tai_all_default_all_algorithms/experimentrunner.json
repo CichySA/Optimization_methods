@@ -9,22 +9,29 @@
   ],
   "OutDir": "Experiments/tai_all_default_all_algorithms",
   "Parameters": {
-      "Samples" : 5
+    "Samples": 20,
+    "EvaluationBudget": 40000,
+    "Seed": 42,
+    "Monitoring": {
+      "Enabled": true,
+      "EnabledMetrics": [
+        "ElapsedMs",
+        "Evaluations"
+      ]
+    }
   },
   "Algorithms": [
     {
       "Type": "Random",
       "Parameters": {
-        "Seed": 42,
-        "Iterations": 10000
+        "Iterations": 40000
       }
     },
     {
       "Type": "Evolutionary",
       "Parameters": {
-        "Seed": 42,
-        "PopulationSize": 100,
-        "Generations": 100,
+        "PopulationSize": 200,
+        "Generations": 200,
         "CrossoverRate": 0.7,
         "MutationRate": 0.1,
         "TournamentSize": 5,
@@ -36,14 +43,13 @@
     {
       "Type": "SimulatedAnnealing",
       "Parameters": {
-        "Iterations": 10000,
+        "Iterations": 40000,
         "InitialTemperature": 100.0,
         "CoolingRate": 0.995,
         "MinimumTemperature": 0.0001,
         "AcceptanceFunction": "Probabilistic",
         "CoolingSchedule": "Linear",
-        "NeighborhoodOperator": "Swap",
-        "Seed": 42
+        "NeighborhoodOperator": "Insert"
       }
     },
     {
