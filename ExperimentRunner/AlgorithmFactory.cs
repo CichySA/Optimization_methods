@@ -113,32 +113,28 @@ namespace ExperimentRunner
                 ? JsonSerializer.Deserialize<RandomParametersDto>(parameters, JsonOptions) ?? new RandomParametersDto()
                 : new RandomParametersDto();
 
-            // If both Iterations and EvaluationBudget are provided, ensure budget is not smaller than iterations.
-            if (hasEvaluationBudget && dto.EvaluationBudget.HasValue)
-            {
-                if (dto.EvaluationBudget.Value < 0)
-                    throw new ArgumentException($"{RandomParameterFactory.EvaluationBudgetName} must be >= 0 (was {dto.EvaluationBudget.Value}).");
-
-                if (hasIterations && dto.EvaluationBudget.Value > 0 && dto.Iterations > dto.EvaluationBudget.Value)
-                    throw new ArgumentException($"Iterations ({dto.Iterations}) exceeds EvaluationBudget ({dto.EvaluationBudget.Value}). Reduce Iterations or increase EvaluationBudget.");
-            }
+            var rawEvaluationBudget = dto.EvaluationBudget.GetValueOrDefault(0);
+            var evaluationBudget = rawEvaluationBudget > 0 ? rawEvaluationBudget : 0;
 
             RandomSearchParameters pars;
             if (dto.TimeLimitMs.HasValue)
             {
-                pars = RandomSearchParameters.ForTimeLimit(TimeSpan.FromMilliseconds(dto.TimeLimitMs.Value), dto.Seed);
+                pars = RandomSearchParameters.ForTimeLimit(
+                    TimeSpan.FromMilliseconds(dto.TimeLimitMs.Value),
+                    dto.Seed,
+                    evaluationBudget);
             }
             else
             {
                 // Budget behavior:
                 // - if EvaluationBudget is unspecified or == 0 => use Iterations
                 // - if EvaluationBudget > 0 and Iterations unspecified => treat effective Iterations as EvaluationBudget
-                // - if EvaluationBudget > 0 and Iterations specified => Validate enforces Iterations <= EvaluationBudget
+                // - if EvaluationBudget > 0 and Iterations specified => keep provided Iterations and rely on warning observation
                 int effectiveIterations = dto.Iterations;
-                if (dto.EvaluationBudget.HasValue && dto.EvaluationBudget.Value > 0)
+                if (!hasIterations && dto.EvaluationBudget.HasValue && dto.EvaluationBudget.Value > 0)
                     effectiveIterations = checked((int)Math.Max(1L, dto.EvaluationBudget.Value));
 
-                pars = RandomSearchParameters.ForRuns(effectiveIterations, dto.Seed);
+                pars = RandomSearchParameters.ForRuns(effectiveIterations, dto.Seed, evaluationBudget);
             }
 
             if (dto.Monitoring is not null)
@@ -172,7 +168,9 @@ namespace ExperimentRunner
         private static SimulatedAnnealingParameters CreateSimulatedAnnealingParameters(JsonElement parameters)
         {
             var raw = parameters.ValueKind != JsonValueKind.Undefined ? parameters.GetRawText() : "{}";
-            var pars = SimulatedAnnealingParameterFactory.FromJson(raw);
+            var parsed = SimulatedAnnealingParameterFactory.FromJson(raw);
+            var normalizedBudget = parsed.EvaluationBudget > 0 ? parsed.EvaluationBudget : 0;
+            var pars = parsed with { EvaluationBudget = normalizedBudget };
             SimulatedAnnealingParameterFactory.Validate(pars);
             return pars;
         }

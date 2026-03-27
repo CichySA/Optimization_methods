@@ -10,7 +10,7 @@
   "OutDir": "Experiments/03_default_all_algorithms",
   "Parameters": {
     "Samples": 1,
-    "EvaluationBudget": 400,
+    "EvaluationBudget": 40,
     "Seed": 42,
     "Monitoring": {
       "Enabled": true,
@@ -43,7 +43,7 @@
     {
       "Type": "SimulatedAnnealing",
       "Parameters": {
-        "Iterations": 399,
+        "Iterations": 400,
         "InitialTemperature": 100.0,
         "CoolingRate": 0.995,
         "MinimumTemperature": 0.0001,

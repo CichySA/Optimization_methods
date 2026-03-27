@@ -67,7 +67,7 @@ namespace PFSP.Algorithms.RandomSearch
             Seed = p.Seed,
             Iterations = p.Iterations,
             TimeLimitMs = p.TimeLimit.HasValue ? (int?)CheckedMilliseconds(p.TimeLimit.Value) : null,
-            EvaluationBudget = null,
+            EvaluationBudget = p.EvaluationBudget > 0 ? p.EvaluationBudget : null,
             Monitoring = p.Monitoring
         };
 

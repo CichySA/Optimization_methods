@@ -106,10 +106,6 @@ namespace PFSP.Algorithms.SimulatedAnnealing
 
             if (p.Iterations <= 0)
                 errors.Add($"{IterationsName} must be > 0 (was {p.Iterations}).");
-            if (p.EvaluationBudget < 0)
-                errors.Add($"{EvaluationBudgetName} must be >= 0 (was {p.EvaluationBudget}).");
-            if (p.EvaluationBudget > 0 && p.Iterations > p.EvaluationBudget)
-                errors.Add($"{IterationsName} ({p.Iterations}) exceeds {EvaluationBudgetName} ({p.EvaluationBudget}). Reduce {IterationsName} or increase {EvaluationBudgetName}.");
             if (p.InitialTemperature <= 0)
                 errors.Add($"{InitialTemperatureName} must be > 0 (was {p.InitialTemperature}).");
             if (p.CoolingRate <= 0 || p.CoolingRate >= 1)

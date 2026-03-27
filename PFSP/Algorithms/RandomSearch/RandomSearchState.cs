@@ -13,6 +13,7 @@ namespace PFSP.Algorithms.RandomSearch
             RandomSearchParameters parameters)
             : base(instance, parameters)
         {
+            EvaluationBudget = parameters.EvaluationBudget;
             RemainingIterations = parameters.Iterations;
             Generator = new RandomPermutationSolutionGenerator(parameters.Seed);
             CandidatePermutation = new int[instance.Jobs];

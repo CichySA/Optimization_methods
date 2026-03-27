@@ -47,6 +47,7 @@ __all__ = [
     "resolve_result_path",
 
     "load_result",
+    "aggregate_warning_metrics",
     "run_experiment",
 ]
 
@@ -166,6 +167,75 @@ def load_config(out_dir: str, config_name: str) -> tuple[Path, dict]:
     return config_path, config
 
 
+def aggregate_warning_metrics(df: pd.DataFrame) -> list[str]:
+    if df.empty:
+        return []
+
+    warnings_column = None
+    if "Metrics.Warnings" in df.columns:
+        warnings_column = "Metrics.Warnings"
+    elif "Warnings" in df.columns:
+        warnings_column = "Warnings"
+
+    if warnings_column is None:
+        return []
+
+    if "AlgorithmType" in df.columns:
+        algorithm_type = df["AlgorithmType"].astype(str)
+    elif "Algorithm" in df.columns:
+        algorithm_type = df["Algorithm"].astype(str).str.split("_", n=1).str[0]
+    else:
+        algorithm_type = pd.Series(["Unknown"] * len(df), index=df.index)
+
+    counts: dict[tuple[str, str], int] = {}
+
+    def _is_missing(value: object) -> bool:
+        if value is None:
+            return True
+        if isinstance(value, (list, tuple, np.ndarray, dict, set)):
+            return False
+        try:
+            return bool(pd.isna(value))
+        except Exception:
+            return False
+
+    def _to_messages(value: object) -> list[str]:
+        if _is_missing(value):
+            return []
+        if isinstance(value, str):
+            text = value.strip()
+            return [text] if text else []
+        if isinstance(value, Iterable):
+            messages: list[str] = []
+            for item in value:
+                if _is_missing(item):
+                    continue
+                text = str(item).strip()
+                if text:
+                    messages.append(text)
+            return messages
+        text = str(value).strip()
+        return [text] if text else []
+
+    warning_series = df[warnings_column].where(pd.notna(df[warnings_column]), None)
+
+    for idx, warning_value in warning_series.items():
+        raw_alg_type = algorithm_type.loc[idx]
+        if _is_missing(raw_alg_type):
+            alg_type = "Unknown"
+        else:
+            alg_type = str(raw_alg_type).strip() or "Unknown"
+        for message in _to_messages(warning_value):
+            key = (alg_type, message)
+            counts[key] = counts.get(key, 0) + 1
+
+    if not counts:
+        return []
+
+    sorted_counts = sorted(counts.items(), key=lambda item: (item[0][0], -item[1], item[0][1]))
+    return [f"[{count}] {alg_type} | {message}" for (alg_type, message), count in sorted_counts]
+
+
 def run_experiment(out_dir: str, config_name: str, output: bool = False) -> tuple[str, Path, Path]:
     out_dir_path = _resolve_out_dir_path(out_dir)
     config_path, config = load_config(out_dir, config_name)
@@ -179,8 +249,19 @@ def run_experiment(out_dir: str, config_name: str, output: bool = False) -> tupl
         print("STDERR:\n" + result.stderr)
     if result.returncode != 0:
         raise RuntimeError(f"ExperimentRunner failed with exit code {result.returncode}")
-
+    
     result_path = resolve_result_path(out_dir_path, experiment_name)
+
+    if not result_path.exists():
+        raise FileNotFoundError(f"Result not found after run: {result_path}")
+
+    if result_path.suffix.lower() == ".json":
+        result_df = load_result(out_dir_path, experiment_name)
+        warning_messages = aggregate_warning_metrics(result_df)
+        if warning_messages:
+            summary = "\n".join(warning_messages)
+            raise RuntimeError(f"Experiment produced warnings:\n{summary}")
+
     generated_config_path = (out_dir_path / f"config_{experiment_name}.json").resolve()
     if not generated_config_path.exists():
         fallback_name = _experiment_name_from_file_path(Path(config_name))

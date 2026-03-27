@@ -23,23 +23,23 @@ namespace PFSP.Algorithms.SimulatedAnnealing
                 instance,
                 parms,
                 new RandomPermutationSolutionGenerator(parms.Seed),
-                parms.Seed == 0 ? new global::System.Random() : new global::System.Random(parms.Seed))
+                parms.Seed == 0 ? new Random() : new Random(parms.Seed))
             {
                 Temperature = parms.InitialTemperature,
-                Iteration = 0
+                Iteration = 0,
+                EvaluationBudget = parms.EvaluationBudget
             };
-            state.EvaluationBudget = parms.EvaluationBudget;
 
             monitor.Emit(AlgorithmEventKind.Started, state);
 
             var initial = state.Generator.Create(instance);
             var currentPermutation = (int[])initial.Permutation.Clone();
             state.Current = PermutationSolution.CreateCopy(currentPermutation, instance.Evaluate(currentPermutation));
+            monitor.Emit(AlgorithmEventKind.CandidateEvaluated, state);
             state.Candidate = state.Current;
             state.Best = state.Current;
             result.SetBest(state.Current);
 
-            monitor.Emit(AlgorithmEventKind.CandidateEvaluated, state);
             state.BestFoundAtEvaluation = state.Evaluations;
             monitor.Emit(AlgorithmEventKind.IterationCompleted, state);
 

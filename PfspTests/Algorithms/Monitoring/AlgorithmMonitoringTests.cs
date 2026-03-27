@@ -269,6 +269,23 @@ namespace PfspTests.Algorithms.Monitoring
             Assert.Contains("NFE budget", warnings[0], StringComparison.OrdinalIgnoreCase);
         }
 
+        [Fact]
+        public void RandomSearch_WithRawParamsExceedingBudget_RecordsWarning()
+        {
+            var parms = RandomSearchParameters.ForRuns(samples: 100, seed: 1, evaluationBudget: 10);
+            var instance = Instance.CreateWithDefaultEvaluator(new double[2, 5]
+            {
+                { 1, 2, 3, 4, 5 },
+                { 5, 4, 3, 2, 1 }
+            });
+
+            var result = new RandomSearchAlgorithm().Solve(instance, parms, TestContext.Current.CancellationToken);
+
+            var warnings = Assert.IsType<string[]>(result.ExperimentalData[AlgorithmMetricNames.Warnings]);
+            Assert.Single(warnings);
+            Assert.Contains("NFE budget", warnings[0], StringComparison.OrdinalIgnoreCase);
+        }
+
         private sealed class ConstantMetric : IAlgorithmMetric
         {
             public string Name => "CustomMetric";
