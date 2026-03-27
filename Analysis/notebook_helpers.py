@@ -41,6 +41,7 @@ __all__ = [
     "resolve_config_path",
     "load_config",
     "resolve_result_path",
+
     "load_result",
     "run_experiment",
 ]
@@ -78,43 +79,24 @@ def _effective_experiment_name(config_path: Path, config: dict) -> str:
 
 def _resolve_out_dir_path(outdir: str | Path) -> Path:
     out_dir_path = Path(str(outdir))
-    normalized = out_dir_path if out_dir_path.is_absolute() else (REPO_ROOT / out_dir_path)
+    normalized = out_dir_path if out_dir_path.is_absolute() else (EXPERIMENTS_ROOT / out_dir_path)
     return normalized.resolve()
 
 
-def resolve_config_path(experiment_ref: str) -> tuple[Path, dict, Path]:
-    if not experiment_ref:
-        raise ValueError("experiment_ref must not be empty")
-
-    ref_path = Path(experiment_ref)
+def resolve_config_path(out_dir: str, experiment_name: str) -> Path:
+    out_dir_path = _resolve_out_dir_path(out_dir)
+    ref_path = Path(experiment_name)
     if not ref_path.suffix:
         ref_path = ref_path.with_suffix(".json")
+    config_path = (out_dir_path / ref_path.name).resolve()
 
-    if ref_path.is_absolute():
-        config_path = ref_path.resolve()
-    elif ref_path.parts and ref_path.parts[0].lower() == "experiments":
-        config_path = (REPO_ROOT / ref_path).resolve()
-    else:
-        config_path = (EXPERIMENTS_ROOT / ref_path).resolve()
+    if not config_path.exists():
+        raise FileNotFoundError(f"Config not found: {config_path}")
 
-    try:
-        config = json.loads(config_path.read_text(encoding="utf-8"))
-    except FileNotFoundError as exc:
-        raise FileNotFoundError(f"Config not found: {config_path}") from exc
-
-    if not (out_dir := config.get("OutDir")):
-        raise ValueError("Missing OutDir in experiment config")
-
-    out_dir_path = _resolve_out_dir_path(out_dir)
-    return config_path, config, out_dir_path
+    return config_path
 
 
-def load_config(experiment_ref: str) -> tuple[Path, dict]:
-    config_path, config, _ = resolve_config_path(experiment_ref)
-    return config_path, config
-
-
-def resolve_result_path(outdir: str, experiment_ref: str) -> Path:
+def resolve_result_path(outdir: str | Path, experiment_ref: str) -> Path:
     out_dir_path = _resolve_out_dir_path(outdir)
     ref_path = Path(experiment_ref)
     if not ref_path.suffix:
@@ -123,10 +105,15 @@ def resolve_result_path(outdir: str, experiment_ref: str) -> Path:
     if not ref_path.stem.lower().startswith("result_"):
         ref_path = ref_path.with_name(f"result_{ref_path.stem}{ref_path.suffix}")
 
-    return out_dir_path / ref_path
+    return (out_dir_path / ref_path.name).resolve()
 
 
-def load_result(result_path: Path) -> pd.DataFrame:
+def load_result(result_or_out_dir: Path | str, experiment_name: Optional[str] = None) -> pd.DataFrame:
+    if experiment_name is None:
+        result_path = Path(str(result_or_out_dir)).resolve()
+    else:
+        result_path = resolve_result_path(str(result_or_out_dir), experiment_name)
+
     if not result_path.exists():
         raise FileNotFoundError(f"Expected file not found: {result_path}")
 
@@ -148,8 +135,15 @@ def load_result(result_path: Path) -> pd.DataFrame:
     raise ValueError(f"Unsupported file type: {result_path}")
 
 
-def run_experiment(experiment_ref: str, output = False) -> tuple[str, Path, Path]:
-    config_path, config, out_dir = resolve_config_path(experiment_ref)
+def load_config(out_dir: str, config_name: str) -> tuple[Path, dict]:
+    config_path = resolve_config_path(out_dir, config_name)
+    config = json.loads(config_path.read_text(encoding="utf-8"))
+    return config_path, config
+
+
+def run_experiment(out_dir: str, config_name: str, output: bool = False) -> tuple[str, Path, Path]:
+    out_dir_path = _resolve_out_dir_path(out_dir)
+    config_path, config = load_config(out_dir, config_name)
     experiment_name = _effective_experiment_name(config_path, config)
     cmd = ["dotnet", "run", "--project", "ExperimentRunner", "--", "--config", str(config_path)]
     print("Running:", " ".join(cmd))
@@ -160,7 +154,13 @@ def run_experiment(experiment_ref: str, output = False) -> tuple[str, Path, Path
         print("STDERR:\n" + result.stderr)
     if result.returncode != 0:
         raise RuntimeError(f"ExperimentRunner failed with exit code {result.returncode}")
-    results_json = resolve_result_path(out_dir, experiment_name)
-    return experiment_name, config_path, results_json
+
+    result_path = resolve_result_path(out_dir_path, experiment_name)
+    generated_config_path = (out_dir_path / f"config_{experiment_name}.json").resolve()
+    if not generated_config_path.exists():
+        fallback_name = _experiment_name_from_file_path(Path(config_name))
+        generated_config_path = (out_dir_path / f"config_{fallback_name}.json").resolve()
+
+    return experiment_name, generated_config_path, result_path
 
 

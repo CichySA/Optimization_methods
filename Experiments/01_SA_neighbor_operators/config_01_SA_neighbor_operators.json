@@ -7,7 +7,7 @@
     "tai_100_20_0",
     "tai_500_20_0"
   ],
-  "OutDir": "Experiments/tai_all_default_simulatedannealing_neighbors_seed",
+  "OutDir": "Experiments/01_SA_neighbor_operators",
   "Algorithms": [
     {
       "Type": "SimulatedAnnealing",

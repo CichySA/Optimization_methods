@@ -66,21 +66,10 @@ namespace ExperimentRunner
             var fullPath = Path.GetFullPath(configPath);
             var fileStem = Path.GetFileNameWithoutExtension(fullPath);
 
-            string name;
-            if (string.Equals(fileStem, "experimentrunner", StringComparison.OrdinalIgnoreCase))
-            {
-                var parent = Directory.GetParent(fullPath);
-                name = parent?.Name ?? "unnamed_experiment";
-            }
-            else
-            {
-                name = fileStem;
-            }
+            if (fileStem.StartsWith("config_", StringComparison.OrdinalIgnoreCase))
+                fileStem = fileStem["config_".Length..];
 
-            if (name.StartsWith("config_", StringComparison.OrdinalIgnoreCase))
-                name = name["config_".Length..];
-
-            return ToSafeFileName(name);
+            return ToSafeFileName(fileStem);
         }
 
         public static string ToSafeFileName(string value)

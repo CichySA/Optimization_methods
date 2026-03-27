@@ -3,7 +3,7 @@
     "tai_20_5_0"
   ],
   "OutDir": "Experiments/monitor_every_event_example_2D",
-  "Name": "x",
+  "ExperimentName": "x",
   "Algorithms": [
     {
       "Type": "Evolutionary",
