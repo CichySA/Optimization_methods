@@ -138,16 +138,56 @@ def resolve_experiment_directory(experiment_name: str) -> Path:
     return EXPERIMENTS_ROOT / experiment_name
 
 
-def resolve_experiment_config_path(experiment_name: str) -> Path:
-    return resolve_experiment_directory(experiment_name) / EXPERIMENT_CONFIG_NAME
+def _safe_experiment_name(name: str) -> str:
+    safe = re.sub(r'[<>:"/\\|?*\s]+', '_', name.strip())
+    return safe or "unnamed_experiment"
 
 
-def get_config_path(experiment_name: str) -> Path:
-    return EXPERIMENTS_ROOT / experiment_name / EXPERIMENT_CONFIG_NAME
+def _experiment_name_from_config_path(config_path: Path) -> str:
+    stem = config_path.stem
+    if stem.lower() == "experimentrunner":
+        name = config_path.parent.name
+    else:
+        name = stem
+
+    if name.lower().startswith("config_"):
+        name = name[len("config_"):]
+
+    return _safe_experiment_name(name)
 
 
-def load_experiment_config(experiment_name: str) -> tuple[Path, dict]:
-    config_path = get_config_path(experiment_name)
+def resolve_experiment_config_path(experiment_ref: str) -> Path:
+    if not experiment_ref:
+        raise ValueError("experiment_ref must not be empty")
+
+    ref_path = Path(experiment_ref)
+
+    if ref_path.suffix.lower() == ".json":
+        candidates = [
+            ref_path,
+            REPO_ROOT / ref_path,
+            EXPERIMENTS_ROOT / ref_path,
+        ]
+    else:
+        candidates = [
+            EXPERIMENTS_ROOT / ref_path / EXPERIMENT_CONFIG_NAME,
+            REPO_ROOT / ref_path / EXPERIMENT_CONFIG_NAME,
+            REPO_ROOT / ref_path,
+        ]
+
+    for candidate in candidates:
+        if candidate.exists():
+            return candidate.resolve()
+
+    return candidates[0].resolve()
+
+
+def get_config_path(experiment_ref: str) -> Path:
+    return resolve_experiment_config_path(experiment_ref)
+
+
+def load_experiment_config(experiment_ref: str) -> tuple[Path, dict]:
+    config_path = get_config_path(experiment_ref)
     if not config_path.exists():
         raise FileNotFoundError(f"Config not found: {config_path}")
     config = json.loads(config_path.read_text(encoding="utf-8"))
@@ -161,8 +201,9 @@ def get_out_dir_from_config(config: dict) -> str:
     return str(out_dir)
 
 
-def resolve_output_paths(experiment_name: str) -> tuple[Path, Path, Path, Path]:
-    config_path, config = load_experiment_config(experiment_name)
+def resolve_output_paths(experiment_ref: str) -> tuple[Path, Path, Path, Path]:
+    config_path, config = load_experiment_config(experiment_ref)
+    experiment_name = _experiment_name_from_config_path(config_path)
     out_dir_value = Path(get_out_dir_from_config(config))
     out_dir_name = out_dir_value.name
 
@@ -176,16 +217,25 @@ def resolve_output_paths(experiment_name: str) -> tuple[Path, Path, Path, Path]:
         candidates.append(EXPERIMENTS_ROOT / out_dir_name)
 
     out_dir = next((p for p in candidates if p.exists()), candidates[0])
+
+    preferred_csv = out_dir / f"result_{experiment_name}.csv"
+    preferred_json = out_dir / f"result_{experiment_name}.json"
+    legacy_csv = out_dir / "experiment_results.csv"
+    legacy_json = out_dir / "experiment_results.json"
+
+    results_csv = preferred_csv if preferred_csv.exists() else legacy_csv
+    results_json = preferred_json if preferred_json.exists() else legacy_json
+
     return (
         config_path,
         out_dir,
-        out_dir / "experiment_results.csv",
-        out_dir / "experiment_results.json",
+        results_csv,
+        results_json,
     )
 
 
-def run_experiment(experiment_name: str, output = False) -> tuple[subprocess.CompletedProcess[str], Path, Path, Path, Path]:
-    config_path, out_dir, results_csv, results_json = resolve_output_paths(experiment_name)
+def run_experiment(experiment_ref: str, output = False) -> tuple[subprocess.CompletedProcess[str], Path, Path, Path, Path]:
+    config_path, out_dir, results_csv, results_json = resolve_output_paths(experiment_ref)
     cmd = ["dotnet", "run", "--project", "ExperimentRunner", "--", "--config", str(config_path)]
     print("Running:", " ".join(cmd))
     result = subprocess.run(cmd, cwd=REPO_ROOT, capture_output=True, text=True, check=False)

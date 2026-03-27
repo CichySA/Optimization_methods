@@ -375,3 +375,4 @@ Plan.md
 *.diagsession
 ./VSCodeCounter
 Report/*
+~!Report/Report_Outline.tex

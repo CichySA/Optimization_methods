@@ -14,7 +14,7 @@
       "Type": "Evolutionary",
       "Parameters": {
         "Samples": 20,
-        "PopulationSize": 62,
+        "PopulationSize": 625,
         "Generations": 64,
         "CrossoverRate": 0.7,
         "TournamentSize": 5,

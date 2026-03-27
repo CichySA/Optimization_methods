@@ -10,7 +10,7 @@
     {
       "Type": "Evolutionary",
       "Parameters": {
-        "Samples": 3,
+        "Samples": 20,
         "Seed": 42,
         "PopulationSize": 40,
         "Generations": 1000,

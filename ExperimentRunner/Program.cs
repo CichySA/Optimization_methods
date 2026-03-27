@@ -14,8 +14,36 @@ var algorithms = config.Algorithms
     .ToList();
 var problems = ProblemLoader.LoadMany(config.Instances);
 var outDir = ResultSaver.ResolveOutputDirectory(config.OutDir);
+var experimentName = PathResolver.ToSafeFileName(config.ExperimentName);
+var resultJsonFileName = $"result_{experimentName}.json";
+var configJsonFileName = $"config_{experimentName}.json";
+var configOutputPath = PathResolver.ResolveOutputFilePath(outDir, configJsonFileName);
 
-const string jsonFileName = "experiment_results.json";
+if (!string.IsNullOrWhiteSpace(config.ConfigPath) && File.Exists(config.ConfigPath))
+{
+    var sourcePath = Path.GetFullPath(config.ConfigPath);
+    var destinationPath = Path.GetFullPath(configOutputPath);
+
+    if (string.Equals(sourcePath, destinationPath, StringComparison.OrdinalIgnoreCase))
+    {
+        Visualizer.DisplayLine($"Config already in output directory: {destinationPath}");
+    }
+    else if (File.Exists(destinationPath))
+    {
+        Visualizer.DisplayLine($"Config file already exists, leaving unchanged: {destinationPath}");
+    }
+    else
+    {
+        File.Copy(sourcePath, destinationPath, overwrite: false);
+    }
+}
+else
+{
+    if (!File.Exists(configOutputPath))
+    {
+        ResultSaver.SaveJson(outDir, configJsonFileName, config);
+    }
+}
 
 var runPlan = new List<(int Index, string InstanceName, PFSP.Instances.Instance Instance, string AlgorithmName, PFSP.Algorithms.IAlgorithm AlgorithmTemplate, PFSP.Algorithms.IParameters Parameters)>();
 int orderedIndex = 0;
@@ -78,5 +106,5 @@ var workerTasks = workerBuckets
 
 await Task.WhenAll(workerTasks);
 
-ResultSaver.SaveJson(outDir, jsonFileName, records);
-Visualizer.DisplayLine($"Done. Results saved to {Path.Combine(outDir, jsonFileName)}");
+ResultSaver.SaveJson(outDir, resultJsonFileName, records);
+Visualizer.DisplayLine($"Done. Results saved to {Path.Combine(outDir, resultJsonFileName)}");

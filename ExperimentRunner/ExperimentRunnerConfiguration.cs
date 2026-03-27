@@ -28,7 +28,10 @@ namespace ExperimentRunner
         public string[] Instances { get; init; } = DefaultInstances;
         public AlgorithmSpec[] Algorithms { get; init; } = DefaultAlgorithms;
         public string OutDir { get; init; } = DefaultOutDir;
+        public string? Name { get; init; }
         public JsonElement Parameters { get; init; }
+        public string ExperimentName { get; init; } = "unnamed_experiment";
+        public string ConfigPath { get; init; } = string.Empty;
 
         public static ExperimentRunnerConfiguration Default => new();
     }

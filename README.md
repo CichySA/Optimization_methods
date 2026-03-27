@@ -242,8 +242,8 @@ Monitoring is configured inside `Parameters.Monitoring`:
 | `MutationRate` | `double` | `0.1` | Probability of applying mutation per offspring. |
 | `TournamentSize` | `int` | `5` | Tournament size for tournament selection. |
 | `SelectionMethod` | `string` | `"Tournament"` | Selection operator. Options: `Tournament`. |
-| `CrossoverMethod` | `string` | `"OX"` | Crossover operator. Options: `OX` (Order Crossover). |
-| `MutationMethod` | `string` | `"Swap"` | Mutation operator. Options: `Swap`. |
+| `CrossoverMethod` | `string` | `"OX"` | Crossover operator. Options: `OX` (Order Crossover), `CX` (Cycle Crossover). |
+| `MutationMethod` | `string` | `"Swap"` | Mutation operator. Options: `Swap`, `Insert`. |
 
 ### Simulated Annealing parameters
 

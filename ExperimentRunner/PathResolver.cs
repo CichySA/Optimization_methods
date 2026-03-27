@@ -57,5 +57,41 @@ namespace ExperimentRunner
 
             return Path.Combine(outDir, fileName);
         }
+
+        public static string ResolveExperimentNameFromConfigPath(string configPath)
+        {
+            if (string.IsNullOrWhiteSpace(configPath))
+                throw new ArgumentException("Configuration path is null or empty.", nameof(configPath));
+
+            var fullPath = Path.GetFullPath(configPath);
+            var fileStem = Path.GetFileNameWithoutExtension(fullPath);
+
+            string name;
+            if (string.Equals(fileStem, "experimentrunner", StringComparison.OrdinalIgnoreCase))
+            {
+                var parent = Directory.GetParent(fullPath);
+                name = parent?.Name ?? "unnamed_experiment";
+            }
+            else
+            {
+                name = fileStem;
+            }
+
+            if (name.StartsWith("config_", StringComparison.OrdinalIgnoreCase))
+                name = name["config_".Length..];
+
+            return ToSafeFileName(name);
+        }
+
+        public static string ToSafeFileName(string value)
+        {
+            if (string.IsNullOrWhiteSpace(value))
+                return "unnamed_experiment";
+
+            var invalid = Path.GetInvalidFileNameChars();
+            var chars = value.Trim().Select(ch => invalid.Contains(ch) ? '_' : ch).ToArray();
+            var normalized = new string(chars).Replace(' ', '_');
+            return string.IsNullOrWhiteSpace(normalized) ? "unnamed_experiment" : normalized;
+        }
     }
 }
