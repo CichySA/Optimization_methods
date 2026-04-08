@@ -375,5 +375,5 @@ Plan.md
 *.diagsession
 ./VSCodeCounter
 Report/*
-~!Report/Report_Outline.tex
+!Report/Report.tex
 result_*.json

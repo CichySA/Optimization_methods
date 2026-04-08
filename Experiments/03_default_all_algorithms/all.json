@@ -9,8 +9,8 @@
   ],
   "OutDir": "Experiments/03_default_all_algorithms",
   "Parameters": {
-    "Samples": 1,
-    "EvaluationBudget": 400,
+    "Samples": 20,
+    "EvaluationBudget": 40000,
     "Seed": 42,
     "Monitoring": {
       "Enabled": true,
@@ -24,14 +24,14 @@
     {
       "Type": "Random",
       "Parameters": {
-        "Iterations": 400
+        "Iterations": 4000
       }
     },
     {
       "Type": "Evolutionary",
       "Parameters": {
-        "PopulationSize": 20,
-        "Generations": 20,
+        "PopulationSize": 200,
+        "Generations": 200,
         "CrossoverRate": 0.7,
         "MutationRate": 0.1,
         "TournamentSize": 5,
@@ -43,7 +43,7 @@
     {
       "Type": "SimulatedAnnealing",
       "Parameters": {
-        "Iterations": 399,
+        "Iterations": 39999,
         "InitialTemperature": 100.0,
         "CoolingRate": 0.995,
         "MinimumTemperature": 0.0001,

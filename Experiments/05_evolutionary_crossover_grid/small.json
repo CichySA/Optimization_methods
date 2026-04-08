@@ -4,26 +4,23 @@
     "tai_20_10_0",
     "tai_20_20_0"
   ],
-  "OutDir": "Experiments/04_evolutionary_mutation_grid",
-  "Name": "small",
+  "OutDir": "Experiments/05_evolutionary_crossover_grid",
   "EvaluationBudget": 400,
-  "Parameters": {
-    "Seed": 42
-  },
   "Algorithms": [
     {
       "Type": "Evolutionary",
       "Parameters": {
         "Samples": 20,
+        "Seed": 42,
         "PopulationSize": 625,
         "Generations": 64,
-        "CrossoverRate": 0.7,
+        "MutationRate": 0.4,
         "TournamentSize": 5,
         "SelectionMethod": "Tournament",
         "CrossoverMethod": "OX",
         "MutationMethod": "Swap",
         "ParameterGrid": {
-          "MutationRate": [
+          "CrossoverRate": [
             0.0,
             0.02,
             0.04,

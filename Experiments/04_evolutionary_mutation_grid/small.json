@@ -5,22 +5,24 @@
     "tai_20_20_0"
   ],
   "OutDir": "Experiments/04_evolutionary_mutation_grid",
-  "EvaluationBudget": 400,
+  "EvaluationBudget": 40000,
+  "Parameters": {
+    "Seed": 42
+  },
   "Algorithms": [
     {
       "Type": "Evolutionary",
       "Parameters": {
-        "Samples": 20,
-        "Seed": 42,
+        "Samples": 10,
         "PopulationSize": 625,
         "Generations": 64,
-        "MutationRate": 0.4,
+        "CrossoverRate": 0.7,
         "TournamentSize": 5,
         "SelectionMethod": "Tournament",
         "CrossoverMethod": "OX",
         "MutationMethod": "Swap",
         "ParameterGrid": {
-          "CrossoverRate": [
+          "MutationRate": [
             0.0,
             0.02,
             0.04,
