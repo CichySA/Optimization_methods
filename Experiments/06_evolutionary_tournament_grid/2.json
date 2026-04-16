@@ -1,11 +1,11 @@
-{
+﻿{
   "Instances": [
     "tai_20_5_0",
     "tai_20_10_0",
     "tai_20_20_0"
   ],
   "OutDir": "Experiments/tai_20_evolutionary_tournament_grid",
-  "EvaluationBudget": 40000,
+  "EvaluationBudget": 900,
   "Algorithms": [
     {
       "Type": "Evolutionary",
@@ -39,3 +39,5 @@
     }
   ]
 }
+
+

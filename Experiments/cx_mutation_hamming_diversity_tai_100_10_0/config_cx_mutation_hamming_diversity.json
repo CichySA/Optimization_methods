@@ -1,0 +1,49 @@
+{
+  "Name": "cx_mutation_hamming_diversity",
+  "Instances": [
+    "tai_100_10_0"
+  ],
+  "OutDir": "Experiments/cx_mutation_hamming_diversity_tai_100_10_0",
+  "Parameters": {
+    "Seed": 42,
+    "Samples": 10,
+    "EvaluationBudget": 900,
+    "Monitoring": {
+      "Enabled": true,
+      "EnabledMetrics": [
+        "ElapsedMs",
+        "Evaluations",
+        "BestByGeneration",
+        "HemmingDistanceByGeneration"
+      ]
+    }
+  },
+  "Algorithms": [
+    {
+      "Type": "Evolutionary",
+      "Parameters": {
+        "PopulationSize": 30,
+        "Generations": 30,
+        "CrossoverRate": 0.597436,
+        "MutationRate": 0.22,
+        "TournamentSize": 5,
+        "SelectionMethod": "Tournament",
+        "CrossoverMethod": "CX",
+        "MutationMethod": "Swap"
+      }
+    },
+    {
+      "Type": "Evolutionary",
+      "Parameters": {
+        "PopulationSize": 30,
+        "Generations": 30,
+        "CrossoverRate": 0.7,
+        "MutationRate": 0.1,
+        "TournamentSize": 5,
+        "SelectionMethod": "Tournament",
+        "CrossoverMethod": "CX",
+        "MutationMethod": "Swap"
+      }
+    }
+  ]
+}

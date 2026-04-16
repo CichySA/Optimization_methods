@@ -1,0 +1,48 @@
+{
+  "Name": "cx_optimal_vs_ox",
+  "Instances": [
+    "tai_100_10_0"
+  ],
+  "OutDir": "Experiments/cx_optimal_vs_ox_tai_100_10_0",
+  "Parameters": {
+    "Seed": 42,
+    "Samples": 10,
+    "EvaluationBudget": 900,
+    "Monitoring": {
+      "Enabled": true,
+      "EnabledMetrics": [
+        "ElapsedMs",
+        "Evaluations",
+        "BestByGeneration"
+      ]
+    }
+  },
+  "Algorithms": [
+    {
+      "Type": "Evolutionary",
+      "Parameters": {
+        "PopulationSize": 30,
+        "Generations": 30,
+        "CrossoverRate": 0.6,
+        "MutationRate": 0.1,
+        "TournamentSize": 5,
+        "SelectionMethod": "Tournament",
+        "CrossoverMethod": "CX",
+        "MutationMethod": "Swap"
+      }
+    },
+    {
+      "Type": "Evolutionary",
+      "Parameters": {
+        "PopulationSize": 30,
+        "Generations": 30,
+        "CrossoverRate": 0.7,
+        "MutationRate": 0.1,
+        "TournamentSize": 5,
+        "SelectionMethod": "Tournament",
+        "CrossoverMethod": "OX",
+        "MutationMethod": "Swap"
+      }
+    }
+  ]
+}

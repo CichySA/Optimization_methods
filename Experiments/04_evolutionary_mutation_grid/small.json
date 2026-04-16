@@ -1,11 +1,11 @@
-{
+﻿{
   "Instances": [
     "tai_20_5_0",
     "tai_20_10_0",
     "tai_20_20_0"
   ],
   "OutDir": "Experiments/04_evolutionary_mutation_grid",
-  "EvaluationBudget": 40000,
+  "EvaluationBudget": 900,
   "Parameters": {
     "Seed": 42
   },
@@ -93,3 +93,5 @@
     }
   ]
 }
+
+

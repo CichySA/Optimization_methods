@@ -1,60 +1,30 @@
-{
-  "Instances": [
-    "tai_20_5_0"
-  ],
-  "OutDir": "Experiments/tai_20_5_0_evolutionary_population_generations_2d_256",
-  "Name": "2D_parameter_grid_test",
-  "Algorithms": [
-    {
-      "Type": "Evolutionary",
-      "Parameters": {
-        "Samples": 20,
-        "Seed": 42,
-        "CrossoverRate": 0.7,
-        "MutationRate": 0.1,
-        "TournamentSize": 5,
-        "SelectionMethod": "Tournament",
-        "CrossoverMethod": "OX",
-        "MutationMethod": "Swap",
-        "ParameterGrid": {
-          "PopulationSize": [
-            10,
-            20,
-            30,
-            40,
-            50,
-            60,
-            70,
-            80,
-            90,
-            100,
-            110,
-            120,
-            130,
-            140,
-            150,
-            160
-          ],
-          "Generations": [
-            10,
-            20,
-            30,
-            40,
-            50,
-            60,
-            70,
-            80,
-            90,
-            100,
-            110,
-            120,
-            130,
-            140,
-            150,
-            160
-          ]
-        }
-      }
-    }
-  ]
+﻿{
+    "Instances":  [
+                      "tai_20_5_0"
+                  ],
+    "OutDir":  "Experiments/tai_20_5_0_evolutionary_population_generations_2d_256",
+    "Name":  "2D_parameter_grid_test",
+    "Algorithms":  [
+                       {
+                           "Type":  "Evolutionary",
+                           "Parameters":  {
+                                              "Samples":  5,
+                                              "Seed":  42,
+                                              "CrossoverRate":  0.7,
+                                              "MutationRate":  0.1,
+                                              "TournamentSize":  5,
+                                              "SelectionMethod":  "Tournament",
+                                              "CrossoverMethod":  "OX",
+                                              "MutationMethod":  "Swap",
+                                              "ParameterGrid":  {
+                                                                    "PopulationSize":  [
+                                                                                           30
+                                                                                       ],
+                                                                    "Generations":  [
+                                                                                        30
+                                                                                    ]
+                                                                }
+                                          }
+                       }
+                   ]
 }

@@ -1,11 +1,11 @@
-{
+﻿{
   "Instances": [
     "tai_20_5_0",
     "tai_20_10_0",
     "tai_20_20_0"
   ],
   "OutDir": "Experiments/05_evolutionary_crossover_grid",
-  "EvaluationBudget": 400,
+  "EvaluationBudget": 900,
   "Algorithms": [
     {
       "Type": "Evolutionary",
@@ -91,3 +91,5 @@
     }
   ]
 }
+
+

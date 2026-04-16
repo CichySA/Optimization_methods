@@ -1,0 +1,542 @@
+{
+  "Name": "cx_rate_grid_dense",
+  "Instances": [
+    "tai_100_10_0"
+  ],
+  "OutDir": "Experiments/cx_crossover_rate_grid_dense_tai_100_10_0",
+  "Parameters": {
+    "Seed": 42,
+    "Samples": 10,
+    "EvaluationBudget": 900,
+    "Monitoring": {
+      "Enabled": true,
+      "EnabledMetrics": [
+        "ElapsedMs",
+        "Evaluations",
+        "BestByGeneration"
+      ]
+    }
+  },
+  "Algorithms": [
+    {
+      "Type": "Evolutionary",
+      "Parameters": {
+        "PopulationSize": 30,
+        "Generations": 30,
+        "CrossoverRate": 0.3,
+        "MutationRate": 0.1,
+        "TournamentSize": 5,
+        "SelectionMethod": "Tournament",
+        "CrossoverMethod": "CX",
+        "MutationMethod": "Swap"
+      }
+    },
+    {
+      "Type": "Evolutionary",
+      "Parameters": {
+        "PopulationSize": 30,
+        "Generations": 30,
+        "CrossoverRate": 0.310256,
+        "MutationRate": 0.1,
+        "TournamentSize": 5,
+        "SelectionMethod": "Tournament",
+        "CrossoverMethod": "CX",
+        "MutationMethod": "Swap"
+      }
+    },
+    {
+      "Type": "Evolutionary",
+      "Parameters": {
+        "PopulationSize": 30,
+        "Generations": 30,
+        "CrossoverRate": 0.320513,
+        "MutationRate": 0.1,
+        "TournamentSize": 5,
+        "SelectionMethod": "Tournament",
+        "CrossoverMethod": "CX",
+        "MutationMethod": "Swap"
+      }
+    },
+    {
+      "Type": "Evolutionary",
+      "Parameters": {
+        "PopulationSize": 30,
+        "Generations": 30,
+        "CrossoverRate": 0.330769,
+        "MutationRate": 0.1,
+        "TournamentSize": 5,
+        "SelectionMethod": "Tournament",
+        "CrossoverMethod": "CX",
+        "MutationMethod": "Swap"
+      }
+    },
+    {
+      "Type": "Evolutionary",
+      "Parameters": {
+        "PopulationSize": 30,
+        "Generations": 30,
+        "CrossoverRate": 0.341026,
+        "MutationRate": 0.1,
+        "TournamentSize": 5,
+        "SelectionMethod": "Tournament",
+        "CrossoverMethod": "CX",
+        "MutationMethod": "Swap"
+      }
+    },
+    {
+      "Type": "Evolutionary",
+      "Parameters": {
+        "PopulationSize": 30,
+        "Generations": 30,
+        "CrossoverRate": 0.351282,
+        "MutationRate": 0.1,
+        "TournamentSize": 5,
+        "SelectionMethod": "Tournament",
+        "CrossoverMethod": "CX",
+        "MutationMethod": "Swap"
+      }
+    },
+    {
+      "Type": "Evolutionary",
+      "Parameters": {
+        "PopulationSize": 30,
+        "Generations": 30,
+        "CrossoverRate": 0.361538,
+        "MutationRate": 0.1,
+        "TournamentSize": 5,
+        "SelectionMethod": "Tournament",
+        "CrossoverMethod": "CX",
+        "MutationMethod": "Swap"
+      }
+    },
+    {
+      "Type": "Evolutionary",
+      "Parameters": {
+        "PopulationSize": 30,
+        "Generations": 30,
+        "CrossoverRate": 0.371795,
+        "MutationRate": 0.1,
+        "TournamentSize": 5,
+        "SelectionMethod": "Tournament",
+        "CrossoverMethod": "CX",
+        "MutationMethod": "Swap"
+      }
+    },
+    {
+      "Type": "Evolutionary",
+      "Parameters": {
+        "PopulationSize": 30,
+        "Generations": 30,
+        "CrossoverRate": 0.382051,
+        "MutationRate": 0.1,
+        "TournamentSize": 5,
+        "SelectionMethod": "Tournament",
+        "CrossoverMethod": "CX",
+        "MutationMethod": "Swap"
+      }
+    },
+    {
+      "Type": "Evolutionary",
+      "Parameters": {
+        "PopulationSize": 30,
+        "Generations": 30,
+        "CrossoverRate": 0.392308,
+        "MutationRate": 0.1,
+        "TournamentSize": 5,
+        "SelectionMethod": "Tournament",
+        "CrossoverMethod": "CX",
+        "MutationMethod": "Swap"
+      }
+    },
+    {
+      "Type": "Evolutionary",
+      "Parameters": {
+        "PopulationSize": 30,
+        "Generations": 30,
+        "CrossoverRate": 0.402564,
+        "MutationRate": 0.1,
+        "TournamentSize": 5,
+        "SelectionMethod": "Tournament",
+        "CrossoverMethod": "CX",
+        "MutationMethod": "Swap"
+      }
+    },
+    {
+      "Type": "Evolutionary",
+      "Parameters": {
+        "PopulationSize": 30,
+        "Generations": 30,
+        "CrossoverRate": 0.412821,
+        "MutationRate": 0.1,
+        "TournamentSize": 5,
+        "SelectionMethod": "Tournament",
+        "CrossoverMethod": "CX",
+        "MutationMethod": "Swap"
+      }
+    },
+    {
+      "Type": "Evolutionary",
+      "Parameters": {
+        "PopulationSize": 30,
+        "Generations": 30,
+        "CrossoverRate": 0.423077,
+        "MutationRate": 0.1,
+        "TournamentSize": 5,
+        "SelectionMethod": "Tournament",
+        "CrossoverMethod": "CX",
+        "MutationMethod": "Swap"
+      }
+    },
+    {
+      "Type": "Evolutionary",
+      "Parameters": {
+        "PopulationSize": 30,
+        "Generations": 30,
+        "CrossoverRate": 0.433333,
+        "MutationRate": 0.1,
+        "TournamentSize": 5,
+        "SelectionMethod": "Tournament",
+        "CrossoverMethod": "CX",
+        "MutationMethod": "Swap"
+      }
+    },
+    {
+      "Type": "Evolutionary",
+      "Parameters": {
+        "PopulationSize": 30,
+        "Generations": 30,
+        "CrossoverRate": 0.44359,
+        "MutationRate": 0.1,
+        "TournamentSize": 5,
+        "SelectionMethod": "Tournament",
+        "CrossoverMethod": "CX",
+        "MutationMethod": "Swap"
+      }
+    },
+    {
+      "Type": "Evolutionary",
+      "Parameters": {
+        "PopulationSize": 30,
+        "Generations": 30,
+        "CrossoverRate": 0.453846,
+        "MutationRate": 0.1,
+        "TournamentSize": 5,
+        "SelectionMethod": "Tournament",
+        "CrossoverMethod": "CX",
+        "MutationMethod": "Swap"
+      }
+    },
+    {
+      "Type": "Evolutionary",
+      "Parameters": {
+        "PopulationSize": 30,
+        "Generations": 30,
+        "CrossoverRate": 0.464103,
+        "MutationRate": 0.1,
+        "TournamentSize": 5,
+        "SelectionMethod": "Tournament",
+        "CrossoverMethod": "CX",
+        "MutationMethod": "Swap"
+      }
+    },
+    {
+      "Type": "Evolutionary",
+      "Parameters": {
+        "PopulationSize": 30,
+        "Generations": 30,
+        "CrossoverRate": 0.474359,
+        "MutationRate": 0.1,
+        "TournamentSize": 5,
+        "SelectionMethod": "Tournament",
+        "CrossoverMethod": "CX",
+        "MutationMethod": "Swap"
+      }
+    },
+    {
+      "Type": "Evolutionary",
+      "Parameters": {
+        "PopulationSize": 30,
+        "Generations": 30,
+        "CrossoverRate": 0.484615,
+        "MutationRate": 0.1,
+        "TournamentSize": 5,
+        "SelectionMethod": "Tournament",
+        "CrossoverMethod": "CX",
+        "MutationMethod": "Swap"
+      }
+    },
+    {
+      "Type": "Evolutionary",
+      "Parameters": {
+        "PopulationSize": 30,
+        "Generations": 30,
+        "CrossoverRate": 0.494872,
+        "MutationRate": 0.1,
+        "TournamentSize": 5,
+        "SelectionMethod": "Tournament",
+        "CrossoverMethod": "CX",
+        "MutationMethod": "Swap"
+      }
+    },
+    {
+      "Type": "Evolutionary",
+      "Parameters": {
+        "PopulationSize": 30,
+        "Generations": 30,
+        "CrossoverRate": 0.505128,
+        "MutationRate": 0.1,
+        "TournamentSize": 5,
+        "SelectionMethod": "Tournament",
+        "CrossoverMethod": "CX",
+        "MutationMethod": "Swap"
+      }
+    },
+    {
+      "Type": "Evolutionary",
+      "Parameters": {
+        "PopulationSize": 30,
+        "Generations": 30,
+        "CrossoverRate": 0.515385,
+        "MutationRate": 0.1,
+        "TournamentSize": 5,
+        "SelectionMethod": "Tournament",
+        "CrossoverMethod": "CX",
+        "MutationMethod": "Swap"
+      }
+    },
+    {
+      "Type": "Evolutionary",
+      "Parameters": {
+        "PopulationSize": 30,
+        "Generations": 30,
+        "CrossoverRate": 0.525641,
+        "MutationRate": 0.1,
+        "TournamentSize": 5,
+        "SelectionMethod": "Tournament",
+        "CrossoverMethod": "CX",
+        "MutationMethod": "Swap"
+      }
+    },
+    {
+      "Type": "Evolutionary",
+      "Parameters": {
+        "PopulationSize": 30,
+        "Generations": 30,
+        "CrossoverRate": 0.535897,
+        "MutationRate": 0.1,
+        "TournamentSize": 5,
+        "SelectionMethod": "Tournament",
+        "CrossoverMethod": "CX",
+        "MutationMethod": "Swap"
+      }
+    },
+    {
+      "Type": "Evolutionary",
+      "Parameters": {
+        "PopulationSize": 30,
+        "Generations": 30,
+        "CrossoverRate": 0.546154,
+        "MutationRate": 0.1,
+        "TournamentSize": 5,
+        "SelectionMethod": "Tournament",
+        "CrossoverMethod": "CX",
+        "MutationMethod": "Swap"
+      }
+    },
+    {
+      "Type": "Evolutionary",
+      "Parameters": {
+        "PopulationSize": 30,
+        "Generations": 30,
+        "CrossoverRate": 0.55641,
+        "MutationRate": 0.1,
+        "TournamentSize": 5,
+        "SelectionMethod": "Tournament",
+        "CrossoverMethod": "CX",
+        "MutationMethod": "Swap"
+      }
+    },
+    {
+      "Type": "Evolutionary",
+      "Parameters": {
+        "PopulationSize": 30,
+        "Generations": 30,
+        "CrossoverRate": 0.566667,
+        "MutationRate": 0.1,
+        "TournamentSize": 5,
+        "SelectionMethod": "Tournament",
+        "CrossoverMethod": "CX",
+        "MutationMethod": "Swap"
+      }
+    },
+    {
+      "Type": "Evolutionary",
+      "Parameters": {
+        "PopulationSize": 30,
+        "Generations": 30,
+        "CrossoverRate": 0.576923,
+        "MutationRate": 0.1,
+        "TournamentSize": 5,
+        "SelectionMethod": "Tournament",
+        "CrossoverMethod": "CX",
+        "MutationMethod": "Swap"
+      }
+    },
+    {
+      "Type": "Evolutionary",
+      "Parameters": {
+        "PopulationSize": 30,
+        "Generations": 30,
+        "CrossoverRate": 0.587179,
+        "MutationRate": 0.1,
+        "TournamentSize": 5,
+        "SelectionMethod": "Tournament",
+        "CrossoverMethod": "CX",
+        "MutationMethod": "Swap"
+      }
+    },
+    {
+      "Type": "Evolutionary",
+      "Parameters": {
+        "PopulationSize": 30,
+        "Generations": 30,
+        "CrossoverRate": 0.597436,
+        "MutationRate": 0.1,
+        "TournamentSize": 5,
+        "SelectionMethod": "Tournament",
+        "CrossoverMethod": "CX",
+        "MutationMethod": "Swap"
+      }
+    },
+    {
+      "Type": "Evolutionary",
+      "Parameters": {
+        "PopulationSize": 30,
+        "Generations": 30,
+        "CrossoverRate": 0.607692,
+        "MutationRate": 0.1,
+        "TournamentSize": 5,
+        "SelectionMethod": "Tournament",
+        "CrossoverMethod": "CX",
+        "MutationMethod": "Swap"
+      }
+    },
+    {
+      "Type": "Evolutionary",
+      "Parameters": {
+        "PopulationSize": 30,
+        "Generations": 30,
+        "CrossoverRate": 0.617949,
+        "MutationRate": 0.1,
+        "TournamentSize": 5,
+        "SelectionMethod": "Tournament",
+        "CrossoverMethod": "CX",
+        "MutationMethod": "Swap"
+      }
+    },
+    {
+      "Type": "Evolutionary",
+      "Parameters": {
+        "PopulationSize": 30,
+        "Generations": 30,
+        "CrossoverRate": 0.628205,
+        "MutationRate": 0.1,
+        "TournamentSize": 5,
+        "SelectionMethod": "Tournament",
+        "CrossoverMethod": "CX",
+        "MutationMethod": "Swap"
+      }
+    },
+    {
+      "Type": "Evolutionary",
+      "Parameters": {
+        "PopulationSize": 30,
+        "Generations": 30,
+        "CrossoverRate": 0.638462,
+        "MutationRate": 0.1,
+        "TournamentSize": 5,
+        "SelectionMethod": "Tournament",
+        "CrossoverMethod": "CX",
+        "MutationMethod": "Swap"
+      }
+    },
+    {
+      "Type": "Evolutionary",
+      "Parameters": {
+        "PopulationSize": 30,
+        "Generations": 30,
+        "CrossoverRate": 0.648718,
+        "MutationRate": 0.1,
+        "TournamentSize": 5,
+        "SelectionMethod": "Tournament",
+        "CrossoverMethod": "CX",
+        "MutationMethod": "Swap"
+      }
+    },
+    {
+      "Type": "Evolutionary",
+      "Parameters": {
+        "PopulationSize": 30,
+        "Generations": 30,
+        "CrossoverRate": 0.658974,
+        "MutationRate": 0.1,
+        "TournamentSize": 5,
+        "SelectionMethod": "Tournament",
+        "CrossoverMethod": "CX",
+        "MutationMethod": "Swap"
+      }
+    },
+    {
+      "Type": "Evolutionary",
+      "Parameters": {
+        "PopulationSize": 30,
+        "Generations": 30,
+        "CrossoverRate": 0.669231,
+        "MutationRate": 0.1,
+        "TournamentSize": 5,
+        "SelectionMethod": "Tournament",
+        "CrossoverMethod": "CX",
+        "MutationMethod": "Swap"
+      }
+    },
+    {
+      "Type": "Evolutionary",
+      "Parameters": {
+        "PopulationSize": 30,
+        "Generations": 30,
+        "CrossoverRate": 0.679487,
+        "MutationRate": 0.1,
+        "TournamentSize": 5,
+        "SelectionMethod": "Tournament",
+        "CrossoverMethod": "CX",
+        "MutationMethod": "Swap"
+      }
+    },
+    {
+      "Type": "Evolutionary",
+      "Parameters": {
+        "PopulationSize": 30,
+        "Generations": 30,
+        "CrossoverRate": 0.689744,
+        "MutationRate": 0.1,
+        "TournamentSize": 5,
+        "SelectionMethod": "Tournament",
+        "CrossoverMethod": "CX",
+        "MutationMethod": "Swap"
+      }
+    },
+    {
+      "Type": "Evolutionary",
+      "Parameters": {
+        "PopulationSize": 30,
+        "Generations": 30,
+        "CrossoverRate": 0.7,
+        "MutationRate": 0.1,
+        "TournamentSize": 5,
+        "SelectionMethod": "Tournament",
+        "CrossoverMethod": "CX",
+        "MutationMethod": "Swap"
+      }
+    }
+  ]
+}

@@ -1,4 +1,4 @@
-{
+﻿{
   "Instances": [
     "tai_20_5_0",
     "tai_20_10_0",
@@ -10,7 +10,7 @@
   "OutDir": "Experiments/03_default_all_algorithms",
   "Parameters": {
     "Samples": 20,
-    "EvaluationBudget": 40000,
+    "EvaluationBudget": 900,
     "Seed": 42,
     "Monitoring": {
       "Enabled": true,
@@ -58,3 +58,5 @@
     }
   ]
 }
+
+

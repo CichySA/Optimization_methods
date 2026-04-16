@@ -12,6 +12,7 @@
 \usepackage{float}
 \usepackage{hyperref}
 \usepackage{amsfonts}
+\usepackage{csvsimple}
 
 \geometry{margin=1in}
 \onehalfspacing
@@ -359,6 +360,16 @@ The plots and tables below present per-instance baseline results, showing how ea
 \caption{Baseline comparison of all methods on all instances.}
 \label{fig:baseline_all_aggregate}
 \end{figure}
+
+\paragraph{Baseline comparison table.}
+The following table is loaded from \texttt{data.csv} and scaled to page width.
+
+\begin{table}[H]
+\centering
+\resizebox{\textwidth}{!}{%
+\csvautotabular{data.csv}
+}
+\end{table}
 
 \chapter{Evolutionary Algorithm Design Details}
 \section{Encoding and Initialization}

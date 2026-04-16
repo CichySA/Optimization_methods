@@ -1,34 +1,34 @@
-{
-  "Instances": [
-    "tai_20_5_0"
-  ],
-  "OutDir": "Experiments/monitor_every_event_example",
-  "Algorithms": [
-    {
-      "Type": "Evolutionary",
-      "Parameters": {
-        "Seed": 42,
-        "Samples": 20,
-        "PopulationSize": 200,
-        "Generations": 200,
-        "CrossoverRate": 0.7,
-        "MutationRate": 0.1,
-        "TournamentSize": 5,
-        "SelectionMethod": "Tournament",
-        "CrossoverMethod": "OX",
-        "MutationMethod": "Swap",
-        "Monitoring": {
-          "Enabled": true,
-          "EnabledMetrics": [
-            "BestInPopulationByGeneration",
-            "WorstInPopulationByGeneration",
-            "ElapsedMs",
-            "Evaluations",
-            "MeanByGeneration",
-            "DeviationByGeneration"
-          ]
-        }
-      }
-    }
-  ]
+﻿{
+    "Instances":  [
+                      "tai_20_5_0"
+                  ],
+    "OutDir":  "Experiments/monitor_every_event_example",
+    "Algorithms":  [
+                       {
+                           "Type":  "Evolutionary",
+                           "Parameters":  {
+                                              "Seed":  42,
+                                              "Samples":  5,
+                                              "PopulationSize":  30,
+                                              "Generations":  30,
+                                              "CrossoverRate":  0.7,
+                                              "MutationRate":  0.1,
+                                              "TournamentSize":  5,
+                                              "SelectionMethod":  "Tournament",
+                                              "CrossoverMethod":  "OX",
+                                              "MutationMethod":  "Swap",
+                                              "Monitoring":  {
+                                                                 "Enabled":  true,
+                                                                 "EnabledMetrics":  [
+                                                                                        "BestInPopulationByGeneration",
+                                                                                        "WorstInPopulationByGeneration",
+                                                                                        "ElapsedMs",
+                                                                                        "Evaluations",
+                                                                                        "MeanByGeneration",
+                                                                                        "DeviationByGeneration"
+                                                                                    ]
+                                                             }
+                                          }
+                       }
+                   ]
 }
